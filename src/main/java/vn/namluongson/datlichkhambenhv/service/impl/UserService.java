@@ -4,13 +4,16 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import vn.namluongson.datlichkhambenhv.domain.dtos.requests.user.CreateUserRequest;
+import vn.namluongson.datlichkhambenhv.domain.dtos.requests.user.ListUserRequest;
 import vn.namluongson.datlichkhambenhv.domain.dtos.requests.user.UpdateUserRequest;
+import vn.namluongson.datlichkhambenhv.domain.dtos.responses.user.UserResponse;
 import vn.namluongson.datlichkhambenhv.domain.entities.User;
 import vn.namluongson.datlichkhambenhv.domain.response.ApiResponse;
 import vn.namluongson.datlichkhambenhv.repository.UserRepository;
 import vn.namluongson.datlichkhambenhv.service.interfaces.IUserService;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -65,5 +68,29 @@ public class UserService implements IUserService {
 
         userRepository.deleteById(id);
         return new ApiResponse(200, null, entity.getId());
+    }
+
+    @Override
+    public List<UserResponse> getListUsers(ListUserRequest request) {
+        List<User> users;
+
+        if (request != null && request.getFullName() != null && !request.getFullName().trim().isEmpty()) {
+            users = userRepository.findByFullNameContainingIgnoreCase(request.getFullName().trim());
+        } else {
+            users = userRepository.findAll();
+        }
+
+        return users.stream().map(user -> {
+            UserResponse response = new UserResponse();
+            response.setId(user.getId());
+            response.setFullName(user.getFullName());
+            response.setPhone(user.getPhone());
+            response.setEmail(user.getEmail());
+            response.setDateOfBirth(user.getDateOfBirth());
+            response.setRole(user.getRole());
+            response.setStatus(user.getStatus());
+            response.setCreatedAt(user.getCreatedAt());
+            return response;
+        }).toList();
     }
 }

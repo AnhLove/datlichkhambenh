@@ -1,9 +1,11 @@
 package vn.namluongson.datlichkhambenhv.controller;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.repository.query.Param;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import vn.namluongson.datlichkhambenhv.domain.dtos.requests.user.CreateUserRequest;
+import vn.namluongson.datlichkhambenhv.domain.dtos.requests.user.ListUserRequest;
 import vn.namluongson.datlichkhambenhv.domain.dtos.requests.user.UpdateUserRequest;
 import vn.namluongson.datlichkhambenhv.service.interfaces.IUserService;
 
@@ -26,5 +28,10 @@ public class UserController {
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteUser(@PathVariable("id") Long id) throws Exception {
         return ResponseEntity.ok(iUserService.deleteUser(id));
+    }
+
+    @GetMapping("/list")
+    public ResponseEntity<?> getListUsers(ListUserRequest request) {
+        return ResponseEntity.ok(iUserService.getListUsers(request));
     }
 }
