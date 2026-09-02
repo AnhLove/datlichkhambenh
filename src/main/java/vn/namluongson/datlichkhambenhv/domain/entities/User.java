@@ -45,4 +45,7 @@ public class User {
 
     @Column(name = "CREATED_AT", updatable = false)
     private LocalDateTime createdAt;
+
+    @Column(name = "UUID", nullable = false, unique = true, length = 36)
+    private String uuid;
 }

@@ -14,6 +14,7 @@ import vn.namluongson.datlichkhambenhv.service.interfaces.IUserService;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -35,6 +36,7 @@ public class UserService implements IUserService {
         user.setRole((short) 1);
         user.setStatus((short) 0);
         user.setCreatedAt(LocalDateTime.now());
+        user.setUuid(UUID.randomUUID().toString());
 
         userRepository.save(user);
         return new ApiResponse(200, null, user.getId());
@@ -82,7 +84,7 @@ public class UserService implements IUserService {
 
         return users.stream().map(user -> {
             UserResponse response = new UserResponse();
-            response.setId(user.getId());
+            response.setUuid(user.getUuid());
             response.setFullName(user.getFullName());
             response.setPhone(user.getPhone());
             response.setEmail(user.getEmail());
@@ -92,5 +94,28 @@ public class UserService implements IUserService {
             response.setCreatedAt(user.getCreatedAt());
             return response;
         }).toList();
+    }
+
+    @Override
+    public UserResponse getUserByUuid(String uuid) throws Exception {
+        if(uuid == null) {
+            throw new Exception("Uuid not found");
+        }
+        var data = userRepository.findByUuid(uuid);
+        if(data == null) {
+            throw new Exception("User not found");
+        }
+
+        UserResponse response = new UserResponse();
+        response.setUuid(data.getUuid());
+        response.setFullName(data.getFullName());
+        response.setEmail(data.getEmail());
+        response.setPhone(data.getPhone());
+        response.setDateOfBirth(data.getDateOfBirth());
+        response.setRole(data.getRole());
+        response.setStatus(data.getStatus());
+        response.setCreatedAt(data.getCreatedAt());
+
+        return response;
     }
 }
