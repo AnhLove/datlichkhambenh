@@ -7,11 +7,14 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import vn.namluongson.datlichkhambenhv.domain.dtos.requests.department.CreateDepartmentRequest;
 import vn.namluongson.datlichkhambenhv.domain.dtos.requests.department.DepartmentPagingRequest;
+import vn.namluongson.datlichkhambenhv.domain.dtos.requests.department.ListDepartmentRequest;
 import vn.namluongson.datlichkhambenhv.domain.dtos.requests.department.UpdateDepartmentRequest;
 import vn.namluongson.datlichkhambenhv.domain.entities.Department;
 import vn.namluongson.datlichkhambenhv.domain.response.ApiResponse;
 import vn.namluongson.datlichkhambenhv.repository.DepartmentRepository;
 import vn.namluongson.datlichkhambenhv.service.interfaces.IDepartmentService;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -55,5 +58,26 @@ public class DepartmentService implements IDepartmentService {
     public Page<Department> getDepartments(DepartmentPagingRequest request) {
         Pageable pageable = PageRequest.of(request.getPage() - 1, request.getSize());
         return departmentRepository.findAll(pageable);
+    }
+
+    @Override
+    public List<Department> getListDepartments(ListDepartmentRequest request) {
+        if(request != null && request.getName() != null && !request.getName().trim().isEmpty()) {
+            return departmentRepository.findByNameContainingIgnoreCase(request.getName().trim());
+        }
+        return departmentRepository.findAll();
+    }
+
+    @Override
+    public Department getDepartmentById(Long id) throws Exception {
+        if(id == null) {
+            throw new Exception("id is empty");
+        }
+
+        var data = departmentRepository.findById(id).orElse(null);
+        if(data == null) {
+            throw new Exception("Department not found");
+        }
+        return data;
     }
 }
