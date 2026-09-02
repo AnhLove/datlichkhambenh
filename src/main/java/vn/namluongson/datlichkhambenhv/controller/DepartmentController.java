@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import vn.namluongson.datlichkhambenhv.domain.dtos.requests.department.CreateDepartmentRequest;
 import vn.namluongson.datlichkhambenhv.domain.dtos.requests.department.DepartmentPagingRequest;
+import vn.namluongson.datlichkhambenhv.domain.dtos.requests.department.ListDepartmentRequest;
 import vn.namluongson.datlichkhambenhv.domain.dtos.requests.department.UpdateDepartmentRequest;
 import vn.namluongson.datlichkhambenhv.service.interfaces.IDepartmentService;
 
@@ -40,5 +41,15 @@ public class DepartmentController {
     @GetMapping("/paging")
     public ResponseEntity<?> getDepartments(@Valid DepartmentPagingRequest request) {
         return ResponseEntity.ok(iDepartmentService.getDepartments(request));
+    }
+
+    @GetMapping("/list")
+    public ResponseEntity<?> getListDepartments(@Param("name") ListDepartmentRequest request) {
+        return ResponseEntity.ok(iDepartmentService.getListDepartments(request));
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<?> getDepartmentById(@PathVariable("id") Long id) throws Exception{
+        return ResponseEntity.ok(iDepartmentService.getDepartmentById(id));
     }
 }
