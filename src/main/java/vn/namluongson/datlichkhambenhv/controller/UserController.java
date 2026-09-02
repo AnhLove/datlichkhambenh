@@ -34,4 +34,9 @@ public class UserController {
     public ResponseEntity<?> getListUsers(ListUserRequest request) {
         return ResponseEntity.ok(iUserService.getListUsers(request));
     }
+
+    @GetMapping("/{uuid}")
+    public ResponseEntity<?> getUser(@PathVariable("uuid") String uuid) throws Exception {
+        return ResponseEntity.ok(iUserService.getUserByUuid(uuid));
+    }
 }
