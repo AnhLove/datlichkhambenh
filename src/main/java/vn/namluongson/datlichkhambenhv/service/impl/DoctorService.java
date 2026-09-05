@@ -4,6 +4,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import vn.namluongson.datlichkhambenhv.domain.dtos.requests.doctor.CreateDoctorRequest;
+import vn.namluongson.datlichkhambenhv.domain.dtos.requests.doctor.ListDoctorRequest;
+import vn.namluongson.datlichkhambenhv.domain.dtos.responses.doctor.DoctorResponse;
 import vn.namluongson.datlichkhambenhv.domain.entities.Department;
 import vn.namluongson.datlichkhambenhv.domain.entities.Doctor;
 import vn.namluongson.datlichkhambenhv.domain.entities.User;
@@ -14,6 +16,7 @@ import vn.namluongson.datlichkhambenhv.repository.UserRepository;
 import vn.namluongson.datlichkhambenhv.service.interfaces.IDoctorService;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -52,5 +55,27 @@ public class DoctorService implements IDoctorService {
         doctor.setBio(request.getBio());
         doctorRepository.save(doctor);
         return new ApiResponse(200, null, user.getId());
+    }
+
+    @Override
+    public List<DoctorResponse> getListDoctors(ListDoctorRequest request) {
+        List<Doctor> doctors;
+        if(request != null && request.getFullName() != null && !request.getFullName().trim().isEmpty()) {
+            doctors = doctorRepository.findByUser_FullNameContainingIgnoreCase(request.getFullName().trim());
+        }else {
+            doctors = doctorRepository.findAll();
+        }
+
+        return doctors.stream().map(doctor -> {
+            DoctorResponse response = new DoctorResponse();
+            response.setUuid(doctor.getUser().getUuid());
+            response.setFullName(doctor.getUser().getFullName());
+            response.setPhone(doctor.getUser().getPhone());
+            response.setEmail(doctor.getUser().getEmail());
+            response.setDepartmentName(doctor.getDepartment().getName());
+            response.setYearsExperience(doctor.getYearsExperience());
+            response.setBio(doctor.getBio());
+            return response;
+        }).toList();
     }
 }
