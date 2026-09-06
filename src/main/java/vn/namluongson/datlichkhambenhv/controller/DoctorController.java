@@ -6,6 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import vn.namluongson.datlichkhambenhv.domain.dtos.requests.doctor.CreateDoctorRequest;
 import vn.namluongson.datlichkhambenhv.domain.dtos.requests.doctor.ListDoctorRequest;
+import vn.namluongson.datlichkhambenhv.domain.dtos.requests.doctor.UpdateDoctorRequest;
 import vn.namluongson.datlichkhambenhv.service.interfaces.IDoctorService;
 
 @RestController
@@ -19,8 +20,23 @@ public class DoctorController {
         return ResponseEntity.ok(iDoctorService.createDoctor(request));
     }
 
+    @PutMapping
+    public ResponseEntity<?> updateDoctor(@RequestBody UpdateDoctorRequest request) throws Exception {
+        return ResponseEntity.ok(iDoctorService.updateDoctor(request));
+    }
+
+    @DeleteMapping("/{uuid}")
+    public ResponseEntity<?> deleteDoctor(@PathVariable("uuid") String uuid) throws Exception{
+        return ResponseEntity.ok(iDoctorService.deleteDoctor(uuid));
+    }
+
     @GetMapping("/list")
     public ResponseEntity<?> getListDoctors(@Param("fullName")ListDoctorRequest request) {
         return ResponseEntity.ok(iDoctorService.getListDoctors(request));
+    }
+
+    @GetMapping("/paging")
+    public ResponseEntity<?> getDoctors(ListDoctorRequest request) {
+        return ResponseEntity.ok(iDoctorService.getDoctors(request));
     }
 }
