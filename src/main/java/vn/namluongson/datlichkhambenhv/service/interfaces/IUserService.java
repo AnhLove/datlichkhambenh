@@ -14,4 +14,6 @@ public interface IUserService {
     ApiResponse deleteUser(Long id) throws Exception;
     List<UserResponse> getListUsers(ListUserRequest request);
     UserResponse getUserByUuid(String uuid) throws Exception;
+
+    List<UserResponse> getListUserByName(String name);
 }

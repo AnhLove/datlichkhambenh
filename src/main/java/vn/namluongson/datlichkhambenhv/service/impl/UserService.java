@@ -118,4 +118,26 @@ public class UserService implements IUserService {
 
         return response;
     }
+
+    @Override
+    public List<UserResponse> getListUserByName(String name) {
+        List<User> users;
+        if(name != null) {
+            users = userRepository.getListUserByName(name.trim());
+        }else {
+            users = userRepository.findAll();
+        }
+        return users.stream().map(user -> {
+            UserResponse response = new UserResponse();
+            response.setUuid(user.getUuid());
+            response.setFullName(user.getFullName());
+            response.setPhone(user.getPhone());
+            response.setEmail(user.getEmail());
+            response.setDateOfBirth(user.getDateOfBirth());
+            response.setRole(user.getRole());
+            response.setStatus(user.getStatus());
+            response.setCreatedAt(user.getCreatedAt());
+            return response;
+        }).toList();
+    }
 }

@@ -6,4 +6,5 @@ import vn.namluongson.datlichkhambenhv.domain.entities.DoctorWorkingHour;
 
 @Repository
 public interface DoctorWorkingHourRepository extends JpaRepository<DoctorWorkingHour, Long> {
+    boolean existsByDoctor_IdAndDayOfWeek(Long doctorId, Short dayOfWeek);
 }
