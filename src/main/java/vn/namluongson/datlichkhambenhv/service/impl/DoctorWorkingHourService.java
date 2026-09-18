@@ -6,8 +6,8 @@ import vn.namluongson.datlichkhambenhv.domain.dtos.requests.doctorworking.Create
 import vn.namluongson.datlichkhambenhv.domain.entities.Doctor;
 import vn.namluongson.datlichkhambenhv.domain.entities.DoctorWorkingHour;
 import vn.namluongson.datlichkhambenhv.domain.response.ApiResponse;
-import vn.namluongson.datlichkhambenhv.repository.DoctorRepository;
-import vn.namluongson.datlichkhambenhv.repository.DoctorWorkingHourRepository;
+import vn.namluongson.datlichkhambenhv.repository.doctor.DoctorRepository;
+import vn.namluongson.datlichkhambenhv.repository.doctor.DoctorWorkingHourRepository;
 import vn.namluongson.datlichkhambenhv.service.interfaces.IDoctorWorkingHourService;
 
 @Service

@@ -10,13 +10,14 @@ import vn.namluongson.datlichkhambenhv.domain.dtos.requests.doctor.CreateDoctorR
 import vn.namluongson.datlichkhambenhv.domain.dtos.requests.doctor.ListDoctorRequest;
 import vn.namluongson.datlichkhambenhv.domain.dtos.requests.doctor.UpdateDoctorRequest;
 import vn.namluongson.datlichkhambenhv.domain.dtos.responses.doctor.DoctorResponse;
+import vn.namluongson.datlichkhambenhv.domain.dtos.responses.doctor.DoctorSearchResponse;
 import vn.namluongson.datlichkhambenhv.domain.entities.Department;
 import vn.namluongson.datlichkhambenhv.domain.entities.Doctor;
 import vn.namluongson.datlichkhambenhv.domain.entities.User;
 import vn.namluongson.datlichkhambenhv.domain.response.ApiResponse;
-import vn.namluongson.datlichkhambenhv.repository.DepartmentRepository;
-import vn.namluongson.datlichkhambenhv.repository.DoctorRepository;
-import vn.namluongson.datlichkhambenhv.repository.UserRepository;
+import vn.namluongson.datlichkhambenhv.repository.department.DepartmentRepository;
+import vn.namluongson.datlichkhambenhv.repository.doctor.DoctorRepository;
+import vn.namluongson.datlichkhambenhv.repository.user.UserRepository;
 import vn.namluongson.datlichkhambenhv.service.interfaces.IDoctorService;
 
 import java.time.LocalDateTime;
@@ -145,5 +146,10 @@ public class DoctorService implements IDoctorService {
             response.setBio(doctor.getBio());
             return response;
         });
+    }
+
+    @Override
+    public List<DoctorSearchResponse> getListDepartment_DoctorName(String departmentName, String fullName) throws Exception {
+        return doctorRepository.getListDepartment_DoctorName(departmentName, fullName);
     }
 }

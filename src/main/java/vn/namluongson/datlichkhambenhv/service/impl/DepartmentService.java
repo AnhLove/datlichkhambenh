@@ -11,7 +11,7 @@ import vn.namluongson.datlichkhambenhv.domain.dtos.requests.department.ListDepar
 import vn.namluongson.datlichkhambenhv.domain.dtos.requests.department.UpdateDepartmentRequest;
 import vn.namluongson.datlichkhambenhv.domain.entities.Department;
 import vn.namluongson.datlichkhambenhv.domain.response.ApiResponse;
-import vn.namluongson.datlichkhambenhv.repository.DepartmentRepository;
+import vn.namluongson.datlichkhambenhv.repository.department.DepartmentRepository;
 import vn.namluongson.datlichkhambenhv.service.interfaces.IDepartmentService;
 
 import java.util.List;

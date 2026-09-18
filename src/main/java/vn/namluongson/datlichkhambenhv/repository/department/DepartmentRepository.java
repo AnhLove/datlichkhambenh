@@ -1,4 +1,4 @@
-package vn.namluongson.datlichkhambenhv.repository;
+package vn.namluongson.datlichkhambenhv.repository.department;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import vn.namluongson.datlichkhambenhv.domain.entities.Department;

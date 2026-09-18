@@ -1,4 +1,4 @@
-package vn.namluongson.datlichkhambenhv.repository;
+package vn.namluongson.datlichkhambenhv.repository.user;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

@@ -9,7 +9,7 @@ import vn.namluongson.datlichkhambenhv.domain.dtos.requests.user.UpdateUserReque
 import vn.namluongson.datlichkhambenhv.domain.dtos.responses.user.UserResponse;
 import vn.namluongson.datlichkhambenhv.domain.entities.User;
 import vn.namluongson.datlichkhambenhv.domain.response.ApiResponse;
-import vn.namluongson.datlichkhambenhv.repository.UserRepository;
+import vn.namluongson.datlichkhambenhv.repository.user.UserRepository;
 import vn.namluongson.datlichkhambenhv.service.interfaces.IUserService;
 
 import java.time.LocalDateTime;

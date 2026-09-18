@@ -5,6 +5,7 @@ import vn.namluongson.datlichkhambenhv.domain.dtos.requests.doctor.CreateDoctorR
 import vn.namluongson.datlichkhambenhv.domain.dtos.requests.doctor.ListDoctorRequest;
 import vn.namluongson.datlichkhambenhv.domain.dtos.requests.doctor.UpdateDoctorRequest;
 import vn.namluongson.datlichkhambenhv.domain.dtos.responses.doctor.DoctorResponse;
+import vn.namluongson.datlichkhambenhv.domain.dtos.responses.doctor.DoctorSearchResponse;
 import vn.namluongson.datlichkhambenhv.domain.response.ApiResponse;
 
 import java.util.List;
@@ -15,4 +16,5 @@ public interface IDoctorService {
     ApiResponse deleteDoctor(String uuid) throws Exception;
     List<DoctorResponse> getListDoctors(ListDoctorRequest request);
     Page<DoctorResponse> getDoctors(ListDoctorRequest request);
+    List<DoctorSearchResponse> getListDepartment_DoctorName(String departmentName, String fullName) throws Exception;
 }

@@ -39,4 +39,9 @@ public class DoctorController {
     public ResponseEntity<?> getDoctors(ListDoctorRequest request) {
         return ResponseEntity.ok(iDoctorService.getDoctors(request));
     }
+
+    @GetMapping("/get-list-department-doctorname")
+    public ResponseEntity<?> getListDepartment_DoctorName(@RequestParam("departmentName") String departmentName, @RequestParam("fullName") String fullName) throws Exception{
+        return ResponseEntity.ok(iDoctorService.getListDepartment_DoctorName(departmentName, fullName));
+    }
 }
