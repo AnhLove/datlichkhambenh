@@ -6,7 +6,7 @@ import lombok.Setter;
 @Getter
 @Setter
 public class DoctorWorkingHourResponse {
-    private Long doctorId;
+    private String uuid;
     private Short dayOfWeek;
     private Short shiftType;
     private Short status;
