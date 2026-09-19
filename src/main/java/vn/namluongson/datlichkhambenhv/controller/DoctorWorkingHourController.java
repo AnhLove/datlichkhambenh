@@ -21,4 +21,9 @@ public class DoctorWorkingHourController {
     public ResponseEntity<?> getWorkingHoursByDoctorUuid(@PathVariable String uuid) throws Exception{
         return ResponseEntity.ok(service.getWorkingHoursByDoctorUuid(uuid));
     }
+
+    @GetMapping("/status/{status}")
+    public ResponseEntity<?> getWorkingHourByStatus(@PathVariable Short status) throws Exception {
+        return ResponseEntity.ok(service.getWorkingHourByStatus(status));
+    }
 }

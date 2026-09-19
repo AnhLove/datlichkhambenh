@@ -58,4 +58,23 @@ public class DoctorWorkingHourService implements IDoctorWorkingHourService {
             return response;
         }).toList();
     }
+
+    @Override
+    public List<DoctorWorkingHourResponse> getWorkingHourByStatus(Short status) throws Exception{
+        List<DoctorWorkingHour> workingHours = doctorWorkingHourRepository.findByStatus(status);
+
+        if(workingHours.isEmpty()) {
+            throw new Exception("Khong co du lieu");
+        }
+
+        return workingHours.stream().map(res -> {
+            DoctorWorkingHourResponse response = new DoctorWorkingHourResponse();
+            response.setUuid(res.getDoctor().getUser().getUuid());
+            response.setDayOfWeek(res.getDayOfWeek());
+            response.setShiftType(res.getShiftType());
+            response.setStatus(res.getStatus());
+            response.setSetByUuid(res.getSetBy().getUuid());
+            return response;
+        }).toList();
+    }
 }

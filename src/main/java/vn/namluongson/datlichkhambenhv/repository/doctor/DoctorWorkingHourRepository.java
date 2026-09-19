@@ -10,4 +10,5 @@ import java.util.List;
 public interface DoctorWorkingHourRepository extends JpaRepository<DoctorWorkingHour, Long> {
     boolean existsByDoctor_IdAndDayOfWeek(Long doctorId, Short dayOfWeek);
     List<DoctorWorkingHour> findByDoctor_User_Uuid(String uuid);
+    List<DoctorWorkingHour> findByStatus(Short status);
 }

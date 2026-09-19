@@ -9,4 +9,5 @@ import java.util.List;
 public interface IDoctorWorkingHourService {
     ApiResponse createDoctorWorkingHour(CreateDoctorWorkingHourRequest request);
     List<DoctorWorkingHourResponse> getWorkingHoursByDoctorUuid(String uuid) throws Exception;
+    List<DoctorWorkingHourResponse> getWorkingHourByStatus(Short status) throws Exception;
 }
