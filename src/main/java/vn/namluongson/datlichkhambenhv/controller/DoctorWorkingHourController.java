@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import vn.namluongson.datlichkhambenhv.domain.dtos.requests.doctorworking.CreateDoctorWorkingHourRequest;
+import vn.namluongson.datlichkhambenhv.domain.dtos.requests.doctorworking.UpdateDoctorWorkingHourStatusRequest;
 import vn.namluongson.datlichkhambenhv.service.interfaces.IDoctorWorkingHourService;
 
 @RestController
@@ -25,5 +26,10 @@ public class DoctorWorkingHourController {
     @GetMapping("/status/{status}")
     public ResponseEntity<?> getWorkingHourByStatus(@PathVariable Short status) throws Exception {
         return ResponseEntity.ok(service.getWorkingHourByStatus(status));
+    }
+
+    @PutMapping("/{id}/status")
+    public ResponseEntity<?> updateWorkingStatus(@PathVariable Long id,@RequestBody  UpdateDoctorWorkingHourStatusRequest request) throws Exception {
+        return ResponseEntity.ok(service.updateWorkingStatus(id, request));
     }
 }

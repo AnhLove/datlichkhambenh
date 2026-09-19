@@ -3,6 +3,7 @@ package vn.namluongson.datlichkhambenhv.service.impl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import vn.namluongson.datlichkhambenhv.domain.dtos.requests.doctorworking.CreateDoctorWorkingHourRequest;
+import vn.namluongson.datlichkhambenhv.domain.dtos.requests.doctorworking.UpdateDoctorWorkingHourStatusRequest;
 import vn.namluongson.datlichkhambenhv.domain.dtos.responses.doctorworking.DoctorWorkingHourResponse;
 import vn.namluongson.datlichkhambenhv.domain.entities.Doctor;
 import vn.namluongson.datlichkhambenhv.domain.entities.DoctorWorkingHour;
@@ -50,6 +51,7 @@ public class DoctorWorkingHourService implements IDoctorWorkingHourService {
 
         return workingHours.stream().map(res -> {
             DoctorWorkingHourResponse response = new DoctorWorkingHourResponse();
+            response.setId(res.getId());
             response.setUuid(res.getDoctor().getUser().getUuid());
             response.setDayOfWeek(res.getDayOfWeek());
             response.setShiftType(res.getShiftType());
@@ -69,6 +71,7 @@ public class DoctorWorkingHourService implements IDoctorWorkingHourService {
 
         return workingHours.stream().map(res -> {
             DoctorWorkingHourResponse response = new DoctorWorkingHourResponse();
+            response.setId(res.getId());
             response.setUuid(res.getDoctor().getUser().getUuid());
             response.setDayOfWeek(res.getDayOfWeek());
             response.setShiftType(res.getShiftType());
@@ -76,5 +79,26 @@ public class DoctorWorkingHourService implements IDoctorWorkingHourService {
             response.setSetByUuid(res.getSetBy().getUuid());
             return response;
         }).toList();
+    }
+
+    @Override
+    public ApiResponse updateWorkingStatus(Long id, UpdateDoctorWorkingHourStatusRequest request) throws Exception {
+        var entity = doctorWorkingHourRepository.findById(id).orElse(null);
+        if(entity == null) {
+            throw new Exception("Khong tim thay lich lam viec");
+        }
+
+        if(entity.getStatus() == 1){
+            var newStatus = request.getStatus();
+            if(newStatus == 2 || newStatus == 3){
+                entity.setStatus(newStatus);
+                doctorWorkingHourRepository.save(entity);
+            }else {
+                throw new Exception("Chi co the la duyet hoac tu choi");
+            }
+        } else {
+            throw new Exception("Chi co the sua tu dang cho");
+        }
+        return new ApiResponse(200, null, entity.getId());
     }
 }
