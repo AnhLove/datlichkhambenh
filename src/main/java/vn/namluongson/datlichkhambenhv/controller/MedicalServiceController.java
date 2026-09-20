@@ -3,6 +3,7 @@ package vn.namluongson.datlichkhambenhv.controller;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import vn.namluongson.datlichkhambenhv.domain.dtos.requests.medicalservice.CreateMedicalServiceRequest;
 import vn.namluongson.datlichkhambenhv.service.interfaces.IMedicalServiceService;
 
 @RestController
@@ -19,5 +20,10 @@ public class MedicalServiceController {
     @GetMapping("/{id}")
     public ResponseEntity<?> getMedicalServiceById(@PathVariable Long id) throws Exception{
         return ResponseEntity.ok(service.getMedicalServiceById(id));
+    }
+
+    @PostMapping
+    public ResponseEntity<?> createMedicalService(@RequestBody CreateMedicalServiceRequest request) {
+        return ResponseEntity.ok(service.createMedicalService(request));
     }
 }
