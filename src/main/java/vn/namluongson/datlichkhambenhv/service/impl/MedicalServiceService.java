@@ -14,7 +14,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class MedicalServiceServiceImpl implements IMedicalServiceService {
+public class MedicalServiceService implements IMedicalServiceService {
     private final MedicalServiceRepository medicalServiceRepository;
     private final DepartmentRepository departmentRepository;
 
@@ -62,9 +62,14 @@ public class MedicalServiceServiceImpl implements IMedicalServiceService {
             throw new RuntimeException("Khong co khoa");
         }
 
+        boolean exists = medicalServiceRepository.existsByDepartment_IdAndNameIgnoreCase(request.getDepartmentId(), request.getName().trim());
+
+        if(exists) {
+            throw new RuntimeException("Da ton tai");
+        }
         MedicalService medicalService = new MedicalService();
         medicalService.setDepartment(department);
-        medicalService.setName(request.getName());
+        medicalService.setName(request.getName().trim());
         medicalService.setPrice(request.getPrice());
         medicalService.setDescription(request.getDescription());
         medicalServiceRepository.save(medicalService);
