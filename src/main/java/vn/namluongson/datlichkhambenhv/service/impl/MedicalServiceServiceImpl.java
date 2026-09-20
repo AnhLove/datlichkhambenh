@@ -31,4 +31,23 @@ public class MedicalServiceServiceImpl implements IMedicalServiceService {
             return response;
         }).toList();
     }
+
+    @Override
+    public MedicalServiceResponse getMedicalServiceById(Long id) throws Exception {
+        if(id == null) {
+            throw new Exception("Khong ton tai");
+        }
+
+        var data = medicalServiceRepository.findById(id).orElse(null);
+        if (data == null) {
+            throw new Exception("Khong co du lieu");
+        }
+
+        MedicalServiceResponse response = new MedicalServiceResponse();
+        response.setDepartmentName(data.getDepartment().getName());
+        response.setName(data.getName());
+        response.setPrice(data.getPrice());
+        response.setDescription(data.getDescription());
+        return response;
+    }
 }

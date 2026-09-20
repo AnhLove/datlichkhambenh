@@ -6,4 +6,6 @@ import java.util.List;
 
 public interface IMedicalServiceService {
     List<MedicalServiceResponse> getListMedicalService(String name) throws Exception;
+
+    MedicalServiceResponse getMedicalServiceById(Long id) throws Exception;
 }
