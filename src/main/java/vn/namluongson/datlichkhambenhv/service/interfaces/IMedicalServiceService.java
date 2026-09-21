@@ -12,4 +12,5 @@ public interface IMedicalServiceService {
     MedicalServiceResponse getMedicalServiceById(Long id) throws Exception;
     ApiResponse createMedicalService(CreateMedicalServiceRequest request);
     ApiResponse updateMedicalService(Long id, UpdateMedicalServiceRequest request);
+    ApiResponse deleteMedicalService(Long id);
 }

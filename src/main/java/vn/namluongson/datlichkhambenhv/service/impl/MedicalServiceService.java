@@ -100,4 +100,16 @@ public class MedicalServiceService implements IMedicalServiceService {
         medicalServiceRepository.save(medicalService);
         return new ApiResponse(200, null, medicalService.getId());
     }
+
+    @Override
+    public ApiResponse deleteMedicalService(Long id) {
+        var entity = medicalServiceRepository.findById(id).orElse(null);
+        if(entity == null) {
+            throw new RuntimeException("Khong ton tai");
+        }
+
+        medicalServiceRepository.delete(entity);
+
+        return new ApiResponse(200, null, entity.getId());
+    }
 }

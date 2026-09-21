@@ -32,4 +32,9 @@ public class MedicalServiceController {
     public ResponseEntity<?> updateMedicalService(@PathVariable Long id,@RequestBody UpdateMedicalServiceRequest request) {
         return ResponseEntity.ok(service.updateMedicalService(id, request));
     }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteMedicalService(@PathVariable Long id) {
+        return ResponseEntity.ok(service.deleteMedicalService(id));
+    }
 }
