@@ -10,4 +10,5 @@ import java.util.List;
 public interface MedicalServiceRepository extends JpaRepository<MedicalService, Long> {
     List<MedicalService> findByNameContainingIgnoreCase(String name);
     boolean existsByDepartment_IdAndNameIgnoreCase(Long departmentId, String name);
+    boolean existsByDepartment_IdAndNameIgnoreCaseAndIdNot(Long departmentId, String name, Long id);
 }

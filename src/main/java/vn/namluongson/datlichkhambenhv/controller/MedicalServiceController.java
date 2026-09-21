@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import vn.namluongson.datlichkhambenhv.domain.dtos.requests.medicalservice.CreateMedicalServiceRequest;
+import vn.namluongson.datlichkhambenhv.domain.dtos.requests.medicalservice.UpdateMedicalServiceRequest;
 import vn.namluongson.datlichkhambenhv.service.interfaces.IMedicalServiceService;
 
 @RestController
@@ -25,5 +26,10 @@ public class MedicalServiceController {
     @PostMapping
     public ResponseEntity<?> createMedicalService(@RequestBody CreateMedicalServiceRequest request) {
         return ResponseEntity.ok(service.createMedicalService(request));
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<?> updateMedicalService(@PathVariable Long id,@RequestBody UpdateMedicalServiceRequest request) {
+        return ResponseEntity.ok(service.updateMedicalService(id, request));
     }
 }

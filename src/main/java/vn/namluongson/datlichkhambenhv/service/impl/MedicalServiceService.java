@@ -3,6 +3,7 @@ package vn.namluongson.datlichkhambenhv.service.impl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import vn.namluongson.datlichkhambenhv.domain.dtos.requests.medicalservice.CreateMedicalServiceRequest;
+import vn.namluongson.datlichkhambenhv.domain.dtos.requests.medicalservice.UpdateMedicalServiceRequest;
 import vn.namluongson.datlichkhambenhv.domain.dtos.responses.medicalservice.MedicalServiceResponse;
 import vn.namluongson.datlichkhambenhv.domain.entities.MedicalService;
 import vn.namluongson.datlichkhambenhv.domain.response.ApiResponse;
@@ -68,6 +69,30 @@ public class MedicalServiceService implements IMedicalServiceService {
             throw new RuntimeException("Da ton tai");
         }
         MedicalService medicalService = new MedicalService();
+        medicalService.setDepartment(department);
+        medicalService.setName(request.getName().trim());
+        medicalService.setPrice(request.getPrice());
+        medicalService.setDescription(request.getDescription());
+        medicalServiceRepository.save(medicalService);
+        return new ApiResponse(200, null, medicalService.getId());
+    }
+
+    @Override
+    public ApiResponse updateMedicalService(Long id, UpdateMedicalServiceRequest request) {
+        var medicalService = medicalServiceRepository.findById(id).orElse(null);
+        if(medicalService == null) {
+            throw new RuntimeException("Khong ton tai");
+        }
+
+        var department = departmentRepository.findById(request.getDepartmentId()).orElse(null);
+        if (department == null) {
+            throw new RuntimeException("Khong ton tai khoa");
+        }
+
+        boolean exists = medicalServiceRepository.existsByDepartment_IdAndNameIgnoreCaseAndIdNot(request.getDepartmentId(), request.getName().trim(), medicalService.getId());
+        if(exists) {
+            throw new RuntimeException("Khong the cap nhap");
+        }
         medicalService.setDepartment(department);
         medicalService.setName(request.getName().trim());
         medicalService.setPrice(request.getPrice());
