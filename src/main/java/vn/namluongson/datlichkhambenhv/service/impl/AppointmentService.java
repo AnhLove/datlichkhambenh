@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 import vn.namluongson.datlichkhambenhv.domain.dtos.requests.appointment.CreateAppointmentRequest;
 import vn.namluongson.datlichkhambenhv.domain.dtos.responses.appointment.AvailableSlotResponse;
 import vn.namluongson.datlichkhambenhv.domain.entities.Appointment;
+import vn.namluongson.datlichkhambenhv.domain.enums.AppointmentStatus;
 import vn.namluongson.datlichkhambenhv.domain.enums.Role;
 import vn.namluongson.datlichkhambenhv.domain.enums.TimeSlot;
 import vn.namluongson.datlichkhambenhv.domain.response.ApiResponse;
@@ -30,6 +31,9 @@ public class AppointmentService implements IAppointmentService {
 
     @Override
     public ApiResponse createAppointment(CreateAppointmentRequest request) {
+        if(request.getAppointmentDate().isBefore(LocalDate.now())) {
+            throw new RuntimeException("Khong the dat lich qua khu");
+        }
         var doctorUser = userRepository.findByUuid(request.getDoctorUuid());
         if(doctorUser  == null) {
             throw new RuntimeException("Khong ton tai uuid bac si");
@@ -71,6 +75,7 @@ public class AppointmentService implements IAppointmentService {
         appointment.setAppointmentDate(request.getAppointmentDate());
         appointment.setTimeSlot(request.getTimeSlot());
         appointment.setReason(request.getReason());
+        appointment.setStatus(AppointmentStatus.PENDING.getCode());
         appointmentRepository.save(appointment);
         return new ApiResponse(200, null, appointment);
     }
