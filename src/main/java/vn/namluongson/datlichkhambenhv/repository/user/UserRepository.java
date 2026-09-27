@@ -20,4 +20,5 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     @Query(value = "SELECT * FROM USERS WHERE STATUS = 0 AND UPPER(FULL_NAME) LIKE UPPER(CONCAT(CONCAT('%', :fullName), '%'))", nativeQuery = true)
     List<User> getListUserByName(@Param("fullName") String fullName);
+    User findByEmail(String email);
 }

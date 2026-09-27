@@ -16,4 +16,13 @@ public enum Role {
         this.code = code;
         this.name = name;
     }
+
+    public static Role fromCode(int code) {
+        for(Role role : values()) {
+            if(role.code == code) {
+                return role;
+            }
+        }
+        throw new IllegalArgumentException("Role không hợp lệ: " + code);
+    }
 }

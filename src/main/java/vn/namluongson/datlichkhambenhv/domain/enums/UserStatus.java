@@ -14,4 +14,13 @@ public enum UserStatus {
         this.code = code;
         this.name = name;
     }
+
+    public static UserStatus fromCode(int code) {
+        for(UserStatus status : values()) {
+            if(status.code == code) {
+                return status;
+            }
+        }
+        throw new IllegalArgumentException("Status khong hop le: " + code);
+    }
 }
