@@ -1,10 +1,17 @@
 package vn.namluongson.datlichkhambenhv.service.impl;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import vn.namluongson.datlichkhambenhv.config.security.CustomUserDetails;
 import vn.namluongson.datlichkhambenhv.domain.dtos.requests.appointment.CreateAppointmentRequest;
+import vn.namluongson.datlichkhambenhv.domain.dtos.responses.appointment.AppointmentResponse;
 import vn.namluongson.datlichkhambenhv.domain.dtos.responses.appointment.AvailableSlotResponse;
 import vn.namluongson.datlichkhambenhv.domain.entities.Appointment;
+import vn.namluongson.datlichkhambenhv.domain.entities.User;
 import vn.namluongson.datlichkhambenhv.domain.enums.AppointmentStatus;
 import vn.namluongson.datlichkhambenhv.domain.enums.Role;
 import vn.namluongson.datlichkhambenhv.domain.enums.TimeSlot;
@@ -17,6 +24,7 @@ import vn.namluongson.datlichkhambenhv.repository.user.UserRepository;
 import vn.namluongson.datlichkhambenhv.service.interfaces.IAppointmentService;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 
@@ -31,41 +39,49 @@ public class AppointmentService implements IAppointmentService {
 
     @Override
     public ApiResponse createAppointment(CreateAppointmentRequest request) {
-        if(request.getAppointmentDate().isBefore(LocalDate.now())) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !(authentication.getPrincipal() instanceof CustomUserDetails userDetails)) {
+            throw new AccessDeniedException("Chua xac thuc");
+        }
+        User currentUser = userDetails.getUser();
+        if (currentUser.getRole() != Role.PATIENT.getCode()) {
+            throw new RuntimeException("Khong phai benh nhan");
+        }
+
+        if (request.getAppointmentDate().isBefore(LocalDate.now())) {
             throw new RuntimeException("Khong the dat lich qua khu");
         }
         var doctorUser = userRepository.findByUuid(request.getDoctorUuid());
-        if(doctorUser  == null) {
+        if (doctorUser == null) {
             throw new RuntimeException("Khong ton tai uuid bac si");
         }
-        if(doctorUser.getRole() != Role.DOCTOR.getCode()){
+        if (doctorUser.getRole() != Role.DOCTOR.getCode()) {
             throw new RuntimeException("Khong phai bac si");
         }
         var doctor = doctorRepository.findById(doctorUser.getId()).orElse(null);
-        if(doctor == null) {
+        if (doctor == null) {
             throw new RuntimeException("Khong ton tai bac si");
         }
         var department = departmentRepository.findById(request.getDepartmentId()).orElse(null);
-        if(department == null){
+        if (department == null) {
             throw new RuntimeException("Khong ton tai khoa nay");
         }
-        if(!doctor.getDepartment().getId().equals(request.getDepartmentId())) {
+        if (!doctor.getDepartment().getId().equals(request.getDepartmentId())) {
             throw new RuntimeException("Bac si ko thuoc khoa nay");
         }
 
-        boolean exists = appointmentRepository.existsByDoctor_IdAndAppointmentDateAndTimeSlotAndStatusIn(doctor.getId(), request.getAppointmentDate(), request.getTimeSlot(), List.of(1, 2, 3));
-        if(exists) {
+        TimeSlot timeSlot = TimeSlot.fromValue(request.getTimeSlot());
+        boolean exists = appointmentRepository.existsByDoctor_IdAndAppointmentDateAndTimeSlotAndStatusIn(
+                doctor.getId(), request.getAppointmentDate(), request.getTimeSlot(), List.of(1, 2, 3));
+        if (exists) {
             throw new RuntimeException("Khong con lich trong");
         }
 
         Short dayOfWeek = (short) request.getAppointmentDate().getDayOfWeek().getValue();
-
-        TimeSlot timeSlot = TimeSlot.fromValue(request.getTimeSlot());
-
         Short shiftType = (short) timeSlot.getShiftType().getCode();
 
         int countWorkingHour = doctorWorkingHourRepository.countWorkingHour(doctor.getId(), dayOfWeek, shiftType, (short) 1, (short) 2);
-        if(countWorkingHour == 0) {
+        if (countWorkingHour == 0) {
             throw new RuntimeException("Khong co Bac si lam viec gio nay");
         }
 
@@ -76,8 +92,27 @@ public class AppointmentService implements IAppointmentService {
         appointment.setTimeSlot(request.getTimeSlot());
         appointment.setReason(request.getReason());
         appointment.setStatus(AppointmentStatus.PENDING.getCode());
-        appointmentRepository.save(appointment);
-        return new ApiResponse(200, null, appointment);
+        appointment.setPatient(currentUser);
+        appointment.setCreatedBy(currentUser);
+        appointment.setCreatedAt(LocalDateTime.now());
+
+        AppointmentResponse response = new AppointmentResponse();
+        response.setDoctorName(doctor.getUser().getFullName());
+        response.setDepartmentName(department.getName());
+        response.setAppointmentDate(appointment.getAppointmentDate());
+        response.setTimeSlot(appointment.getTimeSlot());
+        response.setReason(appointment.getReason());
+        response.setStatus(appointment.getStatus());
+        response.setCheckedInAt(appointment.getCheckedInAt());
+        response.setCreatedAt(appointment.getCreatedAt());
+
+        try {
+            appointmentRepository.save(appointment);
+        } catch (DataIntegrityViolationException e) {
+            throw new RuntimeException("Khong con lich trong");
+        }
+
+        return new ApiResponse(200, null, response);
     }
 
     @Override
