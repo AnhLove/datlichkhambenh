@@ -25,6 +25,7 @@ import vn.namluongson.datlichkhambenhv.service.interfaces.IAppointmentService;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Arrays;
 import java.util.List;
 
@@ -36,6 +37,7 @@ public class AppointmentService implements IAppointmentService {
     private final DoctorRepository doctorRepository;
     private final DoctorWorkingHourRepository doctorWorkingHourRepository;
     private final DepartmentRepository departmentRepository;
+    private static final ZoneId VN_ZONE = ZoneId.of("Asia/Ho_Chi_Minh");
 
     @Override
     public ApiResponse createAppointment(CreateAppointmentRequest request) {
@@ -48,7 +50,7 @@ public class AppointmentService implements IAppointmentService {
             throw new RuntimeException("Khong phai benh nhan");
         }
 
-        if (request.getAppointmentDate().isBefore(LocalDate.now())) {
+        if (request.getAppointmentDate().isBefore(LocalDate.now(VN_ZONE))) {
             throw new RuntimeException("Khong the dat lich qua khu");
         }
         var doctorUser = userRepository.findByUuid(request.getDoctorUuid());
@@ -71,6 +73,11 @@ public class AppointmentService implements IAppointmentService {
         }
 
         TimeSlot timeSlot = TimeSlot.fromValue(request.getTimeSlot());
+
+        if(isSlotInPast(request.getAppointmentDate(), timeSlot)) {
+            throw new RuntimeException("khung gio da qua");
+        }
+
         boolean exists = appointmentRepository.existsByDoctor_IdAndAppointmentDateAndTimeSlotAndStatusIn(
                 doctor.getId(), request.getAppointmentDate(), request.getTimeSlot(), List.of(1, 2, 3));
         if (exists) {
@@ -94,7 +101,13 @@ public class AppointmentService implements IAppointmentService {
         appointment.setStatus(AppointmentStatus.PENDING.getCode());
         appointment.setPatient(currentUser);
         appointment.setCreatedBy(currentUser);
-        appointment.setCreatedAt(LocalDateTime.now());
+        appointment.setCreatedAt(LocalDateTime.now(VN_ZONE));
+
+        try {
+            appointmentRepository.save(appointment);
+        } catch (DataIntegrityViolationException e) {
+            throw new RuntimeException("Khong con lich trong");
+        }
 
         AppointmentResponse response = new AppointmentResponse();
         response.setDoctorName(doctor.getUser().getFullName());
@@ -105,12 +118,6 @@ public class AppointmentService implements IAppointmentService {
         response.setStatus(appointment.getStatus());
         response.setCheckedInAt(appointment.getCheckedInAt());
         response.setCreatedAt(appointment.getCreatedAt());
-
-        try {
-            appointmentRepository.save(appointment);
-        } catch (DataIntegrityViolationException e) {
-            throw new RuntimeException("Khong con lich trong");
-        }
 
         return new ApiResponse(200, null, response);
     }
@@ -128,11 +135,13 @@ public class AppointmentService implements IAppointmentService {
         if(doctor == null) {
             throw new RuntimeException("Khong ton tai bac si");
         }
+
+        if(appointmentDate.isBefore(LocalDate.now(VN_ZONE))) {
+            return List.of();
+        }
         Short dayOfWeek = (short) appointmentDate.getDayOfWeek().getValue();
 
-        var workingHours = doctorWorkingHourRepository.findByDoctor_User_Uuid(doctorUser.getUuid());
-
-        var workingHour = workingHours.stream().filter(item -> item.getDayOfWeek().equals(dayOfWeek)).findFirst().orElse(null);
+        var workingHour = doctorWorkingHourRepository.findByDoctor_IdAndDayOfWeekAndStatus(doctor.getId(), dayOfWeek, (short) 2).orElse(null);
 
         if(workingHour == null || workingHour.getShiftType() == 4) {
             return List.of();
@@ -152,10 +161,19 @@ public class AppointmentService implements IAppointmentService {
 
         availableTimeSlots = availableTimeSlots.stream().filter(slot -> !bookedTimeSlots.contains(slot.getValue())).toList();
 
+        availableTimeSlots = availableTimeSlots.stream()
+                .filter(slot -> !isSlotInPast(appointmentDate, slot))
+                .toList();
+
         return availableTimeSlots.stream().map(timeSlot  ->{
                     AvailableSlotResponse availableSlotResponse = new AvailableSlotResponse();
                     availableSlotResponse.setTimeSlot(timeSlot.getValue());
                     return availableSlotResponse;
         }).toList();
+    }
+    private boolean isSlotInPast(LocalDate date, TimeSlot slot) {
+        LocalDateTime now = LocalDateTime.now(VN_ZONE);
+        LocalDateTime slotStart = LocalDateTime.of(date, slot.getStartTime());
+        return !slotStart.isAfter(now);
     }
 }

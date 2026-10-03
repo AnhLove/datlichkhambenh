@@ -2,6 +2,8 @@ package vn.namluongson.datlichkhambenhv.domain.enums;
 
 import lombok.Getter;
 
+import java.time.LocalTime;
+
 @Getter
 public enum TimeSlot {
 
@@ -25,10 +27,12 @@ public enum TimeSlot {
 
     private final String value;
     private final ShiftType shiftType;
+    private final LocalTime startTime;
 
     TimeSlot(String value, ShiftType shiftType) {
         this.value = value;
         this.shiftType = shiftType;
+        this.startTime = LocalTime.parse(value.substring(0, 5));
     }
 
     public static TimeSlot fromValue(String value) {
