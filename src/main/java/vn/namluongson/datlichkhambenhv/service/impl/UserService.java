@@ -9,6 +9,7 @@ import vn.namluongson.datlichkhambenhv.domain.dtos.requests.user.UpdateUserReque
 import vn.namluongson.datlichkhambenhv.domain.dtos.responses.user.UserResponse;
 import vn.namluongson.datlichkhambenhv.domain.entities.User;
 import vn.namluongson.datlichkhambenhv.domain.response.ApiResponse;
+import vn.namluongson.datlichkhambenhv.exception.BusinessException;
 import vn.namluongson.datlichkhambenhv.repository.user.UserRepository;
 import vn.namluongson.datlichkhambenhv.service.interfaces.IUserService;
 
@@ -45,7 +46,7 @@ public class UserService implements IUserService {
     public ApiResponse updateUser(UpdateUserRequest updateUserRequest) throws Exception {
         var entity = userRepository.findById(updateUserRequest.getId()).orElse(null);
         if(entity == null) {
-            throw new Exception("User not found");
+            throw BusinessException.notFound("User not found");
         }
 
         entity.setFullName(updateUserRequest.getFullName());
@@ -65,7 +66,7 @@ public class UserService implements IUserService {
     public ApiResponse deleteUser(Long id) throws Exception{
         var entity = userRepository.findById(id).orElse(null);
         if (entity == null) {
-            throw new Exception("User not found");
+            throw BusinessException.notFound("User not found");
         }
 
         userRepository.deleteById(id);
@@ -98,12 +99,9 @@ public class UserService implements IUserService {
 
     @Override
     public UserResponse getUserByUuid(String uuid) throws Exception {
-        if(uuid == null) {
-            throw new Exception("Uuid not found");
-        }
         var data = userRepository.findByUuid(uuid);
         if(data == null) {
-            throw new Exception("User not found");
+            throw BusinessException.notFound("User not found");
         }
 
         UserResponse response = new UserResponse();

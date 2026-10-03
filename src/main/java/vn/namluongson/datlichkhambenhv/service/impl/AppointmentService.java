@@ -2,7 +2,6 @@ package vn.namluongson.datlichkhambenhv.service.impl;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -16,6 +15,7 @@ import vn.namluongson.datlichkhambenhv.domain.enums.AppointmentStatus;
 import vn.namluongson.datlichkhambenhv.domain.enums.Role;
 import vn.namluongson.datlichkhambenhv.domain.enums.TimeSlot;
 import vn.namluongson.datlichkhambenhv.domain.response.ApiResponse;
+import vn.namluongson.datlichkhambenhv.exception.BusinessException;
 import vn.namluongson.datlichkhambenhv.repository.appointment.AppointmentRepository;
 import vn.namluongson.datlichkhambenhv.repository.department.DepartmentRepository;
 import vn.namluongson.datlichkhambenhv.repository.doctor.DoctorRepository;
@@ -43,45 +43,45 @@ public class AppointmentService implements IAppointmentService {
     public ApiResponse createAppointment(CreateAppointmentRequest request) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || !(authentication.getPrincipal() instanceof CustomUserDetails userDetails)) {
-            throw new AccessDeniedException("Chua xac thuc");
+            throw BusinessException.unauthorized("Vui lòng đăng nhập");
         }
         User currentUser = userDetails.getUser();
         if (currentUser.getRole() != Role.PATIENT.getCode()) {
-            throw new RuntimeException("Khong phai benh nhan");
+            throw BusinessException.forbidden("Khong phai benh nhan");
         }
 
         if (request.getAppointmentDate().isBefore(LocalDate.now(VN_ZONE))) {
-            throw new RuntimeException("Khong the dat lich qua khu");
+            throw BusinessException.badRequest("Khong the dat lich qua khu");
         }
         var doctorUser = userRepository.findByUuid(request.getDoctorUuid());
         if (doctorUser == null) {
-            throw new RuntimeException("Khong ton tai uuid bac si");
+            throw BusinessException.notFound("Khong ton tai uuid bac si");
         }
         if (doctorUser.getRole() != Role.DOCTOR.getCode()) {
-            throw new RuntimeException("Khong phai bac si");
+            throw BusinessException.badRequest("Khong phai bac si");
         }
         var doctor = doctorRepository.findById(doctorUser.getId()).orElse(null);
         if (doctor == null) {
-            throw new RuntimeException("Khong ton tai bac si");
+            throw BusinessException.notFound("Khong ton tai bac si");
         }
         var department = departmentRepository.findById(request.getDepartmentId()).orElse(null);
         if (department == null) {
-            throw new RuntimeException("Khong ton tai khoa nay");
+            throw BusinessException.notFound("Khong ton tai khoa nay");
         }
         if (!doctor.getDepartment().getId().equals(request.getDepartmentId())) {
-            throw new RuntimeException("Bac si ko thuoc khoa nay");
+            throw BusinessException.badRequest("Bac si ko thuoc khoa nay");
         }
 
         TimeSlot timeSlot = TimeSlot.fromValue(request.getTimeSlot());
 
         if(isSlotInPast(request.getAppointmentDate(), timeSlot)) {
-            throw new RuntimeException("khung gio da qua");
+            throw BusinessException.badRequest("khung gio da qua");
         }
 
         boolean exists = appointmentRepository.existsByDoctor_IdAndAppointmentDateAndTimeSlotAndStatusIn(
                 doctor.getId(), request.getAppointmentDate(), request.getTimeSlot(), List.of(1, 2, 3));
         if (exists) {
-            throw new RuntimeException("Khong con lich trong");
+            throw BusinessException.conflict("Khong con lich trong");
         }
 
         Short dayOfWeek = (short) request.getAppointmentDate().getDayOfWeek().getValue();
@@ -89,7 +89,7 @@ public class AppointmentService implements IAppointmentService {
 
         int countWorkingHour = doctorWorkingHourRepository.countWorkingHour(doctor.getId(), dayOfWeek, shiftType, (short) 1, (short) 2);
         if (countWorkingHour == 0) {
-            throw new RuntimeException("Khong co Bac si lam viec gio nay");
+            throw BusinessException.badRequest("Khong co Bac si lam viec gio nay");
         }
 
         Appointment appointment = new Appointment();
@@ -106,7 +106,7 @@ public class AppointmentService implements IAppointmentService {
         try {
             appointmentRepository.save(appointment);
         } catch (DataIntegrityViolationException e) {
-            throw new RuntimeException("Khong con lich trong");
+            throw BusinessException.conflict("Khong con lich trong");
         }
 
         AppointmentResponse response = new AppointmentResponse();
@@ -126,14 +126,14 @@ public class AppointmentService implements IAppointmentService {
     public List<AvailableSlotResponse> getAvailableSlots(String doctorUuid, LocalDate appointmentDate) {
         var doctorUser = userRepository.findByUuid(doctorUuid);
         if(doctorUser == null) {
-            throw new RuntimeException("Khong ton tai Uuid cuả bác sĩ");
+            throw BusinessException.notFound("Khong ton tai Uuid cuả bác sĩ");
         }
         if(doctorUser.getRole() != Role.DOCTOR.getCode()) {
-            throw new RuntimeException("Khong phai bac si");
+            throw BusinessException.badRequest("Khong phai bac si");
         }
         var doctor = doctorRepository.findById(doctorUser.getId()).orElse(null);
         if(doctor == null) {
-            throw new RuntimeException("Khong ton tai bac si");
+            throw BusinessException.notFound("Khong ton tai bac si");
         }
 
         if(appointmentDate.isBefore(LocalDate.now(VN_ZONE))) {

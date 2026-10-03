@@ -8,6 +8,7 @@ import vn.namluongson.datlichkhambenhv.domain.dtos.responses.doctorworking.Docto
 import vn.namluongson.datlichkhambenhv.domain.entities.Doctor;
 import vn.namluongson.datlichkhambenhv.domain.entities.DoctorWorkingHour;
 import vn.namluongson.datlichkhambenhv.domain.response.ApiResponse;
+import vn.namluongson.datlichkhambenhv.exception.BusinessException;
 import vn.namluongson.datlichkhambenhv.repository.doctor.DoctorRepository;
 import vn.namluongson.datlichkhambenhv.repository.doctor.DoctorWorkingHourRepository;
 import vn.namluongson.datlichkhambenhv.service.interfaces.IDoctorWorkingHourService;
@@ -24,13 +25,13 @@ public class DoctorWorkingHourService implements IDoctorWorkingHourService {
     public ApiResponse createDoctorWorkingHour(CreateDoctorWorkingHourRequest request) {
         Doctor doctor = doctorRepository.findById(request.getDoctorId()).orElse(null);
         if(doctor == null) {
-            throw new RuntimeException("Ko ton tai Bac Si");
+            throw BusinessException.notFound("Ko ton tai Bac Si");
         }
 
         boolean exists = doctorWorkingHourRepository.existsByDoctor_IdAndDayOfWeek(request.getDoctorId(), request.getDayOfWeek());
 
         if(exists){
-            throw new RuntimeException("Da co lich");
+            throw BusinessException.conflict("Da co lich");
         }
         DoctorWorkingHour workingHour = new DoctorWorkingHour();
         workingHour.setDoctor(doctor);
@@ -46,7 +47,7 @@ public class DoctorWorkingHourService implements IDoctorWorkingHourService {
     public List<DoctorWorkingHourResponse> getWorkingHoursByDoctorUuid(String uuid) throws Exception{
         List<DoctorWorkingHour> workingHours = doctorWorkingHourRepository.findByDoctor_User_Uuid(uuid);
         if(workingHours.isEmpty()) {
-            throw new Exception("Khong co lich");
+            return List.of();
         }
 
         return workingHours.stream().map(res -> {
@@ -66,7 +67,7 @@ public class DoctorWorkingHourService implements IDoctorWorkingHourService {
         List<DoctorWorkingHour> workingHours = doctorWorkingHourRepository.findByStatus(status);
 
         if(workingHours.isEmpty()) {
-            throw new Exception("Khong co du lieu");
+            return List.of();
         }
 
         return workingHours.stream().map(res -> {
@@ -85,7 +86,7 @@ public class DoctorWorkingHourService implements IDoctorWorkingHourService {
     public ApiResponse updateWorkingStatus(Long id, UpdateDoctorWorkingHourStatusRequest request) throws Exception {
         var entity = doctorWorkingHourRepository.findById(id).orElse(null);
         if(entity == null) {
-            throw new Exception("Khong tim thay lich lam viec");
+            throw BusinessException.notFound("Khong tim thay lich lam viec");
         }
 
         if(entity.getStatus() == 1){
@@ -94,10 +95,10 @@ public class DoctorWorkingHourService implements IDoctorWorkingHourService {
                 entity.setStatus(newStatus);
                 doctorWorkingHourRepository.save(entity);
             }else {
-                throw new Exception("Chi co the la duyet hoac tu choi");
+                throw BusinessException.badRequest("Chi co the la duyet hoac tu choi");
             }
         } else {
-            throw new Exception("Chi co the sua tu dang cho");
+            throw BusinessException.badRequest("Chi co the sua tu dang cho");
         }
         return new ApiResponse(200, null, entity.getId());
     }

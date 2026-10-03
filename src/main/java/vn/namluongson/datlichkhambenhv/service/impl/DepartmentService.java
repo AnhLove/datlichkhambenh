@@ -11,6 +11,7 @@ import vn.namluongson.datlichkhambenhv.domain.dtos.requests.department.ListDepar
 import vn.namluongson.datlichkhambenhv.domain.dtos.requests.department.UpdateDepartmentRequest;
 import vn.namluongson.datlichkhambenhv.domain.entities.Department;
 import vn.namluongson.datlichkhambenhv.domain.response.ApiResponse;
+import vn.namluongson.datlichkhambenhv.exception.BusinessException;
 import vn.namluongson.datlichkhambenhv.repository.department.DepartmentRepository;
 import vn.namluongson.datlichkhambenhv.service.interfaces.IDepartmentService;
 
@@ -34,7 +35,7 @@ public class DepartmentService implements IDepartmentService {
     public ApiResponse updateDepartment(UpdateDepartmentRequest request) throws Exception {
         var entity = departmentRepository.findById(request.getId()).orElse(null);
         if(entity == null) {
-            throw new Exception("Department not found");
+            throw BusinessException.notFound("Department not found");
         }
 
         entity.setName(request.getName());
@@ -48,7 +49,7 @@ public class DepartmentService implements IDepartmentService {
     public ApiResponse deleteDepartment(Long id) throws Exception {
         var entity = departmentRepository.findById(id).orElse(null);
         if(entity == null) {
-            throw new Exception("Department not found");
+            throw BusinessException.notFound("Department not found");
         }
 
         departmentRepository.deleteById(id);
@@ -70,13 +71,9 @@ public class DepartmentService implements IDepartmentService {
 
     @Override
     public Department getDepartmentById(Long id) throws Exception {
-        if(id == null) {
-            throw new Exception("id is empty");
-        }
-
         var data = departmentRepository.findById(id).orElse(null);
         if(data == null) {
-            throw new Exception("Department not found");
+            throw BusinessException.notFound("Department not found");
         }
         return data;
     }

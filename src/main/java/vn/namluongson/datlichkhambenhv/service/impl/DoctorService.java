@@ -15,6 +15,7 @@ import vn.namluongson.datlichkhambenhv.domain.entities.Department;
 import vn.namluongson.datlichkhambenhv.domain.entities.Doctor;
 import vn.namluongson.datlichkhambenhv.domain.entities.User;
 import vn.namluongson.datlichkhambenhv.domain.response.ApiResponse;
+import vn.namluongson.datlichkhambenhv.exception.BusinessException;
 import vn.namluongson.datlichkhambenhv.repository.department.DepartmentRepository;
 import vn.namluongson.datlichkhambenhv.repository.doctor.DoctorRepository;
 import vn.namluongson.datlichkhambenhv.repository.user.UserRepository;
@@ -36,7 +37,7 @@ public class DoctorService implements IDoctorService {
     public ApiResponse createDoctor(CreateDoctorRequest request) {
         Department department = departmentRepository.findById(request.getDepartmentId()).orElse(null);
         if (department == null){
-            throw new RuntimeException("Khong co Khoa nay");
+            throw BusinessException.notFound("Khong co Khoa nay");
         }
 
         User user = new User();
@@ -66,15 +67,15 @@ public class DoctorService implements IDoctorService {
     public ApiResponse updateDoctor(UpdateDoctorRequest request) throws Exception {
         Department department = departmentRepository.findById(request.getDepartmentId()).orElse(null);
         if(department == null) {
-            throw new Exception("Khong co khoa");
+            throw BusinessException.notFound("Khong co khoa");
         }
         User user = userRepository.findByUuid(request.getUuid());
         if (user == null) {
-            throw new Exception("uuid not found");
+            throw BusinessException.notFound("uuid not found");
         }
         Doctor doctor = doctorRepository.findById(user.getId()).orElse(null);
         if(doctor == null) {
-            throw new Exception("doctor not found");
+            throw BusinessException.notFound("doctor not found");
         }
 
         user.setFullName(request.getFullName());
@@ -93,11 +94,11 @@ public class DoctorService implements IDoctorService {
     public ApiResponse deleteDoctor(String uuid) throws Exception {
         User user = userRepository.findByUuid(uuid);
         if(user == null){
-            throw new Exception("User Not Found");
+            throw BusinessException.notFound("User Not Found");
         }
         Doctor doctor = doctorRepository.findById(user.getId()).orElse(null);
         if(doctor == null) {
-            throw new Exception("Doctor Not Found");
+            throw BusinessException.notFound("Doctor Not Found");
         }
         doctorRepository.delete(doctor);
         userRepository.delete(user);

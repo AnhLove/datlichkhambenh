@@ -7,6 +7,7 @@ import vn.namluongson.datlichkhambenhv.domain.dtos.requests.medicalservice.Updat
 import vn.namluongson.datlichkhambenhv.domain.dtos.responses.medicalservice.MedicalServiceResponse;
 import vn.namluongson.datlichkhambenhv.domain.entities.MedicalService;
 import vn.namluongson.datlichkhambenhv.domain.response.ApiResponse;
+import vn.namluongson.datlichkhambenhv.exception.BusinessException;
 import vn.namluongson.datlichkhambenhv.repository.department.DepartmentRepository;
 import vn.namluongson.datlichkhambenhv.repository.medicalservice.MedicalServiceRepository;
 import vn.namluongson.datlichkhambenhv.service.interfaces.IMedicalServiceService;
@@ -39,13 +40,9 @@ public class MedicalServiceService implements IMedicalServiceService {
 
     @Override
     public MedicalServiceResponse getMedicalServiceById(Long id) throws Exception {
-        if(id == null) {
-            throw new Exception("Khong ton tai");
-        }
-
         var data = medicalServiceRepository.findById(id).orElse(null);
         if (data == null) {
-            throw new Exception("Khong co du lieu");
+            throw BusinessException.notFound("Khong co du lieu");
         }
 
         MedicalServiceResponse response = new MedicalServiceResponse();
@@ -60,13 +57,13 @@ public class MedicalServiceService implements IMedicalServiceService {
     public ApiResponse createMedicalService(CreateMedicalServiceRequest request) {
         var department = departmentRepository.findById(request.getDepartmentId()).orElse(null);
         if(department == null) {
-            throw new RuntimeException("Khong co khoa");
+            throw BusinessException.notFound("Khong co khoa");
         }
 
         boolean exists = medicalServiceRepository.existsByDepartment_IdAndNameIgnoreCase(request.getDepartmentId(), request.getName().trim());
 
         if(exists) {
-            throw new RuntimeException("Da ton tai");
+            throw BusinessException.conflict("Da ton tai");
         }
         MedicalService medicalService = new MedicalService();
         medicalService.setDepartment(department);
@@ -81,17 +78,17 @@ public class MedicalServiceService implements IMedicalServiceService {
     public ApiResponse updateMedicalService(Long id, UpdateMedicalServiceRequest request) {
         var medicalService = medicalServiceRepository.findById(id).orElse(null);
         if(medicalService == null) {
-            throw new RuntimeException("Khong ton tai");
+            throw BusinessException.notFound("Khong ton tai");
         }
 
         var department = departmentRepository.findById(request.getDepartmentId()).orElse(null);
         if (department == null) {
-            throw new RuntimeException("Khong ton tai khoa");
+            throw BusinessException.notFound("Khong ton tai khoa");
         }
 
         boolean exists = medicalServiceRepository.existsByDepartment_IdAndNameIgnoreCaseAndIdNot(request.getDepartmentId(), request.getName().trim(), medicalService.getId());
         if(exists) {
-            throw new RuntimeException("Khong the cap nhap");
+            throw BusinessException.conflict("Khong the cap nhap");
         }
         medicalService.setDepartment(department);
         medicalService.setName(request.getName().trim());
@@ -105,7 +102,7 @@ public class MedicalServiceService implements IMedicalServiceService {
     public ApiResponse deleteMedicalService(Long id) {
         var entity = medicalServiceRepository.findById(id).orElse(null);
         if(entity == null) {
-            throw new RuntimeException("Khong ton tai");
+            throw BusinessException.notFound("Khong ton tai");
         }
 
         medicalServiceRepository.delete(entity);
