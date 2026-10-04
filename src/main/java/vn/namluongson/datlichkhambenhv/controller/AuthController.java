@@ -1,5 +1,6 @@
 package vn.namluongson.datlichkhambenhv.controller;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -16,7 +17,7 @@ public class AuthController {
     private final IAuthService iAuthService;
 
     @PostMapping("/login")
-    public ResponseEntity<?> login (@RequestBody LoginRequest request) {
+    public ResponseEntity<?> login (@Valid @RequestBody LoginRequest request) {
         return ResponseEntity.ok(iAuthService.login(request));
     }
 }

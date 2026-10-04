@@ -1,5 +1,6 @@
 package vn.namluongson.datlichkhambenhv.controller;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -24,12 +25,12 @@ public class MedicalServiceController {
     }
 
     @PostMapping
-    public ResponseEntity<?> createMedicalService(@RequestBody CreateMedicalServiceRequest request) {
+    public ResponseEntity<?> createMedicalService(@Valid @RequestBody CreateMedicalServiceRequest request) {
         return ResponseEntity.ok(service.createMedicalService(request));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateMedicalService(@PathVariable Long id,@RequestBody UpdateMedicalServiceRequest request) {
+    public ResponseEntity<?> updateMedicalService(@Valid @PathVariable Long id,@RequestBody UpdateMedicalServiceRequest request) {
         return ResponseEntity.ok(service.updateMedicalService(id, request));
     }
 

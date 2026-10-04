@@ -1,5 +1,6 @@
 package vn.namluongson.datlichkhambenhv.controller;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -14,7 +15,7 @@ public class DoctorWorkingHourController {
     private final IDoctorWorkingHourService service;
 
     @PostMapping
-    public ResponseEntity<?> createDoctorWorkingHour(@RequestBody CreateDoctorWorkingHourRequest request) {
+    public ResponseEntity<?> createDoctorWorkingHour(@Valid @RequestBody CreateDoctorWorkingHourRequest request) {
         return ResponseEntity.ok(service.createDoctorWorkingHour(request));
     }
 
@@ -29,7 +30,7 @@ public class DoctorWorkingHourController {
     }
 
     @PutMapping("/{id}/status")
-    public ResponseEntity<?> updateWorkingStatus(@PathVariable Long id,@RequestBody  UpdateDoctorWorkingHourStatusRequest request) throws Exception {
+    public ResponseEntity<?> updateWorkingStatus(@Valid @PathVariable Long id,@RequestBody  UpdateDoctorWorkingHourStatusRequest request) throws Exception {
         return ResponseEntity.ok(service.updateWorkingStatus(id, request));
     }
 }

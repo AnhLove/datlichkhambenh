@@ -19,12 +19,12 @@ public class DepartmentController {
     private final IDepartmentService iDepartmentService;
 
     @PostMapping
-    public ResponseEntity<?> createDepartment(@RequestBody CreateDepartmentRequest request) {
+    public ResponseEntity<?> createDepartment(@Valid @RequestBody CreateDepartmentRequest request) {
         return ResponseEntity.ok(iDepartmentService.createDepartment(request));
     }
 
     @PutMapping
-    public ResponseEntity<?> updateDepartment(@RequestBody UpdateDepartmentRequest request) throws Exception {
+    public ResponseEntity<?> updateDepartment(@Valid @RequestBody UpdateDepartmentRequest request) throws Exception {
         return ResponseEntity.ok(iDepartmentService.updateDepartment(request));
     }
 

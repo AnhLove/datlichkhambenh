@@ -1,5 +1,6 @@
 package vn.namluongson.datlichkhambenhv.controller;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
@@ -17,7 +18,7 @@ public class AppointmentController {
     private final IAppointmentService appointmentService;
  
     @PostMapping
-    public ResponseEntity<?> createAppointment(@RequestBody CreateAppointmentRequest request) {
+    public ResponseEntity<?> createAppointment(@Valid @RequestBody CreateAppointmentRequest request) {
         return ResponseEntity.ok(appointmentService.createAppointment(request));
     }
 

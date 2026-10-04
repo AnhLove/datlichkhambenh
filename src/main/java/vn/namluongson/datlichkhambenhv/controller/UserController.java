@@ -1,5 +1,6 @@
 package vn.namluongson.datlichkhambenhv.controller;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.repository.query.Param;
 import org.springframework.http.ResponseEntity;
@@ -16,12 +17,12 @@ public class UserController {
     private final IUserService iUserService;
 
     @PostMapping
-    public ResponseEntity<?> createUser(@RequestBody CreateUserRequest createUserRequest) {
+    public ResponseEntity<?> createUser(@Valid @RequestBody CreateUserRequest createUserRequest) {
         return ResponseEntity.ok(iUserService.createUser(createUserRequest));
     }
 
     @PutMapping
-    public ResponseEntity<?> updateUser(@RequestBody UpdateUserRequest updateUserRequest) throws Exception {
+    public ResponseEntity<?> updateUser(@Valid @RequestBody UpdateUserRequest updateUserRequest) throws Exception {
         return ResponseEntity.ok(iUserService.updateUser(updateUserRequest));
     }
 

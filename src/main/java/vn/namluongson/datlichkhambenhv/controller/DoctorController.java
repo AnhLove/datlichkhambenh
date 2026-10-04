@@ -1,5 +1,6 @@
 package vn.namluongson.datlichkhambenhv.controller;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.repository.query.Param;
 import org.springframework.http.ResponseEntity;
@@ -16,12 +17,12 @@ public class DoctorController {
     private final IDoctorService iDoctorService;
 
     @PostMapping
-    public ResponseEntity<?> createDoctor(@RequestBody CreateDoctorRequest request) {
+    public ResponseEntity<?> createDoctor(@Valid @RequestBody CreateDoctorRequest request) {
         return ResponseEntity.ok(iDoctorService.createDoctor(request));
     }
 
     @PutMapping
-    public ResponseEntity<?> updateDoctor(@RequestBody UpdateDoctorRequest request) throws Exception {
+    public ResponseEntity<?> updateDoctor(@Valid @RequestBody UpdateDoctorRequest request) throws Exception {
         return ResponseEntity.ok(iDoctorService.updateDoctor(request));
     }
 
@@ -36,7 +37,7 @@ public class DoctorController {
     }
 
     @GetMapping("/paging")
-    public ResponseEntity<?> getDoctors(ListDoctorRequest request) {
+    public ResponseEntity<?> getDoctors(@Valid ListDoctorRequest request) {
         return ResponseEntity.ok(iDoctorService.getDoctors(request));
     }
 
