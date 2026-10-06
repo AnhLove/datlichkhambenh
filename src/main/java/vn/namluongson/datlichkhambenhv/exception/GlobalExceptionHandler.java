@@ -1,6 +1,7 @@
 package vn.namluongson.datlichkhambenhv.exception;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -70,5 +71,11 @@ public class GlobalExceptionHandler{
     public ResponseEntity<ApiResponse> handleOther(Exception e) {
         log.error("Loi he thong", e);
         return build(HttpStatus.INTERNAL_SERVER_ERROR, "Loi he thong");
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<ApiResponse> handleDataIntegrity(DataIntegrityViolationException e) {
+        log.warn("Vi pham rang buoc du lieu: {}", e.getMostSpecificCause().getMessage());
+        return build(HttpStatus.CONFLICT, "Dữ liệu bị trùng hoặc đang được sử dụng");
     }
 }

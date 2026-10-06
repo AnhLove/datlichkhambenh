@@ -8,12 +8,14 @@ import vn.namluongson.datlichkhambenhv.domain.dtos.requests.user.ListUserRequest
 import vn.namluongson.datlichkhambenhv.domain.dtos.requests.user.UpdateUserRequest;
 import vn.namluongson.datlichkhambenhv.domain.dtos.responses.user.UserResponse;
 import vn.namluongson.datlichkhambenhv.domain.entities.User;
+import vn.namluongson.datlichkhambenhv.domain.enums.Role;
 import vn.namluongson.datlichkhambenhv.domain.response.ApiResponse;
 import vn.namluongson.datlichkhambenhv.exception.BusinessException;
 import vn.namluongson.datlichkhambenhv.repository.user.UserRepository;
 import vn.namluongson.datlichkhambenhv.service.interfaces.IUserService;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.UUID;
 
@@ -24,23 +26,30 @@ public class UserService implements IUserService {
     private final PasswordEncoder passwordEncoder;
 
     public ApiResponse createUser(CreateUserRequest createUserRequest) {
-        var user =  new User();
-        user.setFullName(createUserRequest.getFullName());
-        user.setPhone(createUserRequest.getPhone());
-        user.setEmail(createUserRequest.getEmail());
+        String email = createUserRequest.getEmail().trim().toLowerCase();
+        String phone = createUserRequest.getPhone().trim();
+
+        if (userRepository.existsByPhone(phone)) {
+            throw BusinessException.conflict("Số điện thoại đã được sử dụng");
+        }
+        if (userRepository.existsByEmailIgnoreCase(email)) {
+            throw BusinessException.conflict("Email đã được sử dụng");
+        }
+
+        var user = new User();
+        user.setFullName(createUserRequest.getFullName().trim());
+        user.setPhone(phone);
+        user.setEmail(email);
         user.setDateOfBirth(createUserRequest.getDateOfBirth());
+        user.setPasswordHash(passwordEncoder.encode(createUserRequest.getPassword()));
 
-        String rawPassword = createUserRequest.getPassword();
-        String hashedPassword = passwordEncoder.encode(rawPassword);
-        user.setPasswordHash(hashedPassword);
-
-        user.setRole((short) 1);
+        user.setRole((short) Role.PATIENT.getCode());
         user.setStatus((short) 0);
-        user.setCreatedAt(LocalDateTime.now());
+        user.setCreatedAt(LocalDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh")));
         user.setUuid(UUID.randomUUID().toString());
 
         userRepository.save(user);
-        return new ApiResponse(200, null, user.getId());
+        return new ApiResponse(200, "Đăng ký thành công", user.getUuid());
     }
 
     public ApiResponse updateUser(UpdateUserRequest updateUserRequest) throws Exception {
