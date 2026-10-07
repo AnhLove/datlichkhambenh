@@ -36,8 +36,8 @@ public class DoctorService implements IDoctorService {
     @Override
     public ApiResponse createDoctor(CreateDoctorRequest request) {
         Department department = departmentRepository.findById(request.getDepartmentId()).orElse(null);
-        if (department == null){
-            throw BusinessException.notFound("Khong co Khoa nay");
+        if (department == null) {
+            throw BusinessException.notFound("Không tìm thấy khoa");
         }
 
         User user = new User();
@@ -64,18 +64,18 @@ public class DoctorService implements IDoctorService {
     }
 
     @Override
-    public ApiResponse updateDoctor(UpdateDoctorRequest request) throws Exception {
+    public ApiResponse updateDoctor(UpdateDoctorRequest request) {
         Department department = departmentRepository.findById(request.getDepartmentId()).orElse(null);
-        if(department == null) {
-            throw BusinessException.notFound("Khong co khoa");
+        if (department == null) {
+            throw BusinessException.notFound("Không tìm thấy khoa");
         }
         User user = userRepository.findByUuid(request.getUuid());
         if (user == null) {
-            throw BusinessException.notFound("uuid not found");
+            throw BusinessException.notFound("Không tìm thấy bác sĩ");
         }
         Doctor doctor = doctorRepository.findById(user.getId()).orElse(null);
-        if(doctor == null) {
-            throw BusinessException.notFound("doctor not found");
+        if (doctor == null) {
+            throw BusinessException.notFound("Không tìm thấy bác sĩ");
         }
 
         user.setFullName(request.getFullName());
@@ -91,14 +91,14 @@ public class DoctorService implements IDoctorService {
     }
 
     @Override
-    public ApiResponse deleteDoctor(String uuid) throws Exception {
+    public ApiResponse deleteDoctor(String uuid) {
         User user = userRepository.findByUuid(uuid);
-        if(user == null){
-            throw BusinessException.notFound("User Not Found");
+        if (user == null) {
+            throw BusinessException.notFound("Không tìm thấy bác sĩ");
         }
         Doctor doctor = doctorRepository.findById(user.getId()).orElse(null);
-        if(doctor == null) {
-            throw BusinessException.notFound("Doctor Not Found");
+        if (doctor == null) {
+            throw BusinessException.notFound("Không tìm thấy bác sĩ");
         }
         doctorRepository.delete(doctor);
         userRepository.delete(user);
@@ -108,49 +108,38 @@ public class DoctorService implements IDoctorService {
     @Override
     public List<DoctorResponse> getListDoctors(ListDoctorRequest request) {
         List<Doctor> doctors;
-        if(request != null && request.getFullName() != null && !request.getFullName().trim().isEmpty()) {
+        if (request != null && request.getFullName() != null && !request.getFullName().trim().isEmpty()) {
             doctors = doctorRepository.findByUser_FullNameContainingIgnoreCase(request.getFullName().trim());
-        }else {
+        } else {
             doctors = doctorRepository.findAll();
         }
-
-        return doctors.stream().map(doctor -> {
-            DoctorResponse response = new DoctorResponse();
-            response.setUuid(doctor.getUser().getUuid());
-            response.setFullName(doctor.getUser().getFullName());
-            response.setPhone(doctor.getUser().getPhone());
-            response.setEmail(doctor.getUser().getEmail());
-            response.setDepartmentName(doctor.getDepartment().getName());
-            response.setYearsExperience(doctor.getYearsExperience());
-            response.setBio(doctor.getBio());
-            return response;
-        }).toList();
+        return doctors.stream().map(this::toResponse).toList();
     }
 
     @Override
     public Page<DoctorResponse> getDoctors(ListDoctorRequest request) {
         Page<Doctor> doctors;
-        Pageable pageable = PageRequest.of(request.getPage()-1, request.getSize());
-        if(request.getFullName() != null && !request.getFullName().trim().isEmpty()) {
+        Pageable pageable = PageRequest.of(request.getPage() - 1, request.getSize());
+        if (request.getFullName() != null && !request.getFullName().trim().isEmpty()) {
             doctors = doctorRepository.findByUser_FullNameContainingIgnoreCase(request.getFullName().trim(), pageable);
-        }else {
+        } else {
             doctors = doctorRepository.findAll(pageable);
         }
-        return doctors.map(doctor -> {
-            DoctorResponse response = new DoctorResponse();
-            response.setUuid(doctor.getUser().getUuid());
-            response.setFullName(doctor.getUser().getFullName());
-            response.setPhone(doctor.getUser().getPhone());
-            response.setEmail(doctor.getUser().getEmail());
-            response.setDepartmentName(doctor.getDepartment().getName());
-            response.setYearsExperience(doctor.getYearsExperience());
-            response.setBio(doctor.getBio());
-            return response;
-        });
+        return doctors.map(this::toResponse);
     }
 
     @Override
-    public List<DoctorSearchResponse> getListDepartment_DoctorName(String departmentName, String fullName) throws Exception {
+    public List<DoctorSearchResponse> getListDepartment_DoctorName(String departmentName, String fullName) {
         return doctorRepository.getListDepartment_DoctorName(departmentName, fullName);
+    }
+
+    private DoctorResponse toResponse(Doctor doctor) {
+        DoctorResponse response = new DoctorResponse();
+        response.setUuid(doctor.getUser().getUuid());
+        response.setFullName(doctor.getUser().getFullName());
+        response.setDepartmentName(doctor.getDepartment().getName());
+        response.setYearsExperience(doctor.getYearsExperience());
+        response.setBio(doctor.getBio());
+        return response;
     }
 }

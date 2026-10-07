@@ -14,16 +14,12 @@ public class DoctorRepositoryImpl implements IDoctorRepository {
     private final EntityManager entityManager;
 
     @Override
-    public List<DoctorSearchResponse> getListDepartment_DoctorName(String departmentName, String fullName) throws Exception {
-        if(departmentName == null || departmentName.trim().isEmpty()){
-            throw new Exception("Ten Khoa ko duoc de trong");
-        }
-        if(fullName == null || fullName.trim().isEmpty()){
-            throw new Exception("Ten Bac si ko duoc de trong");
-        }
+    public List<DoctorSearchResponse> getListDepartment_DoctorName(String departmentName, String fullName) {
+        String dept = departmentName == null ? "" : departmentName.trim();
+        String name = fullName == null ? "" : fullName.trim();
 
         var sql = """
-                SELECT D.ID,
+                SELECT U.UUID,
                        DE.NAME,
                        U.FULL_NAME,
                        D.YEARS_EXPERIENCE,
@@ -37,15 +33,15 @@ public class DoctorRepositoryImpl implements IDoctorRepository {
                       LIKE UPPER(CONCAT(CONCAT('%', :fullName), '%'))
                 """;
         var query = entityManager.createNativeQuery(sql);
-        query.setParameter("departmentName", departmentName.trim());
-        query.setParameter("fullName", fullName.trim());
+        query.setParameter("departmentName", dept);
+        query.setParameter("fullName", name);
 
         List<Object[]> results = query.getResultList();
 
         return results.stream().map(row -> {
             DoctorSearchResponse response = new DoctorSearchResponse();
 
-            response.setId(row[0] != null ? ((Number) row[0]).longValue() : null);
+            response.setUuid(row[0] != null ? row[0].toString() : null);
             response.setDepartmentName(row[1] != null ? row[1].toString() : null);
             response.setFullName(row[2] != null ? row[2].toString() : null);
             response.setYearsExperience(row[3] != null ? ((Number) row[3]).longValue() : null);

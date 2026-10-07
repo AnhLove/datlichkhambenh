@@ -12,9 +12,9 @@ import java.util.List;
 
 public interface IDoctorService {
     ApiResponse createDoctor(CreateDoctorRequest request);
-    ApiResponse updateDoctor(UpdateDoctorRequest request) throws Exception;
-    ApiResponse deleteDoctor(String uuid) throws Exception;
+    ApiResponse updateDoctor(UpdateDoctorRequest request);
+    ApiResponse deleteDoctor(String uuid);
     List<DoctorResponse> getListDoctors(ListDoctorRequest request);
     Page<DoctorResponse> getDoctors(ListDoctorRequest request);
-    List<DoctorSearchResponse> getListDepartment_DoctorName(String departmentName, String fullName) throws Exception;
+    List<DoctorSearchResponse> getListDepartment_DoctorName(String departmentName, String fullName);
 }

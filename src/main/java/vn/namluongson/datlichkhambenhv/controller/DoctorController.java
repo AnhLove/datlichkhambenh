@@ -42,7 +42,7 @@ public class DoctorController {
     }
 
     @GetMapping("/get-list-department-doctorname")
-    public ResponseEntity<?> getListDepartment_DoctorName(@RequestParam("departmentName") String departmentName, @RequestParam("fullName") String fullName) throws Exception{
+    public ResponseEntity<?> getListDepartment_DoctorName(@RequestParam(value = "departmentName", required = false) String departmentName, @RequestParam(value = "fullName", required = false) String fullName){
         return ResponseEntity.ok(iDoctorService.getListDepartment_DoctorName(departmentName, fullName));
     }
 }

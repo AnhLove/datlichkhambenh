@@ -10,10 +10,6 @@ public class DoctorResponse {
 
     private String fullName;
 
-    private String phone;
-
-    private String email;
-
     private String departmentName;
 
     private Long yearsExperience;
