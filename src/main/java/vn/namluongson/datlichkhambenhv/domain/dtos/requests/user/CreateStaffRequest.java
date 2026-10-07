@@ -1,12 +1,14 @@
-package vn.namluongson.datlichkhambenhv.domain.dtos.requests.doctor;
+package vn.namluongson.datlichkhambenhv.domain.dtos.requests.user;
 
 import jakarta.validation.constraints.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.LocalDate;
+
 @Getter
 @Setter
-public class CreateDoctorRequest {
+public class CreateStaffRequest {
 
     @NotBlank(message = "Họ tên không được để trống")
     @Size(max = 150, message = "Họ tên không được vượt quá 150 ký tự")
@@ -25,13 +27,7 @@ public class CreateDoctorRequest {
     @Size(min = 8, max = 72, message = "Mật khẩu phải từ 8 đến 72 ký tự")
     private String password;
 
-    @NotNull(message = "Vui lòng chọn khoa")
-    private Long departmentId;
-
-    @Min(value = 0, message = "Số năm kinh nghiệm không được âm")
-    @Max(value = 100, message = "Số năm kinh nghiệm không hợp lệ")
-    private Long yearsExperience;
-
-    @Size(max = 1000, message = "Giới thiệu không được vượt quá 1000 ký tự")
-    private String bio;
+    @NotNull(message = "Ngày sinh không được để trống")
+    @Past(message = "Ngày sinh phải là một ngày trong quá khứ")
+    private LocalDate dateOfBirth;
 }

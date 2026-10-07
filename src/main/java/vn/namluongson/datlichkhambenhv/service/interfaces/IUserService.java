@@ -1,5 +1,6 @@
 package vn.namluongson.datlichkhambenhv.service.interfaces;
 
+import vn.namluongson.datlichkhambenhv.domain.dtos.requests.user.CreateStaffRequest;
 import vn.namluongson.datlichkhambenhv.domain.dtos.requests.user.CreateUserRequest;
 import vn.namluongson.datlichkhambenhv.domain.dtos.requests.user.ListUserRequest;
 import vn.namluongson.datlichkhambenhv.domain.dtos.requests.user.UpdateUserRequest;
@@ -10,6 +11,7 @@ import java.util.List;
 
 public interface IUserService {
     ApiResponse createUser(CreateUserRequest userRequest);
+    ApiResponse createStaff(CreateStaffRequest request);
     ApiResponse updateUser(UpdateUserRequest userRequest) throws Exception;
     ApiResponse deleteUser(Long id) throws Exception;
     List<UserResponse> getListUsers(ListUserRequest request);

@@ -3,6 +3,7 @@ package vn.namluongson.datlichkhambenhv.service.impl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import vn.namluongson.datlichkhambenhv.domain.dtos.requests.user.CreateStaffRequest;
 import vn.namluongson.datlichkhambenhv.domain.dtos.requests.user.CreateUserRequest;
 import vn.namluongson.datlichkhambenhv.domain.dtos.requests.user.ListUserRequest;
 import vn.namluongson.datlichkhambenhv.domain.dtos.requests.user.UpdateUserRequest;
@@ -14,6 +15,7 @@ import vn.namluongson.datlichkhambenhv.exception.BusinessException;
 import vn.namluongson.datlichkhambenhv.repository.user.UserRepository;
 import vn.namluongson.datlichkhambenhv.service.interfaces.IUserService;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.List;
@@ -26,30 +28,42 @@ public class UserService implements IUserService {
     private final PasswordEncoder passwordEncoder;
 
     public ApiResponse createUser(CreateUserRequest createUserRequest) {
-        String email = createUserRequest.getEmail().trim().toLowerCase();
-        String phone = createUserRequest.getPhone().trim();
+        User user = createAccount(createUserRequest.getFullName(), createUserRequest.getPhone(), createUserRequest.getEmail(),
+                createUserRequest.getPassword(), createUserRequest.getDateOfBirth(), Role.PATIENT);
+        return new ApiResponse(200, "Đăng ký thành công", user.getUuid());
+    }
 
-        if (userRepository.existsByPhone(phone)) {
+    public ApiResponse createStaff(CreateStaffRequest request) {
+        User user = createAccount(request.getFullName(), request.getPhone(), request.getEmail(),
+                request.getPassword(), request.getDateOfBirth(), Role.STAFF);
+        return new ApiResponse(200, "Tạo tài khoản lễ tân thành công", user.getUuid());
+    }
+
+    private User createAccount(String fullName, String phone, String email,
+                               String rawPassword, LocalDate dateOfBirth, Role role) {
+        String normalizedEmail = email.trim().toLowerCase();
+        String normalizedPhone = phone.trim();
+
+        if (userRepository.existsByPhone(normalizedPhone)) {
             throw BusinessException.conflict("Số điện thoại đã được sử dụng");
         }
-        if (userRepository.existsByEmailIgnoreCase(email)) {
+        if (userRepository.existsByEmailIgnoreCase(normalizedEmail)) {
             throw BusinessException.conflict("Email đã được sử dụng");
         }
 
         var user = new User();
-        user.setFullName(createUserRequest.getFullName().trim());
-        user.setPhone(phone);
-        user.setEmail(email);
-        user.setDateOfBirth(createUserRequest.getDateOfBirth());
-        user.setPasswordHash(passwordEncoder.encode(createUserRequest.getPassword()));
+        user.setFullName(fullName.trim());
+        user.setPhone(normalizedPhone);
+        user.setEmail(normalizedEmail);
+        user.setPasswordHash(passwordEncoder.encode(rawPassword));
+        user.setDateOfBirth(dateOfBirth);
 
-        user.setRole((short) Role.PATIENT.getCode());
+        user.setRole((short) role.getCode());
         user.setStatus((short) 0);
         user.setCreatedAt(LocalDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh")));
         user.setUuid(UUID.randomUUID().toString());
 
-        userRepository.save(user);
-        return new ApiResponse(200, "Đăng ký thành công", user.getUuid());
+        return userRepository.save(user);
     }
 
     public ApiResponse updateUser(UpdateUserRequest updateUserRequest) throws Exception {

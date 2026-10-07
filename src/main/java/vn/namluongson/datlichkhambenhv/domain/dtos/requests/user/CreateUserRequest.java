@@ -20,6 +20,7 @@ public class CreateUserRequest {
     private String fullName;
 
     @NotBlank(message = "Số điện thoại không được để trống")
+    @Pattern(regexp = "^(0|\\+84)\\d{9}$", message = "Số điện thoại không đúng định dạng")
     private String phone;
 
     @NotBlank(message = "Email không được để trống")
