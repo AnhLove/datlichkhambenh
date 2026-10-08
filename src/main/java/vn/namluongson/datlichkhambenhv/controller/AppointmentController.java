@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import vn.namluongson.datlichkhambenhv.domain.dtos.requests.appointment.CancelAppointmentRequest;
 import vn.namluongson.datlichkhambenhv.domain.dtos.requests.appointment.CreateAppointmentRequest;
 import vn.namluongson.datlichkhambenhv.service.interfaces.IAppointmentService;
 
@@ -30,5 +31,10 @@ public class AppointmentController {
     @GetMapping("/my")
     public ResponseEntity<?> getMyAppointments() {
         return ResponseEntity.ok(appointmentService.getMyAppointments());
+    }
+
+    @PostMapping("/my/{appointmentId}/cancel")
+    public ResponseEntity<?> cancelAppointment(@PathVariable Long appointmentId, @Valid @RequestBody CancelAppointmentRequest request) {
+        return ResponseEntity.ok(appointmentService.cancelAppointment(appointmentId, request));
     }
 }

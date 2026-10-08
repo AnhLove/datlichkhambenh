@@ -6,6 +6,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import vn.namluongson.datlichkhambenhv.config.security.CustomUserDetails;
+import vn.namluongson.datlichkhambenhv.domain.dtos.requests.appointment.CancelAppointmentRequest;
 import vn.namluongson.datlichkhambenhv.domain.dtos.requests.appointment.CreateAppointmentRequest;
 import vn.namluongson.datlichkhambenhv.domain.dtos.responses.appointment.AppointmentResponse;
 import vn.namluongson.datlichkhambenhv.domain.dtos.responses.appointment.AvailableSlotResponse;
@@ -202,6 +203,46 @@ public class AppointmentService implements IAppointmentService {
             return data;
         }).toList();
         return new ApiResponse(200, null, response);
+    }
+
+    @Override
+    public ApiResponse cancelAppointment(Long appointmentId, CancelAppointmentRequest request) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null || !(authentication.getPrincipal() instanceof CustomUserDetails userDetails)) {
+            throw BusinessException.unauthorized("Vui lòng đăng nhập");
+        }
+
+        User currentUser = userDetails.getUser();
+
+        if (currentUser.getRole() != Role.PATIENT.getCode()) {
+            throw BusinessException.forbidden("Khong phai benh nhan");
+        }
+
+        Appointment appointment = appointmentRepository.findByIdAndPatient_Id(appointmentId, currentUser.getId()).orElseThrow(() -> BusinessException.notFound("Khong tim thay lich hen"));
+
+        int currentStatus = appointment.getStatus();
+
+        if (currentStatus != AppointmentStatus.PENDING.getCode() && currentStatus != AppointmentStatus.CONFIRMED.getCode()) {
+            throw BusinessException.badRequest("Lich hen hien tai khong the huy");
+        }
+
+        appointment.setStatus(AppointmentStatus.CANCELLED.getCode());
+        appointment.setCancelReason(request.getCancelReason());
+
+        Appointment savedAppointment = appointmentRepository.save(appointment);
+
+        AppointmentResponse response = AppointmentResponse.builder()
+                .doctorName(savedAppointment.getDoctor().getUser().getFullName())
+                .departmentName(savedAppointment.getDepartment().getName())
+                .appointmentDate(savedAppointment.getAppointmentDate())
+                .timeSlot(savedAppointment.getTimeSlot())
+                .reason(savedAppointment.getReason())
+                .status(savedAppointment.getStatus())
+                .checkedInAt(savedAppointment.getCheckedInAt())
+                .createdAt(savedAppointment.getCreatedAt())
+                .build();
+        return new ApiResponse(200, "Huy lich hen thanh cong", response);
     }
 
     private boolean isSlotInPast(LocalDate date, TimeSlot slot) {

@@ -6,6 +6,7 @@ import vn.namluongson.datlichkhambenhv.domain.entities.Appointment;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface AppointmentRepository extends JpaRepository<Appointment, Long> {
@@ -17,4 +18,5 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
     );
     List<Appointment> findByDoctor_IdAndAppointmentDateAndStatusIn(Long doctorId, LocalDate appointmentDate, List<Integer> statuses);
     List<Appointment> findByPatient_IdOrderByAppointmentDateAsc(Long patientId);
+    Optional<Appointment> findByIdAndPatient_Id(Long appointmentId, Long patientId);
 }
