@@ -13,4 +13,5 @@ public interface IAppointmentService {
     List<AvailableSlotResponse> getAvailableSlots(String doctorUuid, LocalDate appointmentDate);
     ApiResponse getMyAppointments();
     ApiResponse cancelAppointment(Long appointmentId, CancelAppointmentRequest request);
+    ApiResponse confirmAppointment(Long appointmentId);
 }

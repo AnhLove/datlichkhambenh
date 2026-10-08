@@ -37,4 +37,9 @@ public class AppointmentController {
     public ResponseEntity<?> cancelAppointment(@PathVariable Long appointmentId, @Valid @RequestBody CancelAppointmentRequest request) {
         return ResponseEntity.ok(appointmentService.cancelAppointment(appointmentId, request));
     }
+
+    @PatchMapping("/{appointmentId}/confirm")
+    public ResponseEntity<?> confirmAppointment(@PathVariable Long appointmentId) {
+        return ResponseEntity.ok(appointmentService.confirmAppointment(appointmentId));
+    }
 }
