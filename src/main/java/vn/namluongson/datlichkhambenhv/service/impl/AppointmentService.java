@@ -283,6 +283,46 @@ public class AppointmentService implements IAppointmentService {
         return new ApiResponse(200, "Xac nhan lich hen thanh cong", response);
     }
 
+    @Override
+    public ApiResponse checkInAppointment(Long appointmentId) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null || !(authentication.getPrincipal() instanceof CustomUserDetails userDetails)) {
+            throw BusinessException.unauthorized("Vui lòng đăng nhập");
+        }
+
+        User currentUser = userDetails.getUser();
+
+        if (currentUser.getRole() != Role.STAFF.getCode() && currentUser.getRole() != Role.ADMIN.getCode()) {
+            throw BusinessException.forbidden("Khong co quyen check-in lich hen");
+        }
+
+        Appointment appointment = appointmentRepository.findById(appointmentId).orElseThrow(() -> BusinessException.notFound("Khong tim thay lich hen"));
+
+        if (appointment.getStatus() != AppointmentStatus.CONFIRMED.getCode()) {
+            throw BusinessException.badRequest("Chi co lich hen da xac nhan moi duoc check-in");
+        }
+
+        appointment.setStatus(AppointmentStatus.CHECKED_IN.getCode());
+
+        appointment.setCheckedInAt(LocalDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh")));
+
+        Appointment savedAppointment = appointmentRepository.save(appointment);
+
+        AppointmentResponse response = AppointmentResponse.builder()
+                .doctorName(savedAppointment.getDoctor().getUser().getFullName())
+                .departmentName(savedAppointment.getDepartment().getName())
+                .appointmentDate(savedAppointment.getAppointmentDate())
+                .timeSlot(savedAppointment.getTimeSlot())
+                .reason(savedAppointment.getReason())
+                .status(savedAppointment.getStatus())
+                .checkedInAt(savedAppointment.getCheckedInAt())
+                .createdAt(savedAppointment.getCreatedAt())
+                .build();
+
+        return new ApiResponse(200, "Check-in lich hen thanh cong", response);
+    }
+
     private boolean isSlotInPast(LocalDate date, TimeSlot slot) {
         LocalDateTime now = LocalDateTime.now(VN_ZONE);
         LocalDateTime slotStart = LocalDateTime.of(date, slot.getStartTime());

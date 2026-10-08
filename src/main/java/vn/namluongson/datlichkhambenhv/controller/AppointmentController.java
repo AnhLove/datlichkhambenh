@@ -42,4 +42,9 @@ public class AppointmentController {
     public ResponseEntity<?> confirmAppointment(@PathVariable Long appointmentId) {
         return ResponseEntity.ok(appointmentService.confirmAppointment(appointmentId));
     }
+
+    @PatchMapping("/{appointmentId}/check-in")
+    public ResponseEntity<?> checkInAppointment(@PathVariable Long appointmentId) {
+        return ResponseEntity.ok(appointmentService.checkInAppointment(appointmentId));
+    }
 }
