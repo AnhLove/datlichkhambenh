@@ -15,4 +15,6 @@ public interface IAppointmentService {
     ApiResponse cancelAppointment(Long appointmentId, CancelAppointmentRequest request);
     ApiResponse confirmAppointment(Long appointmentId);
     ApiResponse checkInAppointment(Long appointmentId);
+    ApiResponse noShowAppointment(Long appointmentId);
+    ApiResponse completeAppointment(Long appointmentId);
 }

@@ -323,6 +323,81 @@ public class AppointmentService implements IAppointmentService {
         return new ApiResponse(200, "Check-in lich hen thanh cong", response);
     }
 
+    @Override
+    public ApiResponse noShowAppointment(Long appointmentId) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null || !(authentication.getPrincipal() instanceof CustomUserDetails userDetails)) {
+            throw BusinessException.unauthorized("Vui lòng đăng nhập");
+        }
+
+        User currentUser = userDetails.getUser();
+
+        if (currentUser.getRole() != Role.STAFF.getCode() && currentUser.getRole() != Role.ADMIN.getCode()) {
+            throw BusinessException.forbidden("Khong co quyen danh dau no-show");
+        }
+
+        Appointment appointment = appointmentRepository.findById(appointmentId).orElseThrow(() -> BusinessException.notFound("Khong tim thay lich hen"));
+
+        if (appointment.getStatus() != AppointmentStatus.CONFIRMED.getCode()) {
+            throw BusinessException.badRequest("Chi co lich hen da xac nhan moi duoc danh dau no-show");
+        }
+
+        appointment.setStatus(AppointmentStatus.NO_SHOW.getCode());
+
+        Appointment savedAppointment =appointmentRepository.save(appointment);
+
+        AppointmentResponse response = AppointmentResponse.builder()
+                .doctorName(savedAppointment.getDoctor().getUser().getFullName())
+                .departmentName(savedAppointment.getDepartment().getName())
+                .appointmentDate(savedAppointment.getAppointmentDate())
+                .timeSlot(savedAppointment.getTimeSlot())
+                .reason(savedAppointment.getReason())
+                .status(savedAppointment.getStatus())
+                .checkedInAt(savedAppointment.getCheckedInAt())
+                .createdAt(savedAppointment.getCreatedAt())
+                .build();
+        return new ApiResponse(200, "Da danh dau benh nhan khong den", response);
+    }
+
+    @Override
+    public ApiResponse completeAppointment(Long appointmentId) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null || !(authentication.getPrincipal() instanceof CustomUserDetails userDetails)) {
+            throw BusinessException.unauthorized("Vui lòng đăng nhập");
+        }
+
+        User currentUser = userDetails.getUser();
+
+        if (currentUser.getRole() != Role.DOCTOR.getCode() && currentUser.getRole() != Role.ADMIN.getCode()) {
+            throw BusinessException.forbidden("Khong co quyen hoan thanh lich hen");
+        }
+
+        Appointment appointment = appointmentRepository.findById(appointmentId).orElseThrow(() -> BusinessException.notFound("Khong tim thay lich hen"));
+
+        if (appointment.getStatus() != AppointmentStatus.CHECKED_IN.getCode()) {
+            throw BusinessException.badRequest("Chi co lich hen da check-in moi duoc hoan thanh");
+        }
+
+        appointment.setStatus(AppointmentStatus.COMPLETED.getCode());
+
+        Appointment savedAppointment = appointmentRepository.save(appointment);
+
+        AppointmentResponse response = AppointmentResponse.builder()
+                .doctorName(savedAppointment.getDoctor().getUser().getFullName())
+                .departmentName(savedAppointment.getDepartment().getName())
+                .appointmentDate(savedAppointment.getAppointmentDate())
+                .timeSlot(savedAppointment.getTimeSlot())
+                .reason(savedAppointment.getReason())
+                .status(savedAppointment.getStatus())
+                .checkedInAt(savedAppointment.getCheckedInAt())
+                .createdAt(savedAppointment.getCreatedAt())
+                .build();
+
+        return new ApiResponse(200,"Hoan thanh lich hen", response);
+    }
+
     private boolean isSlotInPast(LocalDate date, TimeSlot slot) {
         LocalDateTime now = LocalDateTime.now(VN_ZONE);
         LocalDateTime slotStart = LocalDateTime.of(date, slot.getStartTime());
