@@ -26,4 +26,9 @@ public class AppointmentController {
     public ResponseEntity<?> getAvailableSlots(@RequestParam String doctorUuid, @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
         return ResponseEntity.ok(appointmentService.getAvailableSlots(doctorUuid, date));
     }
+
+    @GetMapping("/my")
+    public ResponseEntity<?> getMyAppointments() {
+        return ResponseEntity.ok(appointmentService.getMyAppointments());
+    }
 }

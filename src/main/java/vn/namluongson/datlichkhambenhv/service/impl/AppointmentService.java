@@ -171,6 +171,39 @@ public class AppointmentService implements IAppointmentService {
                     return availableSlotResponse;
         }).toList();
     }
+
+    @Override
+    public ApiResponse getMyAppointments() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null || !(authentication.getPrincipal() instanceof CustomUserDetails userDetails)) {
+            throw BusinessException.unauthorized("Vui lòng đăng nhập");
+        }
+
+        User currentUser = userDetails.getUser();
+
+        if (currentUser.getRole() != Role.PATIENT.getCode()) {
+            throw BusinessException.forbidden("Khong phai benh nhan");
+        }
+
+        var appointments = appointmentRepository.findByPatient_IdOrderByAppointmentDateAsc(currentUser.getId());
+
+        var response = appointments.stream().map(appointment -> {
+            AppointmentResponse data = new AppointmentResponse();
+
+            data.setDoctorName(appointment.getDoctor().getUser().getFullName());
+            data.setDepartmentName(appointment.getDepartment().getName());
+            data.setAppointmentDate(appointment.getAppointmentDate());
+            data.setTimeSlot(appointment.getTimeSlot());
+            data.setReason(appointment.getReason());
+            data.setStatus(appointment.getStatus());
+            data.setCheckedInAt(appointment.getCheckedInAt());
+            data.setCreatedAt(appointment.getCreatedAt());
+            return data;
+        }).toList();
+        return new ApiResponse(200, null, response);
+    }
+
     private boolean isSlotInPast(LocalDate date, TimeSlot slot) {
         LocalDateTime now = LocalDateTime.now(VN_ZONE);
         LocalDateTime slotStart = LocalDateTime.of(date, slot.getStartTime());

@@ -10,4 +10,5 @@ import java.util.List;
 public interface IAppointmentService {
     ApiResponse createAppointment(CreateAppointmentRequest request);
     List<AvailableSlotResponse> getAvailableSlots(String doctorUuid, LocalDate appointmentDate);
+    ApiResponse getMyAppointments();
 }
