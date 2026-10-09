@@ -93,6 +93,11 @@ public class SecurityConfig {
 
                         .requestMatchers("/department/**", "/doctor/**", "/medical-services/**").hasRole("ADMIN")
 
+                        .requestMatchers("/exam-reports/doctor/**").hasRole("DOCTOR")
+                        .requestMatchers("/exam-reports/patient/**").hasRole("PATIENT")
+                        .requestMatchers(HttpMethod.POST, "/exam-reports").hasRole("DOCTOR")
+                        .requestMatchers(HttpMethod.PATCH, "/exam-reports/*/issue").hasRole("DOCTOR")
+
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
