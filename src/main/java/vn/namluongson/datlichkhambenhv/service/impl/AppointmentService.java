@@ -398,6 +398,73 @@ public class AppointmentService implements IAppointmentService {
         return new ApiResponse(200,"Hoan thanh lich hen", response);
     }
 
+    @Override
+    public ApiResponse getTodayAppointments() {
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null || !(authentication.getPrincipal() instanceof CustomUserDetails userDetails)) {
+            throw BusinessException.unauthorized("Vui lòng đăng nhập");
+        }
+
+        User currentUser = userDetails.getUser();
+
+        if (currentUser.getRole() != Role.STAFF.getCode() && currentUser.getRole() != Role.ADMIN.getCode()) {
+            throw BusinessException.forbidden("Khong co quyen xem lich hen");
+        }
+
+        LocalDate today = LocalDate.now(ZoneId.of("Asia/Ho_Chi_Minh"));
+
+        List<Appointment> appointments = appointmentRepository.findByAppointmentDateOrderByTimeSlotAsc(today);
+
+        List<AppointmentResponse> response = appointments.stream()
+                .map(appointment -> AppointmentResponse.builder()
+                        .doctorName(appointment.getDoctor().getUser().getFullName())
+                        .departmentName(appointment.getDepartment().getName())
+                        .appointmentDate(appointment.getAppointmentDate())
+                        .timeSlot(appointment.getTimeSlot())
+                        .reason(appointment.getReason())
+                        .status(appointment.getStatus())
+                        .checkedInAt(appointment.getCheckedInAt())
+                        .createdAt(appointment.getCreatedAt())
+                        .build())
+                .toList();
+
+        return new ApiResponse(200, "Danh sach lich hen hom nay", response);
+    }
+
+    @Override
+    public ApiResponse getMyDoctorAppointments() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null || !(authentication.getPrincipal() instanceof CustomUserDetails userDetails)) {
+            throw BusinessException.unauthorized("Vui lòng đăng nhập");
+        }
+
+        User currentUser = userDetails.getUser();
+
+        if (currentUser.getRole() != Role.DOCTOR.getCode()) {
+            throw BusinessException.forbidden("Chi bac si moi duoc xem lich cua minh");
+        }
+
+        List<Appointment> appointments =appointmentRepository.findByDoctor_User_IdOrderByAppointmentDateAscTimeSlotAsc(currentUser.getId());
+
+        List<AppointmentResponse> response = appointments.stream()
+                .map(appointment -> AppointmentResponse.builder()
+                        .doctorName(appointment.getDoctor().getUser().getFullName())
+                        .departmentName(appointment.getDepartment().getName())
+                        .appointmentDate(appointment.getAppointmentDate())
+                        .timeSlot(appointment.getTimeSlot())
+                        .reason(appointment.getReason())
+                        .status(appointment.getStatus())
+                        .checkedInAt(appointment.getCheckedInAt())
+                        .createdAt(appointment.getCreatedAt())
+                        .build())
+                .toList();
+
+        return new ApiResponse(200, "Danh sach lich hen cua bac si", response);
+    }
+
     private boolean isSlotInPast(LocalDate date, TimeSlot slot) {
         LocalDateTime now = LocalDateTime.now(VN_ZONE);
         LocalDateTime slotStart = LocalDateTime.of(date, slot.getStartTime());

@@ -17,4 +17,6 @@ public interface IAppointmentService {
     ApiResponse checkInAppointment(Long appointmentId);
     ApiResponse noShowAppointment(Long appointmentId);
     ApiResponse completeAppointment(Long appointmentId);
+    ApiResponse getTodayAppointments();
+    ApiResponse getMyDoctorAppointments();
 }
