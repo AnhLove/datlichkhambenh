@@ -98,6 +98,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/exam-reports").hasRole("DOCTOR")
                         .requestMatchers(HttpMethod.PATCH, "/exam-reports/*/issue").hasRole("DOCTOR")
 
+                        .requestMatchers("/appointment-services/**").hasAnyRole("STAFF", "ADMIN")
+
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
