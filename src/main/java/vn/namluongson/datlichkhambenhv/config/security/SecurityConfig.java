@@ -100,6 +100,8 @@ public class SecurityConfig {
 
                         .requestMatchers("/appointment-services/**").hasAnyRole("STAFF", "ADMIN")
 
+                        .requestMatchers("/payments/**").hasAnyRole("STAFF", "ADMIN")
+
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
