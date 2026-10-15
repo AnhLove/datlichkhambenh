@@ -1,0 +1,134 @@
+.booking-section {
+    width: min(1180px, calc(100% - 48px));
+    margin: 0 auto;
+    padding: 64px 0;
+}
+
+.booking-heading {
+    margin-bottom: 28px;
+    text-align: center;
+}
+
+.section-kicker {
+    color: #087f70;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 1px;
+}
+
+.booking-heading h2 {
+    margin: 12px 0;
+    color: #183b38;
+    font-size: clamp(26px, 3vw, 34px);
+}
+
+.booking-heading p,
+.booking-note {
+    color: #687e7a;
+    font-size: 14px;
+    line-height: 1.7;
+}
+
+.booking-panel {
+    display: grid;
+    grid-template-columns: 1fr 1fr auto;
+    align-items: end;
+    gap: 20px;
+    padding: 28px;
+    border: 1px solid #e2ece9;
+    border-radius: 10px;
+    background: #fff;
+}
+
+.booking-field {
+    display: grid;
+    gap: 10px;
+}
+
+.booking-field > span {
+    color: #35564f;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.booking-field select,
+.booking-date-input {
+    width: 100%;
+    min-height: 48px;
+    border: 1px solid #d7e4df;
+    border-radius: 6px;
+    background: #fff;
+}
+
+.booking-field select {
+    padding: 0 12px;
+    color: #35564f;
+}
+
+.booking-date-input {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0 12px;
+    color: #087f70;
+}
+
+.booking-date-input input {
+    width: 100%;
+    min-width: 0;
+    height: 44px;
+    border: 0;
+    outline: none;
+    color: #35564f;
+    background: transparent;
+    font: inherit;
+    font-size: 13px;
+}
+
+.booking-field select:focus,
+.booking-date-input:focus-within {
+    border-color: #087f70;
+    outline: 2px solid #d8f0e8;
+}
+
+.booking-submit {
+    min-height: 48px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+    padding: 0 20px;
+    border: 0;
+    border-radius: 6px;
+    color: #fff;
+    background: #087f70;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.booking-submit:hover {
+    background: #075e55;
+}
+
+.booking-note {
+    margin-top: 14px;
+    text-align: center;
+    font-size: 12px;
+}
+
+@media (max-width: 700px) {
+    .booking-section {
+        width: calc(100% - 32px);
+        padding: 44px 0;
+    }
+
+    .booking-panel {
+        grid-template-columns: 1fr;
+        padding: 20px;
+    }
+
+    .booking-submit {
+        width: 100%;
+    }
+}

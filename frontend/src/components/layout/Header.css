@@ -1,0 +1,234 @@
+.site-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    z-index: 1000;
+    box-sizing: border-box;
+    background: #ffffff;
+    border-bottom: 1px solid #e5eeeb;
+    transition: transform 0.3s ease-in-out;
+}
+
+.site-header.header-hidden {
+    transform: translateY(-100%);
+}
+
+/* Phạm vi container bên trong header */
+.site-header .header-inner {
+    width: 100%;
+    max-width: 1440px;
+    min-height: 84px;
+    margin: 0 auto;
+    padding: 0 28px;
+    box-sizing: border-box;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 28px;
+}
+
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    text-decoration: none;
+    color: #173e39;
+    flex-shrink: 0;
+}
+
+.brand-mark {
+    width: 48px;
+    height: 48px;
+    display: grid;
+    place-items: center;
+    background: #087f70;
+    color: #ffffff;
+    border-radius: 9px;
+    flex-shrink: 0;
+}
+
+.brand-text {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.brand-text strong {
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.1px;
+    white-space: nowrap;
+}
+
+.brand-text small {
+    color: #647873;
+    font-size: 12px;
+    white-space: nowrap;
+}
+
+.main-nav {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: clamp(18px, 2.2vw, 36px);
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.main-nav a {
+    position: relative;
+    padding: 8px 0;
+    color: #435b56;
+    text-decoration: none;
+    font-size: 15px;
+    font-weight: 550;
+    white-space: nowrap;
+    transition: color 0.2s ease;
+}
+
+.main-nav a:hover,
+.main-nav a.active {
+    color: #087f70;
+}
+
+.header-login {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    padding: 0 22px;
+    box-sizing: border-box;
+
+    color: #087f70;
+    background: #ffffff;
+    text-decoration: none;
+    border: 1px solid #b9d9d2;
+    border-radius: 7px;
+    font-size: 14px;
+    font-weight: 600;
+    white-space: nowrap;
+    flex-shrink: 0;
+    transition:
+        color 0.2s ease,
+        background 0.2s ease,
+        border-color 0.2s ease;
+}
+
+.header-login:hover {
+    color: #ffffff;
+    background: #087f70;
+    border-color: #087f70;
+}
+
+.mobile-menu {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    padding: 0;
+    border: 1px solid #e0ebe8;
+    border-radius: 7px;
+    background: #ffffff;
+    color: #173e39;
+    cursor: pointer;
+}
+
+.mobile-nav {
+    display: none;
+}
+
+/* Tablet và điện thoại */
+@media (max-width: 1024px) {
+    .site-header .header-inner {
+        min-height: 76px;
+        padding: 0 22px;
+        gap: 16px;
+    }
+
+    .main-nav {
+        display: none;
+    }
+
+    .header-login {
+        margin-left: auto;
+    }
+
+    .mobile-menu {
+        display: inline-flex;
+        flex-shrink: 0;
+    }
+
+    .mobile-nav {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+        width: 100%;
+        padding: 8px 22px 16px;
+        box-sizing: border-box;
+        background: #ffffff;
+        border-top: 1px solid #edf2f0;
+    }
+
+    .mobile-nav a {
+        padding: 13px 4px;
+        color: #435b56;
+        text-decoration: none;
+        font-size: 15px;
+        border-bottom: 1px solid #edf2f0;
+    }
+
+    .mobile-nav a:last-child {
+        border-bottom: 0;
+    }
+
+    .mobile-nav a:hover {
+        color: #087f70;
+    }
+}
+
+@media (max-width: 560px) {
+    .site-header .header-inner {
+        min-height: 70px;
+        padding: 0 14px;
+        gap: 10px;
+    }
+
+    .brand {
+        gap: 9px;
+        min-width: 0;
+    }
+
+    .brand-mark {
+        width: 40px;
+        height: 40px;
+    }
+
+    .brand-text strong {
+        font-size: 11px;
+    }
+
+    .brand-text small {
+        font-size: 10px;
+        white-space: normal;
+    }
+
+    .header-login {
+        min-height: 38px;
+        padding: 0 11px;
+        font-size: 12px;
+    }
+
+    .mobile-menu {
+        width: 38px;
+        height: 38px;
+    }
+
+    .mobile-nav {
+        padding-right: 14px;
+        padding-left: 14px;
+    }
+}

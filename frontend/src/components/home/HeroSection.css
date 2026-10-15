@@ -1,0 +1,140 @@
+.hero {
+    padding-top: 110px;
+    padding-bottom: 64px;
+    background: #f5f9f7;
+}
+
+.hero-grid {
+    display: grid;
+    grid-template-columns: 1.1fr 0.9fr;
+    align-items: center;
+    gap: 40px;
+}
+
+.eyebrow {
+    color: #087f70;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+.hero-content h1 {
+    margin: 14px 0 16px 0;
+    color: #173e39;
+    /* Điều chỉnh lại kích thước chữ linh hoạt hơn để không bị tràn dòng đè lên nhau */
+    font-size: clamp(32px, 3.5vw, 48px);
+    line-height: 1.25;
+    letter-spacing: -0.5px;
+}
+
+.hero-content h1 span {
+    color: #087f70;
+    display: block; /* Đẩy phần "bắt đầu từ hôm nay" xuống dòng gọn gàng, không bị dính */
+}
+
+.hero-content > p {
+    max-width: 500px;
+    color: #60736e;
+    font-size: 15px;
+    line-height: 1.7;
+    margin-bottom: 24px;
+}
+
+.hero-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.btn-primary,
+.btn-secondary {
+    min-height: 46px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 0 18px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.btn-primary {
+    background: #087f70;
+    color: #fff;
+}
+
+.btn-primary:hover {
+    background: #066b5e;
+}
+
+.btn-secondary {
+    background: #fff;
+    color: #244640;
+    border: 1px solid #d7e5e0;
+}
+
+.hero-note {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 22px;
+    color: #60736e;
+    font-size: 13px;
+}
+
+.hero-note svg {
+    color: #087f70;
+    flex-shrink: 0;
+}
+
+.hero-image {
+    position: relative;
+    overflow: hidden;
+    border-radius: 10px;
+    background: #e4efeb;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.04);
+}
+
+.hero-image img {
+    display: block;
+    width: 100%;
+    height: 380px;
+    object-fit: cover;
+}
+
+.image-caption {
+    position: absolute;
+    right: 16px;
+    bottom: 16px;
+    left: 16px;
+    display: grid;
+    gap: 4px;
+    padding: 14px 16px;
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.96);
+    color: #173e39;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.image-caption span {
+    color: #60736e;
+    font-size: 12px;
+}
+
+@media (max-width: 900px) {
+    .hero {
+        padding: 32px 0;
+    }
+
+    .hero-grid {
+        grid-template-columns: 1fr;
+        gap: 28px;
+    }
+
+    .hero-image img {
+        height: 260px;
+    }
+}
