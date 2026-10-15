@@ -1,73 +1,70 @@
-import { HeartPulse, Brain, Eye, Stethoscope, ArrowRight } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { HeartPulse, Brain, Eye, Stethoscope } from 'lucide-react';
+import { getDepartments } from '../../services/departmentService';
 import './SpecialtySection.css';
 
-const specialties = [
-    {
-        id: 1,
-        name: 'Tim mạch',
-        description: 'Khám và tư vấn các vấn đề liên quan đến tim mạch.',
-        icon: HeartPulse,
-    },
-    {
-        id: 2,
-        name: 'Thần kinh',
-        description: 'Thăm khám và hỗ trợ điều trị bệnh lý thần kinh.',
-        icon: Brain,
-    },
-    {
-        id: 3,
-        name: 'Mắt',
-        description: 'Kiểm tra thị lực và tư vấn sức khỏe đôi mắt.',
-        icon: Eye,
-    },
-    {
-        id: 4,
-        name: 'Đa khoa',
-        description: 'Khám tổng quát và tư vấn sức khỏe ban đầu.',
-        icon: Stethoscope,
-    },
-];
+const specialtyIcons = [HeartPulse, Brain, Eye, Stethoscope];
 
 function SpecialtySection() {
-    return (
-        <section className="specialty-section" id="specialties">
-            <div className="container">
-                <div className="specialty-heading">
-                    <div>
-                        <span className="eyebrow">CHUYÊN KHOA</span>
-                        <h2>Chăm sóc sức khỏe toàn diện</h2>
-                        <p>Lựa chọn chuyên khoa phù hợp để bắt đầu hành trình chăm sóc sức khỏe của bạn.</p>
-                    </div>
+    const [specialties, setSpecialties] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState('');
 
-                    <Link to="/departments" className="specialty-view-all">
-                        Xem tất cả
-                        <ArrowRight size={17} />
-                    </Link>
+    useEffect(() => {
+        getDepartments()
+            .then((data) => {
+                setSpecialties(data);
+            })
+            .catch((err) => {
+                console.error('Lỗi lấy danh sách khoa:', err);
+                setError('Không thể tải danh sách chuyên khoa.');
+            })
+            .finally(() => {
+                setLoading(false);
+            });
+    }, []);
+
+    if (loading) {
+        return (
+            <section className="specialty-section">
+                <div className="container">
+                    <p>Đang tải danh sách chuyên khoa...</p>
+                </div>
+            </section>
+        );
+    }
+
+    if (error) {
+        return (
+            <section className="specialty-section">
+                <div className="container">
+                    <p>{error}</p>
+                </div>
+            </section>
+        );
+    }
+
+    return (
+        <section className="specialty-section">
+            <div className="container">
+                <div className="section-heading">
+                    <span className="section-kicker">CHUYÊN KHOA</span>
+                    <h2>Chuyên khoa khám bệnh</h2>
+                    <p>Lựa chọn chuyên khoa phù hợp với nhu cầu chăm sóc sức khỏe.</p>
                 </div>
 
                 <div className="specialty-grid">
-                    {specialties.map((specialty) => {
-                        const Icon = specialty.icon;
+                    {specialties.map((department, index) => {
+                        const Icon = specialtyIcons[index % specialtyIcons.length];
 
                         return (
-                            <article className="specialty-card" key={specialty.id}>
+                            <article className="specialty-card" key={department.id}>
                                 <div className="specialty-icon">
-                                    <Icon size={25} strokeWidth={1.8} />
+                                    <Icon size={24} />
                                 </div>
 
-                                <h3>{specialty.name}</h3>
-
-                                <p>{specialty.description}</p>
-
-                                <Link
-                                    to="/appointments"
-                                    className="specialty-link"
-                                    aria-label={`Đặt lịch khám ${specialty.name}`}
-                                >
-                                    Đặt lịch khám
-                                    <ArrowRight size={16} />
-                                </Link>
+                                <h3>{department.name}</h3>
+                                <p>{department.description}</p>
                             </article>
                         );
                     })}

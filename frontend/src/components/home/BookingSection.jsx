@@ -1,43 +1,52 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { CalendarDays, Search } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { getDepartments } from '../../services/departmentService';
 import './BookingSection.css';
 
-const departments = [
-    { id: 1, name: 'Tim mạch' },
-    { id: 2, name: 'Thần kinh' },
-    { id: 3, name: 'Răng hàm mặt' },
-    { id: 4, name: 'Mắt' },
-];
-
 function BookingSection() {
+    const navigate = useNavigate();
+
+    const [departments, setDepartments] = useState([]);
     const [departmentId, setDepartmentId] = useState('');
     const [appointmentDate, setAppointmentDate] = useState('');
 
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState('');
+
     const today = new Date().toLocaleDateString('en-CA');
+
+    useEffect(() => {
+        getDepartments()
+            .then((data) => {
+                setDepartments(data);
+            })
+            .catch((err) => {
+                console.error('Lỗi tải danh sách khoa:', err);
+                setError('Không thể tải danh sách chuyên khoa.');
+            })
+            .finally(() => {
+                setLoading(false);
+            });
+    }, []);
 
     function handleSearch(event) {
         event.preventDefault();
 
         if (!departmentId || !appointmentDate) {
-            alert('Vui lòng chọn chuyên khoa và ngày khám.');
             return;
         }
 
-        // Tạm thời kiểm tra dữ liệu.
-        // Sau này sẽ chuyển sang trang danh sách bác sĩ và gọi API.
-        console.log({
-            departmentId,
-            appointmentDate,
-        });
+        navigate(
+            `/doctors?departmentId=${encodeURIComponent(departmentId)}&appointmentDate=${encodeURIComponent(appointmentDate)}`
+        );
     }
 
     return (
         <section className="booking-section" id="booking">
             <div className="booking-heading">
                 <span className="section-kicker">ĐẶT LỊCH TRỰC TUYẾN</span>
-
                 <h2>Đặt lịch khám bệnh</h2>
-
                 <p>Chọn chuyên khoa và ngày khám để bắt đầu tìm kiếm bác sĩ.</p>
             </div>
 
@@ -45,8 +54,13 @@ function BookingSection() {
                 <label className="booking-field">
                     <span>Chuyên khoa</span>
 
-                    <select value={departmentId} onChange={(event) => setDepartmentId(event.target.value)} required>
-                        <option value="">Chọn chuyên khoa</option>
+                    <select
+                        value={departmentId}
+                        onChange={(event) => setDepartmentId(event.target.value)}
+                        required
+                        disabled={loading || Boolean(error)}
+                    >
+                        <option value="">{loading ? 'Đang tải chuyên khoa...' : 'Chọn chuyên khoa'}</option>
 
                         {departments.map((department) => (
                             <option key={department.id} value={department.id}>
@@ -72,11 +86,13 @@ function BookingSection() {
                     </div>
                 </label>
 
-                <button className="booking-submit" type="submit">
+                <button className="booking-submit" type="submit" disabled={loading || Boolean(error)}>
                     <Search size={18} />
                     Tìm bác sĩ
                 </button>
             </form>
+
+            {error && <p role="alert">{error}</p>}
 
             <p className="booking-note">Vui lòng chọn đúng chuyên khoa và ngày khám mong muốn.</p>
         </section>

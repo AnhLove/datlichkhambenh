@@ -5,12 +5,12 @@ import StepsSection from '../components/home/StepsSection';
 
 function HomePage() {
     return (
-        <main>
+        <>
             <HeroSection />
             <BookingSection />
             <SpecialtySection />
             <StepsSection />
-        </main>
+        </>
     );
 }
 

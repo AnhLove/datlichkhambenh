@@ -1,10 +1,20 @@
-import axios from 'axios';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
-const api = axios.create({
-    baseURL: import.meta.env.VITE_API_BASE_URL || '/api',
-    headers: {
-        'Content-Type': 'application/json',
-    },
-});
+export async function apiGet(path) {
+    if (!API_BASE_URL) {
+        throw new Error('Chưa cấu hình VITE_API_BASE_URL');
+    }
 
-export default api;
+    const response = await fetch(`${API_BASE_URL}${path}`, {
+        method: 'GET',
+        headers: {
+            Accept: 'application/json',
+        },
+    });
+
+    if (!response.ok) {
+        throw new Error(`API trả về HTTP ${response.status}`);
+    }
+
+    return response.json();
+}

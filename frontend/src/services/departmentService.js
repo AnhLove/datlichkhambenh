@@ -1,6 +1,13 @@
-import api from './api';
+import { apiGet } from './api';
 
-export const getDepartments = async () => {
-    const response = await api.get('/departments');
-    return response.data;
-};
+export function getDepartments(name = '') {
+    const params = new URLSearchParams();
+
+    if (name.trim()) {
+        params.set('name', name.trim());
+    }
+
+    const query = params.toString();
+
+    return apiGet(`/department/list${query ? `?${query}` : ''}`);
+}
