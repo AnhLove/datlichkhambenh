@@ -3,6 +3,14 @@
     background: #f7fafb;
 }
 
+.section-kicker {
+    display: inline-block;
+    color: #087f83;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 1.2px;
+}
+
 .specialty-heading {
     display: flex;
     align-items: flex-end;
@@ -61,6 +69,24 @@
         transform 0.2s ease,
         border-color 0.2s ease,
         box-shadow 0.2s ease;
+}
+
+.specialty-card h3 {
+    margin: 20px 0 9px;
+    color: #163b45;
+    font-size: 18px;
+    font-weight: 650;
+}
+
+.specialty-card p {
+    margin: 0 0 20px;
+    color: #647781;
+    font-size: 14px;
+    line-height: 1.7;
+}
+
+.specialty-link {
+    margin-top: auto;
 }
 
 .specialty-card:hover {
