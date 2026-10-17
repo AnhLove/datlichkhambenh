@@ -3,6 +3,7 @@ import DepartmentsPage from './pages/DepartmentsPage';
 import PublicLayout from './layouts/PublicLayout';
 import HomePage from './pages/HomePage';
 import DoctorsPage from './pages/DoctorsPage';
+import AppointmentsPage from './pages/AppointmentsPage';
 import './App.css';
 
 function App() {
@@ -13,6 +14,7 @@ function App() {
                     <Route path="/" element={<HomePage />} />
                     <Route path="/departments" element={<DepartmentsPage />} />
                     <Route path="/doctors" element={<DoctorsPage />} />
+                    <Route path="/appointments" element={<AppointmentsPage />} />
                 </Route>
             </Routes>
         </BrowserRouter>
