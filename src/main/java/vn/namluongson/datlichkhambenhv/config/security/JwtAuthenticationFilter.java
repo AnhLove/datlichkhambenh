@@ -2,6 +2,7 @@ package vn.namluongson.datlichkhambenhv.config.security;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -18,29 +19,44 @@ import java.io.IOException;
 @Component
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
+
     private final JwtTokenProvider jwtTokenProvider;
     private final CustomUserDetailsService customUserDetailsService;
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        String authHeader = request.getHeader("Authorization");
-        if(authHeader != null && authHeader.startsWith("Bearer ")) {
+    protected void doFilterInternal( HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+        String token = null;
+        Cookie[] cookies = request.getCookies();
+        if (cookies != null) {
+            for (Cookie cookie : cookies) {
+                if ("access_token".equals(cookie.getName())) {
+                    token = cookie.getValue();
+                    break;
+                }
+            }
+        }
+
+        if (token != null && !token.isBlank()) {
             try {
-                String token = authHeader.substring(7);
                 if (jwtTokenProvider.validateToken(token)) {
                     String email = jwtTokenProvider.getEmailFromToken(token);
+
                     UserDetails userDetails = customUserDetailsService.loadUserByUsername(email);
 
                     if (userDetails.isEnabled() && userDetails.isAccountNonLocked()) {
-                        UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+
+                        UsernamePasswordAuthenticationToken authentication =
+                                new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+
                         SecurityContextHolder.getContext().setAuthentication(authentication);
                     }
                 }
-            }catch (Exception e) {
+            } catch (Exception e) {
                 SecurityContextHolder.clearContext();
-                log.warn("Khong xac thuc duoc token: {}", e.getMessage());
+                log.warn("Không xác thực được cookie JWT: {}", e.getMessage());
             }
         }
+
         filterChain.doFilter(request, response);
     }
 }
