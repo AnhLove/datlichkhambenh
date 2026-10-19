@@ -4,12 +4,9 @@ import Footer from '../components/layout/Footer';
 
 function PublicLayout() {
     return (
-        <div
-            className="site-layout"
-            style={{ width: '100%', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}
-        >
+        <div className="site-layout">
             <Header />
-            <main style={{ flex: 1, width: '100%' }}>
+            <main className="site-main">
                 <Outlet />
             </main>
             <Footer />

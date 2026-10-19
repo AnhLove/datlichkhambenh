@@ -231,4 +231,30 @@
         padding-right: 14px;
         padding-left: 14px;
     }
+
+    .site-layout {
+        width: 100%;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .site-main {
+        flex: 1;
+        width: 100%;
+        padding-top: 84px;
+        box-sizing: border-box;
+    }
+
+    @media (max-width: 1024px) {
+        .site-main {
+            padding-top: 76px;
+        }
+    }
+
+    @media (max-width: 560px) {
+        .site-main {
+            padding-top: 70px;
+        }
+    }
 }

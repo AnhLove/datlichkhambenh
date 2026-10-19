@@ -1,11 +1,38 @@
 import { useState, useEffect } from 'react';
-import { Link, NavLink } from 'react-router-dom';
-import { Plus, Menu, X } from 'lucide-react';
+import { Link, NavLink, useNavigate, useLocation } from 'react-router-dom';
+import { Plus, Menu, X, User, LogOut } from 'lucide-react';
 import './Header.css';
 
 function Header() {
+    const navigate = useNavigate();
+    const location = useLocation(); // Lắng nghe sự thay đổi đường dẫn trang
     const [isHidden, setIsHidden] = useState(false);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const [user, setUser] = useState(null);
+
+    // Kiểm tra trạng thái đăng nhập mỗi khi đổi URL hoặc component load
+    useEffect(() => {
+        const checkAuth = () => {
+            const storedUser = localStorage.getItem('user');
+            if (storedUser) {
+                try {
+                    setUser(JSON.parse(storedUser));
+                } catch {
+                    setUser(null);
+                }
+            } else {
+                setUser(null);
+            }
+        };
+
+        checkAuth();
+    }, [location.pathname]); // Chạy lại mỗi khi chuyển trang (ví dụ vừa login xong về '/')
+
+    const handleLogout = () => {
+        localStorage.removeItem('user');
+        setUser(null);
+        navigate('/login');
+    };
 
     useEffect(() => {
         let lastScrollY = window.scrollY;
@@ -25,13 +52,8 @@ function Header() {
             lastScrollY = currentScrollY;
         };
 
-        window.addEventListener('scroll', handleScroll, {
-            passive: true,
-        });
-
-        return () => {
-            window.removeEventListener('scroll', handleScroll);
-        };
+        window.addEventListener('scroll', handleScroll, { passive: true });
+        return () => window.removeEventListener('scroll', handleScroll);
     }, []);
 
     const closeMenu = () => setIsMenuOpen(false);
@@ -43,7 +65,6 @@ function Header() {
                     <span className="brand-mark">
                         <Plus size={30} strokeWidth={3} />
                     </span>
-
                     <span className="brand-text">
                         <strong>BỆNH VIỆN NAM LƯƠNG SƠN</strong>
                         <small>Chăm sóc tận tâm – Sức khỏe vẹn toàn</small>
@@ -57,9 +78,36 @@ function Header() {
                     <NavLink to="/appointments">Đặt lịch khám</NavLink>
                 </nav>
 
-                <Link to="/login" className="header-login">
-                    Đăng nhập
-                </Link>
+                {user ? (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexShrink: 0 }}>
+                        <span
+                            style={{
+                                fontSize: '14px',
+                                fontWeight: 600,
+                                color: '#087f70',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '6px',
+                            }}
+                        >
+                            <User size={16} />
+                            {user.fullName || user.email || 'Tài khoản'}
+                        </span>
+                        <button
+                            type="button"
+                            onClick={handleLogout}
+                            className="header-login"
+                            style={{ borderColor: '#f87171', color: '#dc2626' }}
+                            title="Đăng xuất"
+                        >
+                            <LogOut size={16} style={{ marginRight: '4px' }} /> Đăng xuất
+                        </button>
+                    </div>
+                ) : (
+                    <Link to="/login" className="header-login">
+                        Đăng nhập
+                    </Link>
+                )}
 
                 <button
                     type="button"
@@ -86,9 +134,33 @@ function Header() {
                     <NavLink to="/appointments" onClick={closeMenu}>
                         Đặt lịch khám
                     </NavLink>
-                    <NavLink to="/login" onClick={closeMenu}>
-                        Đăng nhập
-                    </NavLink>
+                    {user ? (
+                        <button
+                            type="button"
+                            onClick={() => {
+                                handleLogout();
+                                closeMenu();
+                            }}
+                            style={{
+                                background: 'none',
+                                border: 'none',
+                                borderBottom: '1px solid #edf2f0',
+                                textAlign: 'left',
+                                padding: '13px 4px',
+                                color: '#dc2626',
+                                fontSize: '15px',
+                                fontWeight: 550,
+                                cursor: 'pointer',
+                                width: '100%',
+                            }}
+                        >
+                            Đăng xuất
+                        </button>
+                    ) : (
+                        <NavLink to="/login" onClick={closeMenu}>
+                            Đăng nhập
+                        </NavLink>
+                    )}
                 </nav>
             )}
         </header>
