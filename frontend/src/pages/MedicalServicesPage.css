@@ -1,0 +1,244 @@
+.medical-services-page {
+    min-height: 65vh;
+    padding: 64px 0 80px;
+    background: #f7fafb;
+    box-sizing: border-box;
+}
+
+.medical-services-container {
+    max-width: 1200px;
+}
+
+.medical-services-heading {
+    margin-bottom: 32px;
+}
+
+.medical-services-heading .section-kicker {
+    display: inline-block;
+    margin-bottom: 10px;
+    color: #087f83;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 1.2px;
+}
+
+.medical-services-heading h1 {
+    margin: 0 0 14px;
+    color: #163b45;
+    font-size: clamp(28px, 4vw, 38px);
+    font-weight: 700;
+    line-height: 1.3;
+}
+
+.medical-services-heading p {
+    max-width: 650px;
+    margin: 0;
+    color: #647781;
+    font-size: 15px;
+    line-height: 1.8;
+}
+
+.medical-services-search {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    max-width: 560px;
+    min-height: 52px;
+    margin-bottom: 32px;
+    padding: 0 16px;
+    box-sizing: border-box;
+    color: #71858c;
+    background: #fff;
+    border: 1px solid #dce7e9;
+    border-radius: 10px;
+    transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+.medical-services-search:focus-within {
+    border-color: #087f83;
+    box-shadow: 0 0 0 3px rgb(8 127 131 / 10%);
+}
+
+.medical-services-search input {
+    width: 100%;
+    min-width: 0;
+    padding: 14px 0;
+    color: #163b45;
+    background: transparent;
+    border: none;
+    outline: none;
+    font-size: 14px;
+}
+
+.medical-services-search input::placeholder {
+    color: #94a4aa;
+}
+
+.medical-services-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 20px;
+}
+
+.medical-service-card {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    min-width: 0;
+    min-height: 290px;
+    padding: 26px 24px;
+    box-sizing: border-box;
+    background: #fff;
+    border: 1px solid #e2ebed;
+    border-radius: 12px;
+    transition:
+        transform 0.2s ease,
+        border-color 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+.medical-service-card:hover {
+    transform: translateY(-3px);
+    border-color: #b7dedd;
+    box-shadow: 0 10px 26px rgb(24 74 82 / 7%);
+}
+
+.medical-service-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 50px;
+    height: 50px;
+    flex-shrink: 0;
+    color: #087f83;
+    background: #eaf6f5;
+    border-radius: 10px;
+}
+
+.medical-service-department {
+    margin-top: 18px;
+    color: #087f83;
+    font-size: 12px;
+    font-weight: 650;
+}
+
+.medical-service-card h2 {
+    margin: 8px 0 10px;
+    color: #163b45;
+    font-size: 18px;
+    font-weight: 650;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+}
+
+.medical-service-description {
+    margin: 0 0 24px;
+    color: #647781;
+    font-size: 14px;
+    line-height: 1.75;
+    overflow-wrap: anywhere;
+}
+
+.medical-service-bottom {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 12px;
+    width: 100%;
+    margin-top: auto;
+    padding-top: 18px;
+    border-top: 1px solid #edf2f3;
+}
+
+.medical-service-price-label {
+    color: #71858c;
+    font-size: 12px;
+}
+
+.medical-service-price {
+    margin: 5px 0 0;
+    color: #087f83;
+    font-size: 17px;
+    font-weight: 750;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+}
+
+.medical-service-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    flex-shrink: 0;
+    color: #087f83;
+    font-size: 13px;
+    font-weight: 650;
+    text-decoration: none;
+}
+
+.medical-service-link:hover {
+    color: #075f63;
+}
+
+.medical-services-state {
+    color: #647781;
+    font-size: 14px;
+    line-height: 1.7;
+}
+
+.medical-services-error {
+    padding: 14px 16px;
+    color: #b42318;
+    background: #fff1f0;
+    border: 1px solid #ffd6d2;
+    border-radius: 8px;
+}
+
+@media (max-width: 900px) {
+    .medical-services-page {
+        padding: 52px 0 64px;
+    }
+
+    .medical-services-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 16px;
+    }
+}
+
+@media (max-width: 600px) {
+    .medical-services-page {
+        padding: 40px 0 52px;
+    }
+
+    .medical-services-heading {
+        margin-bottom: 24px;
+    }
+
+    .medical-services-search {
+        max-width: none;
+        margin-bottom: 24px;
+    }
+
+    .medical-services-grid {
+        grid-template-columns: 1fr;
+        gap: 14px;
+    }
+
+    .medical-service-card {
+        min-height: auto;
+        padding: 22px 20px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .medical-service-card {
+        transition: none;
+    }
+
+    .medical-service-card:hover {
+        transform: none;
+    }
+}

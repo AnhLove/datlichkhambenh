@@ -6,6 +6,7 @@ import DoctorsPage from './pages/DoctorsPage';
 import AppointmentsPage from './pages/AppointmentsPage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
+import MedicalServicesPage from './pages/MedicalServicesPage';
 import './App.css';
 
 function App() {
@@ -19,6 +20,7 @@ function App() {
                     <Route path="/appointments" element={<AppointmentsPage />} />
                     <Route path="/login" element={<LoginPage />} />
                     <Route path="/register" element={<RegisterPage />} />
+                    <Route path="/medical-services" element={<MedicalServicesPage />} />
                 </Route>
             </Routes>
         </BrowserRouter>

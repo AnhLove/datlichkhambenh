@@ -5,12 +5,11 @@ import './Header.css';
 
 function Header() {
     const navigate = useNavigate();
-    const location = useLocation(); // Lắng nghe sự thay đổi đường dẫn trang
+    const location = useLocation();
     const [isHidden, setIsHidden] = useState(false);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [user, setUser] = useState(null);
 
-    // Kiểm tra trạng thái đăng nhập mỗi khi đổi URL hoặc component load
     useEffect(() => {
         const checkAuth = () => {
             const storedUser = localStorage.getItem('user');
@@ -26,7 +25,7 @@ function Header() {
         };
 
         checkAuth();
-    }, [location.pathname]); // Chạy lại mỗi khi chuyển trang (ví dụ vừa login xong về '/')
+    }, [location.pathname]);
 
     const handleLogout = () => {
         localStorage.removeItem('user');
@@ -76,6 +75,7 @@ function Header() {
                     <NavLink to="/doctors">Đội ngũ bác sĩ</NavLink>
                     <NavLink to="/departments">Chuyên khoa</NavLink>
                     <NavLink to="/appointments">Đặt lịch khám</NavLink>
+                    <NavLink to="/medical-services">Dịch vụ y tế</NavLink>
                 </nav>
 
                 {user ? (
@@ -134,6 +134,7 @@ function Header() {
                     <NavLink to="/appointments" onClick={closeMenu}>
                         Đặt lịch khám
                     </NavLink>
+                    <NavLink to="/medical-services">Dịch vụ y tế</NavLink>
                     {user ? (
                         <button
                             type="button"

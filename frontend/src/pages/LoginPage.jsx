@@ -22,20 +22,10 @@ function LoginPage() {
         setLoading(true);
 
         try {
-            const response = await apiPost('/auth/login', {
+            await apiPost('/auth/login', {
                 email: email.trim(),
                 password,
             });
-
-            console.log('Login response:', response); // Kiểm tra F12 Console xem dữ liệu trả về ra sao
-
-            // Lấy thông tin user từ nhiều khả năng cấu trúc backend trả về
-            const userData = response?.user ||
-                response?.data?.user ||
-                response?.data || { fullName: email.split('@')[0] };
-
-            localStorage.setItem('user', JSON.stringify(userData));
-
             navigate('/', { replace: true });
         } catch (err) {
             setError(err.message || 'Đăng nhập thất bại. Vui lòng kiểm tra email và mật khẩu.');
