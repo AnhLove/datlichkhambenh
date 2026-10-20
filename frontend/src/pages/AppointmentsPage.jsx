@@ -4,7 +4,7 @@ import { ArrowLeft, CalendarDays, CheckCircle2, Clock3, LoaderCircle, Stethoscop
 
 import { getDepartments } from '../services/departmentService';
 import { searchDoctors } from '../services/doctorService';
-import { getAvailableSlots } from '../services/appointmentService';
+import { getAvailableSlots, createAppointment } from '../services/appointmentService';
 
 import './AppointmentsPage.css';
 
@@ -19,32 +19,28 @@ function getToday() {
 
 function AppointmentsPage() {
     const [searchParams] = useSearchParams();
-
     const initialDoctorUuid = searchParams.get('doctorUuid') || '';
 
-    // Dữ liệu lấy từ API
     const [departments, setDepartments] = useState([]);
     const [allDoctors, setAllDoctors] = useState([]);
     const [slots, setSlots] = useState([]);
 
-    // Dữ liệu người dùng lựa chọn
     const [departmentId, setDepartmentId] = useState('');
     const [doctorUuid, setDoctorUuid] = useState(initialDoctorUuid);
     const [appointmentDate, setAppointmentDate] = useState('');
     const [timeSlot, setTimeSlot] = useState('');
     const [reason, setReason] = useState('');
 
-    // Trạng thái giao diện
     const [loadingDepartments, setLoadingDepartments] = useState(true);
-    const [loadingDoctors, setLoadingDoctors] = useState(false);
     const [loadingSlots, setLoadingSlots] = useState(false);
+    const [submitting, setSubmitting] = useState(false);
+    const [slotReloadCount, setSlotReloadCount] = useState(0);
 
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
 
     const today = getToday();
 
-    // Tính từ state hiện tại, không tạo state trùng lặp.
     const selectedDepartment = useMemo(
         () => departments.find((department) => String(department.id) === departmentId),
         [departments, departmentId]
@@ -52,7 +48,7 @@ function AppointmentsPage() {
 
     const doctors = useMemo(() => {
         if (!selectedDepartment) {
-            return allDoctors;
+            return [];
         }
 
         return allDoctors.filter((doctor) => doctor.departmentName === selectedDepartment.name);
@@ -60,11 +56,14 @@ function AppointmentsPage() {
 
     const selectedDoctor = useMemo(() => doctors.find((doctor) => doctor.uuid === doctorUuid), [doctors, doctorUuid]);
 
-    // Tải khoa và danh sách bác sĩ khi mở trang.
+    // Tải danh sách chuyên khoa và bác sĩ ban đầu.
     useEffect(() => {
         let cancelled = false;
 
         async function loadInitialData() {
+            setLoadingDepartments(true);
+            setError('');
+
             try {
                 const [departmentData, doctorData] = await Promise.all([getDepartments(), searchDoctors('', '')]);
 
@@ -77,29 +76,30 @@ function AppointmentsPage() {
                 setDepartments(departmentList);
                 setAllDoctors(doctorList);
 
-                // Nếu người dùng đi từ trang bác sĩ sang,
-                // tự chọn khoa tương ứng với bác sĩ trên URL.
                 if (initialDoctorUuid) {
                     const doctor = doctorList.find((item) => item.uuid === initialDoctorUuid);
 
-                    if (doctor) {
-                        const department = departmentList.find((item) => item.name === doctor.departmentName);
-
-                        if (department) {
-                            setDepartmentId(String(department.id));
-                        } else {
-                            setError('Không tìm thấy chuyên khoa của bác sĩ đã chọn.');
-                        }
-                    } else {
-                        setError('Không tìm thấy bác sĩ được chọn. Vui lòng chọn lại.');
+                    if (!doctor) {
+                        setError('Không tìm thấy bác sĩ đã chọn. Vui lòng chọn lại.');
                         setDoctorUuid('');
+                        return;
                     }
+
+                    const department = departmentList.find((item) => item.name === doctor.departmentName);
+
+                    if (!department) {
+                        setError('Không tìm thấy chuyên khoa của bác sĩ đã chọn.');
+                        setDoctorUuid('');
+                        return;
+                    }
+
+                    setDepartmentId(String(department.id));
                 }
             } catch (err) {
                 if (cancelled) return;
 
                 console.error('Lỗi tải dữ liệu đặt lịch:', err);
-                setError('Không thể tải dữ liệu đặt lịch. Vui lòng thử tải lại trang.');
+                setError(err.message || 'Không thể tải dữ liệu đặt lịch. Vui lòng thử lại.');
             } finally {
                 if (!cancelled) {
                     setLoadingDepartments(false);
@@ -114,6 +114,7 @@ function AppointmentsPage() {
         };
     }, [initialDoctorUuid]);
 
+    // Tải khung giờ theo bác sĩ và ngày đã chọn.
     useEffect(() => {
         if (!doctorUuid || !appointmentDate) {
             return undefined;
@@ -122,6 +123,8 @@ function AppointmentsPage() {
         let cancelled = false;
 
         async function loadSlots() {
+            setLoadingSlots(true);
+
             try {
                 const data = await getAvailableSlots(doctorUuid, appointmentDate);
 
@@ -138,9 +141,10 @@ function AppointmentsPage() {
                 if (cancelled) return;
 
                 console.error('Lỗi tải khung giờ:', err);
+
                 setSlots([]);
                 setTimeSlot('');
-                setError('Không thể tải khung giờ. Vui lòng thử chọn lại ngày khám.');
+                setError(err.message || 'Không thể tải khung giờ. Vui lòng thử lại.');
             } finally {
                 if (!cancelled) {
                     setLoadingSlots(false);
@@ -153,26 +157,21 @@ function AppointmentsPage() {
         return () => {
             cancelled = true;
         };
-    }, [doctorUuid, appointmentDate]);
+    }, [doctorUuid, appointmentDate, slotReloadCount]);
 
     function handleDepartmentChange(event) {
-        const nextDepartmentId = event.target.value;
-
-        setDepartmentId(nextDepartmentId);
+        setDepartmentId(event.target.value);
         setDoctorUuid('');
         setAppointmentDate('');
         setTimeSlot('');
         setSlots([]);
-        setLoadingDoctors(false);
         setLoadingSlots(false);
         setError('');
         setSuccess('');
     }
 
     function handleDoctorChange(event) {
-        const nextDoctorUuid = event.target.value;
-
-        setDoctorUuid(nextDoctorUuid);
+        setDoctorUuid(event.target.value);
         setAppointmentDate('');
         setTimeSlot('');
         setSlots([]);
@@ -182,42 +181,76 @@ function AppointmentsPage() {
     }
 
     function handleDateChange(event) {
-        const nextDate = event.target.value;
-
-        setAppointmentDate(nextDate);
+        setAppointmentDate(event.target.value);
         setTimeSlot('');
         setSlots([]);
+        setLoadingSlots(false);
         setError('');
         setSuccess('');
-
-        setLoadingSlots(Boolean(doctorUuid && nextDate));
     }
 
-    function handleSubmit(event) {
+    async function handleSubmit(event) {
         event.preventDefault();
+
+        if (submitting) return;
 
         setError('');
         setSuccess('');
 
         if (!departmentId || !doctorUuid || !appointmentDate || !timeSlot) {
-            setError('Vui lòng chọn đầy đủ khoa, bác sĩ, ngày và giờ khám.');
+            setError('Vui lòng chọn đầy đủ chuyên khoa, bác sĩ, ngày và giờ khám.');
             return;
         }
 
-        if (appointmentDate < today) {
+        if (appointmentDate < getToday()) {
             setError('Ngày khám không được ở trong quá khứ.');
             return;
         }
 
-        if (!slots.some((slot) => slot.timeSlot === timeSlot)) {
-            setError('Khung giờ này không còn trong danh sách giờ trống. Vui lòng chọn lại.');
+        if (!selectedDoctor || !selectedDepartment) {
+            setError('Thông tin bác sĩ hoặc chuyên khoa không hợp lệ. Vui lòng chọn lại.');
             return;
         }
 
-        // Chưa gửi yêu cầu đặt lịch khi chưa tích hợp đăng nhập.
-        setError(
-            'Giao diện đăng nhập chưa được tích hợp. Vui lòng đăng nhập bằng tài khoản bệnh nhân trước khi xác nhận đặt lịch.'
-        );
+        if (loadingSlots) {
+            setError('Vui lòng chờ kiểm tra khung giờ.');
+            return;
+        }
+
+        const slotIsAvailable = slots.some((slot) => slot.timeSlot === timeSlot);
+
+        if (!slotIsAvailable) {
+            setError('Khung giờ đã chọn không còn khả dụng. Vui lòng chọn lại.');
+            setTimeSlot('');
+            setSlotReloadCount((count) => count + 1);
+            return;
+        }
+
+        setSubmitting(true);
+
+        try {
+            const response = await createAppointment({
+                doctorUuid,
+                departmentId: Number(departmentId),
+                appointmentDate,
+                timeSlot,
+                reason: reason.trim(),
+            });
+
+            setSuccess(response?.message || 'Đặt lịch khám thành công!');
+
+            setTimeSlot('');
+            setReason('');
+            setSlotReloadCount((count) => count + 1);
+        } catch (err) {
+            console.error('Lỗi đặt lịch khám:', err);
+
+            setError(err.message || 'Không thể đặt lịch. Vui lòng thử lại.');
+
+            setSlotReloadCount((count) => count + 1);
+        } finally {
+            setSubmitting(false);
+        }
     }
 
     return (
@@ -238,7 +271,6 @@ function AppointmentsPage() {
 
                 <div className="appointments-layout">
                     <form className="appointment-form" onSubmit={handleSubmit}>
-                        {/* Phần 1: Chọn khoa và bác sĩ */}
                         <section className="appointment-form-section">
                             <div className="appointment-section-heading">
                                 <span className="appointment-step">1</span>
@@ -257,7 +289,7 @@ function AppointmentsPage() {
                                 <select
                                     value={departmentId}
                                     onChange={handleDepartmentChange}
-                                    disabled={loadingDepartments}
+                                    disabled={loadingDepartments || submitting}
                                     required
                                 >
                                     <option value="">
@@ -280,15 +312,11 @@ function AppointmentsPage() {
                                 <select
                                     value={doctorUuid}
                                     onChange={handleDoctorChange}
-                                    disabled={!departmentId || loadingDepartments || loadingDoctors}
+                                    disabled={!departmentId || loadingDepartments || submitting}
                                     required
                                 >
                                     <option value="">
-                                        {!departmentId
-                                            ? 'Vui lòng chọn chuyên khoa trước'
-                                            : loadingDoctors
-                                              ? 'Đang tải bác sĩ...'
-                                              : 'Chọn bác sĩ'}
+                                        {!departmentId ? 'Vui lòng chọn chuyên khoa trước' : 'Chọn bác sĩ'}
                                     </option>
 
                                     {doctors.map((doctor) => (
@@ -304,7 +332,6 @@ function AppointmentsPage() {
                             </label>
                         </section>
 
-                        {/* Phần 2: Chọn ngày và giờ */}
                         <section className="appointment-form-section">
                             <div className="appointment-section-heading">
                                 <span className="appointment-step">2</span>
@@ -327,7 +354,7 @@ function AppointmentsPage() {
                                         type="date"
                                         value={appointmentDate}
                                         min={today}
-                                        disabled={!doctorUuid}
+                                        disabled={!doctorUuid || submitting}
                                         onChange={handleDateChange}
                                         required
                                     />
@@ -362,6 +389,7 @@ function AppointmentsPage() {
                                                         : 'appointment-slot'
                                                 }
                                                 aria-pressed={timeSlot === slot.timeSlot}
+                                                disabled={submitting}
                                                 onClick={() => {
                                                     setTimeSlot(slot.timeSlot);
                                                     setError('');
@@ -377,7 +405,6 @@ function AppointmentsPage() {
                             </div>
                         </section>
 
-                        {/* Phần 3: Lý do khám */}
                         <section className="appointment-form-section">
                             <div className="appointment-section-heading">
                                 <span className="appointment-step">3</span>
@@ -399,6 +426,7 @@ function AppointmentsPage() {
                                     }}
                                     maxLength={500}
                                     rows={4}
+                                    disabled={submitting}
                                     placeholder="Ví dụ: Khám định kỳ, tư vấn sức khỏe..."
                                 />
 
@@ -409,6 +437,10 @@ function AppointmentsPage() {
                         {error && (
                             <div className="appointment-feedback error" role="alert">
                                 {error}
+
+                                {error.includes('401') || error.includes('403') ? (
+                                    <Link to="/login">Đến trang đăng nhập</Link>
+                                ) : null}
                             </div>
                         )}
 
@@ -422,15 +454,21 @@ function AppointmentsPage() {
                         <button
                             type="submit"
                             className="appointment-submit"
-                            disabled={loadingDepartments || loadingDoctors || loadingSlots}
+                            disabled={loadingDepartments || loadingSlots || submitting}
                         >
-                            Tiếp tục đặt lịch
+                            {submitting ? (
+                                <>
+                                    <LoaderCircle size={18} className="appointment-spinner" />
+                                    Đang đặt lịch...
+                                </>
+                            ) : (
+                                'Xác nhận đặt lịch'
+                            )}
                         </button>
 
                         <p className="appointment-disclaimer">* Các thông tin có dấu sao là bắt buộc.</p>
                     </form>
 
-                    {/* Khung tóm tắt */}
                     <aside className="appointment-summary">
                         <div className="appointment-summary-icon">
                             <Stethoscope size={25} />

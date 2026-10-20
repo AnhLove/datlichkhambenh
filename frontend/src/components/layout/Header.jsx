@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { Plus, Menu, X, User, LogOut } from 'lucide-react';
+import { apiPost } from '../../services/api';
 import './Header.css';
 
 function Header() {
@@ -13,13 +14,16 @@ function Header() {
     useEffect(() => {
         const checkAuth = () => {
             const storedUser = localStorage.getItem('user');
-            if (storedUser) {
-                try {
-                    setUser(JSON.parse(storedUser));
-                } catch {
-                    setUser(null);
-                }
-            } else {
+
+            if (!storedUser) {
+                setUser(null);
+                return;
+            }
+
+            try {
+                setUser(JSON.parse(storedUser));
+            } catch {
+                localStorage.removeItem('user');
                 setUser(null);
             }
         };
@@ -27,10 +31,16 @@ function Header() {
         checkAuth();
     }, [location.pathname]);
 
-    const handleLogout = () => {
-        localStorage.removeItem('user');
-        setUser(null);
-        navigate('/login');
+    const handleLogout = async () => {
+        try {
+            await apiPost('/auth/logout', {});
+        } catch (err) {
+            console.error('Lỗi đăng xuất:', err);
+        } finally {
+            localStorage.removeItem('user');
+            setUser(null);
+            navigate('/login', { replace: true });
+        }
     };
 
     useEffect(() => {
@@ -91,7 +101,7 @@ function Header() {
                             }}
                         >
                             <User size={16} />
-                            {user.fullName || user.email || 'Tài khoản'}
+                            {user.fullName || 'Tài khoản'}
                         </span>
                         <button
                             type="button"

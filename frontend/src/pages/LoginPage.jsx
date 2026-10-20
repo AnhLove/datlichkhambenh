@@ -26,6 +26,15 @@ function LoginPage() {
                 email: email.trim(),
                 password,
             });
+
+            // Chỉ lưu thông tin hiển thị, KHÔNG lưu JWT.
+            localStorage.setItem(
+                'user',
+                JSON.stringify({
+                    email: email.trim(),
+                })
+            );
+
             navigate('/', { replace: true });
         } catch (err) {
             setError(err.message || 'Đăng nhập thất bại. Vui lòng kiểm tra email và mật khẩu.');
