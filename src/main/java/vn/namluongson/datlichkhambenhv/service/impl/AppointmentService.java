@@ -111,6 +111,7 @@ public class AppointmentService implements IAppointmentService {
         }
 
         AppointmentResponse response = new AppointmentResponse();
+        response.setAppointmentId(appointment.getId());
         response.setDoctorName(doctor.getUser().getFullName());
         response.setDepartmentName(department.getName());
         response.setAppointmentDate(appointment.getAppointmentDate());
@@ -192,6 +193,7 @@ public class AppointmentService implements IAppointmentService {
         var response = appointments.stream().map(appointment -> {
             AppointmentResponse data = new AppointmentResponse();
 
+            data.setAppointmentId(appointment.getId());
             data.setDoctorName(appointment.getDoctor().getUser().getFullName());
             data.setDepartmentName(appointment.getDepartment().getName());
             data.setAppointmentDate(appointment.getAppointmentDate());
@@ -233,6 +235,7 @@ public class AppointmentService implements IAppointmentService {
         Appointment savedAppointment = appointmentRepository.save(appointment);
 
         AppointmentResponse response = AppointmentResponse.builder()
+                .appointmentId(savedAppointment.getId())
                 .doctorName(savedAppointment.getDoctor().getUser().getFullName())
                 .departmentName(savedAppointment.getDepartment().getName())
                 .appointmentDate(savedAppointment.getAppointmentDate())
