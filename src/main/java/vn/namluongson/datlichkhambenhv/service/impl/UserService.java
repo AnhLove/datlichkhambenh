@@ -1,6 +1,8 @@
 package vn.namluongson.datlichkhambenhv.service.impl;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import vn.namluongson.datlichkhambenhv.domain.dtos.requests.user.CreateStaffRequest;
@@ -160,5 +162,35 @@ public class UserService implements IUserService {
             response.setCreatedAt(user.getCreatedAt());
             return response;
         }).toList();
+    }
+
+    @Override
+    public UserResponse getCurrentUserByEmail(String email) {
+        User user = userRepository.findByEmailIgnoreCase(email);
+
+        if (user == null) {
+            throw BusinessException.notFound("User not found");
+        }
+
+        UserResponse response = new UserResponse();
+        response.setUuid(user.getUuid());
+        response.setFullName(user.getFullName());
+        response.setEmail(user.getEmail());
+        response.setPhone(user.getPhone());
+        response.setDateOfBirth(user.getDateOfBirth());
+        response.setRole(user.getRole());
+        response.setStatus(user.getStatus());
+        response.setCreatedAt(user.getCreatedAt());
+
+        return response;
+    }
+
+    @Override
+    public UserResponse getCurrentUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        String email = authentication.getName();
+
+        return getCurrentUserByEmail(email);
     }
 }

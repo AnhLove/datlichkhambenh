@@ -18,4 +18,6 @@ public interface IUserService {
     UserResponse getUserByUuid(String uuid) throws Exception;
 
     List<UserResponse> getListUserByName(String name);
+    UserResponse getCurrentUserByEmail(String email);
+    UserResponse getCurrentUser();
 }
