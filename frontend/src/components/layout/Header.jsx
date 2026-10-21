@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, NavLink, useNavigate, useLocation } from 'react-router-dom';
-import { Plus, Menu, X, User, LogOut } from 'lucide-react';
+import { Plus, Menu, X, User, LogOut, CalendarDays } from 'lucide-react';
 import { apiGet, apiPost } from '../../services/api';
 import './Header.css';
 
@@ -17,6 +17,8 @@ function Header() {
         let cancelled = false;
 
         const fetchCurrentUser = async () => {
+            setIsAuthLoading(true);
+
             try {
                 const currentUser = await apiGet('/me');
 
@@ -49,6 +51,7 @@ function Header() {
         } finally {
             localStorage.removeItem('user');
             setUser(null);
+            closeMenu();
             navigate('/login', { replace: true });
         }
     };
@@ -97,11 +100,31 @@ function Header() {
                 </Link>
 
                 <nav className="main-nav" aria-label="Điều hướng chính">
-                    <NavLink to="/">Trang chủ</NavLink>
-                    <NavLink to="/doctors">Đội ngũ bác sĩ</NavLink>
-                    <NavLink to="/departments">Chuyên khoa</NavLink>
-                    <NavLink to="/appointments">Đặt lịch khám</NavLink>
-                    <NavLink to="/medical-services">Dịch vụ y tế</NavLink>
+                    <NavLink to="/" onClick={closeMenu}>
+                        Trang chủ
+                    </NavLink>
+
+                    <NavLink to="/doctors" onClick={closeMenu}>
+                        Đội ngũ bác sĩ
+                    </NavLink>
+
+                    <NavLink to="/departments" onClick={closeMenu}>
+                        Chuyên khoa
+                    </NavLink>
+
+                    <NavLink to="/appointments" onClick={closeMenu}>
+                        Đặt lịch khám
+                    </NavLink>
+
+                    <NavLink to="/medical-services" onClick={closeMenu}>
+                        Dịch vụ y tế
+                    </NavLink>
+
+                    {!isAuthLoading && user && (
+                        <NavLink to="/my-appointments" onClick={closeMenu}>
+                            Lịch khám của tôi
+                        </NavLink>
+                    )}
                 </nav>
 
                 <div
@@ -115,13 +138,7 @@ function Header() {
                     }}
                 >
                     {isAuthLoading ? (
-                        <div
-                            aria-label="Đang kiểm tra đăng nhập"
-                            style={{
-                                width: '180px',
-                                height: '36px',
-                            }}
-                        />
+                        <div aria-label="Đang kiểm tra đăng nhập" style={{ width: '180px', height: '36px' }} />
                     ) : user ? (
                         <>
                             <span
@@ -192,13 +209,25 @@ function Header() {
                         Dịch vụ y tế
                     </NavLink>
 
+                    {!isAuthLoading && user && (
+                        <NavLink
+                            to="/my-appointments"
+                            onClick={closeMenu}
+                            style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '8px',
+                            }}
+                        >
+                            <CalendarDays size={18} />
+                            Lịch khám của tôi
+                        </NavLink>
+                    )}
+
                     {isAuthLoading ? null : user ? (
                         <button
                             type="button"
-                            onClick={() => {
-                                closeMenu();
-                                handleLogout();
-                            }}
+                            onClick={handleLogout}
                             style={{
                                 background: 'none',
                                 border: 'none',
@@ -210,8 +239,12 @@ function Header() {
                                 fontWeight: 550,
                                 cursor: 'pointer',
                                 width: '100%',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '8px',
                             }}
                         >
+                            <LogOut size={18} />
                             Đăng xuất
                         </button>
                     ) : (
