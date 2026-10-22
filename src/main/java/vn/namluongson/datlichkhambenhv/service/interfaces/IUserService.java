@@ -1,9 +1,6 @@
 package vn.namluongson.datlichkhambenhv.service.interfaces;
 
-import vn.namluongson.datlichkhambenhv.domain.dtos.requests.user.CreateStaffRequest;
-import vn.namluongson.datlichkhambenhv.domain.dtos.requests.user.CreateUserRequest;
-import vn.namluongson.datlichkhambenhv.domain.dtos.requests.user.ListUserRequest;
-import vn.namluongson.datlichkhambenhv.domain.dtos.requests.user.UpdateUserRequest;
+import vn.namluongson.datlichkhambenhv.domain.dtos.requests.user.*;
 import vn.namluongson.datlichkhambenhv.domain.dtos.responses.user.UserResponse;
 import vn.namluongson.datlichkhambenhv.domain.response.ApiResponse;
 
@@ -20,4 +17,5 @@ public interface IUserService {
     List<UserResponse> getListUserByName(String name);
     UserResponse getCurrentUserByEmail(String email);
     UserResponse getCurrentUser();
+    UserResponse updateMyProfile(UpdateMyProfileRequest request);
 }

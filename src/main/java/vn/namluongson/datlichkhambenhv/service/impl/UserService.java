@@ -5,10 +5,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import vn.namluongson.datlichkhambenhv.domain.dtos.requests.user.CreateStaffRequest;
-import vn.namluongson.datlichkhambenhv.domain.dtos.requests.user.CreateUserRequest;
-import vn.namluongson.datlichkhambenhv.domain.dtos.requests.user.ListUserRequest;
-import vn.namluongson.datlichkhambenhv.domain.dtos.requests.user.UpdateUserRequest;
+import vn.namluongson.datlichkhambenhv.domain.dtos.requests.user.*;
 import vn.namluongson.datlichkhambenhv.domain.dtos.responses.user.UserResponse;
 import vn.namluongson.datlichkhambenhv.domain.entities.User;
 import vn.namluongson.datlichkhambenhv.domain.enums.Role;
@@ -192,5 +189,31 @@ public class UserService implements IUserService {
         String email = authentication.getName();
 
         return getCurrentUserByEmail(email);
+    }
+
+    @Override
+    public UserResponse updateMyProfile(UpdateMyProfileRequest request) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+        User user = userRepository.findByEmailIgnoreCase(email);
+
+        if (user == null) {
+            throw BusinessException.notFound("Không tìm thấy tài khoản");
+        }
+
+        String normalizedPhone = request.getPhone().trim();
+
+        if (userRepository.existsByPhoneAndIdNot(normalizedPhone, user.getId())) {
+            throw BusinessException.conflict("Số điện thoại đã được sử dụng");
+        }
+
+        user.setFullName(request.getFullName().trim());
+        user.setPhone(normalizedPhone);
+
+        if (request.getDateOfBirth() != null) {
+            user.setDateOfBirth(request.getDateOfBirth());
+        }
+        userRepository.save(user);
+        return getCurrentUserByEmail(user.getEmail());
     }
 }
