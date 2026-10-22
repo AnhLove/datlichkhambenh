@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, NavLink, useNavigate, useLocation } from 'react-router-dom';
-import { Plus, Menu, X, User, LogOut, CalendarDays, ChevronDown, ClipboardCheck } from 'lucide-react';
+import { Plus, Menu, X, User, UserRound, LogOut, CalendarDays, ChevronDown, ClipboardCheck } from 'lucide-react';
 
 import { apiGet, apiPost } from '../../services/api';
 import './Header.css';
@@ -134,6 +134,10 @@ function Header() {
                         <div className={`booking-dropdown-menu ${isBookingMenuOpen ? 'dropdown-open' : ''}`}>
                             {user && !isAuthLoading && (
                                 <>
+                                    <NavLink to="/profile" onClick={closeMenu}>
+                                        <UserRound size={17} />
+                                        <span>Hồ sơ cá nhân</span>
+                                    </NavLink>
                                     <NavLink to="/my-appointments" onClick={closeMenu}>
                                         <CalendarDays size={17} />
                                         <span>Lịch khám của tôi</span>
@@ -219,6 +223,11 @@ function Header() {
 
                     {!isAuthLoading && user && (
                         <div className="mobile-booking-submenu">
+                            <NavLink to="/profile" onClick={closeMenu}>
+                                <UserRound size={17} />
+                                Hồ sơ cá nhân
+                            </NavLink>
+
                             <NavLink to="/my-appointments" onClick={closeMenu}>
                                 <CalendarDays size={17} />
                                 Lịch khám của tôi
