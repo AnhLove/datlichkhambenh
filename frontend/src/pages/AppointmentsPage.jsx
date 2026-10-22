@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, CalendarDays, CheckCircle2, Clock3, LoaderCircle, Stethoscope, UserRound } from 'lucide-react';
 
+import { apiGet } from '../services/api';
 import { getDepartments } from '../services/departmentService';
 import { searchDoctors } from '../services/doctorService';
 import { getAvailableSlots, createAppointment } from '../services/appointmentService';
@@ -17,7 +18,16 @@ function getToday() {
     return `${year}-${month}-${day}`;
 }
 
+function formatDate(value) {
+    if (!value) return '';
+    const [year, month, day] = value.split('-');
+    return `${day}/${month}/${year}`;
+}
+
 function AppointmentsPage() {
+    const [user, setUser] = useState(null);
+    const [isAuthLoading, setIsAuthLoading] = useState(true);
+
     const [searchParams] = useSearchParams();
     const initialDoctorUuid = searchParams.get('doctorUuid') || '';
 
@@ -56,7 +66,27 @@ function AppointmentsPage() {
 
     const selectedDoctor = useMemo(() => doctors.find((doctor) => doctor.uuid === doctorUuid), [doctors, doctorUuid]);
 
-    // Tải danh sách chuyên khoa và bác sĩ ban đầu.
+    useEffect(() => {
+        let cancelled = false;
+
+        async function checkAuth() {
+            try {
+                const currentUser = await apiGet('/me');
+                if (!cancelled) setUser(currentUser);
+            } catch {
+                if (!cancelled) setUser(null);
+            } finally {
+                if (!cancelled) setIsAuthLoading(false);
+            }
+        }
+
+        checkAuth();
+
+        return () => {
+            cancelled = true;
+        };
+    }, []);
+
     useEffect(() => {
         let cancelled = false;
 
@@ -469,48 +499,57 @@ function AppointmentsPage() {
                         <p className="appointment-disclaimer">* Các thông tin có dấu sao là bắt buộc.</p>
                     </form>
 
-                    <aside className="appointment-summary">
-                        <div className="appointment-summary-icon">
+                    <aside className="booking-summary">
+                        <div className="booking-summary-icon">
                             <Stethoscope size={25} />
                         </div>
 
-                        <h2>Thông tin lịch khám</h2>
+                        <h2 className="booking-summary-title">Thông tin lịch khám</h2>
+                        <p className="booking-summary-desc">Kiểm tra lại lựa chọn của bạn trước khi tiếp tục.</p>
 
-                        <p className="appointment-summary-description">
-                            Kiểm tra lại lựa chọn của bạn trước khi tiếp tục.
-                        </p>
+                        <dl className="booking-summary-list">
+                            <div className="booking-summary-row">
+                                <dt>Chuyên khoa</dt>
+                                <dd className={selectedDepartment ? '' : 'is-empty'}>
+                                    {selectedDepartment?.name || 'Chưa chọn'}
+                                </dd>
+                            </div>
 
-                        <div className="appointment-summary-item">
-                            <span>Chuyên khoa</span>
-                            <strong>{selectedDepartment?.name || 'Chưa chọn chuyên khoa'}</strong>
-                        </div>
+                            <div className="booking-summary-row">
+                                <dt>Bác sĩ</dt>
+                                <dd className={selectedDoctor ? '' : 'is-empty'}>
+                                    {selectedDoctor?.fullName || 'Chưa chọn'}
+                                </dd>
+                            </div>
 
-                        <div className="appointment-summary-item">
-                            <span>Bác sĩ</span>
-                            <strong>{selectedDoctor?.fullName || 'Chưa chọn bác sĩ'}</strong>
-                        </div>
+                            <div className="booking-summary-row">
+                                <dt>Ngày khám</dt>
+                                <dd className={appointmentDate ? '' : 'is-empty'}>
+                                    {appointmentDate ? formatDate(appointmentDate) : 'Chưa chọn'}
+                                </dd>
+                            </div>
 
-                        <div className="appointment-summary-item">
-                            <span>Ngày khám</span>
-                            <strong>{appointmentDate || 'Chưa chọn ngày'}</strong>
-                        </div>
+                            <div className="booking-summary-row">
+                                <dt>Giờ khám</dt>
+                                <dd className={timeSlot ? '' : 'is-empty'}>{timeSlot || 'Chưa chọn'}</dd>
+                            </div>
 
-                        <div className="appointment-summary-item">
-                            <span>Giờ khám</span>
-                            <strong>{timeSlot || 'Chưa chọn khung giờ'}</strong>
-                        </div>
+                            {selectedDoctor?.yearsExperience != null && (
+                                <div className="booking-summary-row">
+                                    <dt>Kinh nghiệm</dt>
+                                    <dd>{selectedDoctor.yearsExperience} năm</dd>
+                                </div>
+                            )}
+                        </dl>
 
-                        {selectedDoctor?.yearsExperience != null && (
-                            <div className="appointment-summary-item">
-                                <span>Kinh nghiệm</span>
-                                <strong>{selectedDoctor.yearsExperience} năm</strong>
+                        {!isAuthLoading && !user && (
+                            <div className="booking-summary-note">
+                                <UserRound size={19} />
+                                <p>
+                                    Bạn cần <Link to="/login">đăng nhập</Link> bằng tài khoản bệnh nhân để đặt lịch.
+                                </p>
                             </div>
                         )}
-
-                        <div className="appointment-summary-note">
-                            <UserRound size={19} />
-                            <p>Bạn cần đăng nhập bằng tài khoản bệnh nhân để gửi yêu cầu đặt lịch.</p>
-                        </div>
                     </aside>
                 </div>
             </section>

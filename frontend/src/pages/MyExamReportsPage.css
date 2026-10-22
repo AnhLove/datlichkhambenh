@@ -1,0 +1,361 @@
+.exam-reports-page {
+    width: min(1180px, calc(100% - 40px));
+    margin: 32px auto 64px;
+    color: #193b3d;
+}
+
+.exam-reports-hero {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    padding: 44px 48px;
+    border-radius: 22px;
+    background: linear-gradient(120deg, #e5f5f2, #f3fbfa);
+    border: 1px solid #d4eae6;
+}
+
+.exam-reports-hero-content {
+    max-width: 720px;
+}
+
+.exam-reports-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: #087f83;
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 1.1px;
+}
+
+.exam-reports-hero h1 {
+    margin: 18px 0 12px;
+    color: #123f41;
+    font-size: clamp(28px, 4vw, 40px);
+    line-height: 1.2;
+}
+
+.exam-reports-hero p {
+    margin: 0;
+    color: #587274;
+    line-height: 1.8;
+}
+
+.exam-reports-hero-icon {
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: 112px;
+    height: 112px;
+    border-radius: 28px;
+    background: #d0ebe6;
+    color: #087f83;
+}
+
+.exam-reports-section {
+    margin-top: 36px;
+}
+
+.exam-reports-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 22px;
+}
+
+.exam-reports-heading h2 {
+    margin: 0 0 7px;
+    font-size: 24px;
+    color: #183e40;
+}
+
+.exam-reports-heading p {
+    margin: 0;
+    color: #718486;
+    font-size: 14px;
+}
+
+.exam-reports-refresh,
+.exam-reports-primary-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 11px 16px;
+    border: 1px solid #cde4e0;
+    border-radius: 10px;
+    background: white;
+    color: #087f83;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition:
+        background 0.2s,
+        border-color 0.2s;
+}
+
+.exam-reports-refresh:hover:not(:disabled) {
+    background: #edf8f6;
+    border-color: #087f83;
+}
+
+.exam-reports-refresh:disabled {
+    cursor: not-allowed;
+    opacity: 0.65;
+}
+
+.exam-reports-primary-button {
+    border-color: #087f83;
+    background: #087f83;
+    color: white;
+}
+
+.exam-reports-primary-button:hover {
+    background: #06696d;
+}
+
+.exam-reports-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 280px;
+    padding: 32px 20px;
+    text-align: center;
+    border: 1px solid #e2ecea;
+    border-radius: 18px;
+    background: #fff;
+}
+
+.exam-reports-state h3 {
+    margin: 16px 0 8px;
+    color: #234648;
+    font-size: 19px;
+}
+
+.exam-reports-state p {
+    max-width: 480px;
+    margin: 0 0 20px;
+    color: #718486;
+    line-height: 1.7;
+}
+
+.exam-reports-empty-icon,
+.exam-report-icon {
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    color: #087f83;
+    background: #e4f4f1;
+    border-radius: 14px;
+}
+
+.exam-reports-empty-icon {
+    width: 68px;
+    height: 68px;
+}
+
+.exam-reports-error > svg {
+    color: #b45335;
+}
+
+.exam-reports-spinner {
+    width: 34px;
+    height: 34px;
+    border: 3px solid #d7eeea;
+    border-top-color: #087f83;
+    border-radius: 50%;
+    animation: exam-report-spin 0.8s linear infinite;
+}
+
+.exam-reports-spinning {
+    animation: exam-report-spin 1s linear infinite;
+}
+
+@keyframes exam-report-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.exam-reports-list {
+    display: grid;
+    gap: 20px;
+}
+
+.exam-report-card {
+    overflow: hidden;
+    border: 1px solid #e0ebe9;
+    border-radius: 18px;
+    background: white;
+    box-shadow: 0 5px 20px rgb(19 63 65 / 4%);
+}
+
+.exam-report-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 22px 24px;
+    border-bottom: 1px solid #edf2f1;
+}
+
+.exam-report-title {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    min-width: 0;
+}
+
+.exam-report-icon {
+    width: 48px;
+    height: 48px;
+}
+
+.exam-report-title h3 {
+    margin: 0 0 6px;
+    color: #193f41;
+    font-size: 18px;
+}
+
+.exam-report-title p {
+    margin: 0;
+    color: #7a8c8d;
+    font-size: 13px;
+}
+
+.exam-report-issued {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+    padding: 8px 11px;
+    border-radius: 999px;
+    background: #e5f6eb;
+    color: #217747;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.exam-report-meta {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 20px;
+    padding: 22px 24px;
+    background: #fbfdfd;
+    border-bottom: 1px solid #edf2f1;
+}
+
+.exam-report-meta > div {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    min-width: 0;
+}
+
+.exam-report-meta > div > svg {
+    margin-top: 3px;
+    flex-shrink: 0;
+    color: #087f83;
+}
+
+.exam-report-meta span {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 0;
+}
+
+.exam-report-meta small {
+    color: #819091;
+    font-size: 12px;
+}
+
+.exam-report-meta strong {
+    overflow-wrap: anywhere;
+    color: #345557;
+    font-size: 14px;
+    font-weight: 650;
+}
+
+.exam-report-content {
+    display: grid;
+    gap: 0;
+    padding: 6px 24px;
+}
+
+.exam-report-field {
+    padding: 18px 0;
+}
+
+.exam-report-field + .exam-report-field {
+    border-top: 1px solid #edf2f1;
+}
+
+.exam-report-field h4 {
+    margin: 0 0 9px;
+    color: #087f83;
+    font-size: 14px;
+}
+
+.exam-report-field p {
+    margin: 0;
+    color: #455f61;
+    line-height: 1.8;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+@media (max-width: 700px) {
+    .exam-reports-page {
+        width: min(100% - 28px, 1180px);
+        margin-top: 18px;
+    }
+
+    .exam-reports-hero {
+        padding: 28px 24px;
+    }
+
+    .exam-reports-hero-icon {
+        display: none;
+    }
+
+    .exam-reports-heading {
+        align-items: flex-start;
+    }
+
+    .exam-reports-heading h2 {
+        font-size: 20px;
+    }
+
+    .exam-report-card-header {
+        align-items: flex-start;
+        padding: 18px;
+    }
+
+    .exam-report-issued {
+        font-size: 11px;
+    }
+
+    .exam-report-meta {
+        grid-template-columns: 1fr;
+        gap: 18px;
+        padding: 20px 18px;
+    }
+
+    .exam-report-content {
+        padding: 6px 18px;
+    }
+}
+
+@media (max-width: 430px) {
+    .exam-report-card-header {
+        flex-direction: column;
+    }
+
+    .exam-reports-heading {
+        flex-direction: column;
+    }
+}

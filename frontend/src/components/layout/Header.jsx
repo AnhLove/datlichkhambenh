@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, NavLink, useNavigate, useLocation } from 'react-router-dom';
-import { Plus, Menu, X, User, LogOut, CalendarDays } from 'lucide-react';
+import { Plus, Menu, X, User, LogOut, CalendarDays, ChevronDown, ClipboardCheck } from 'lucide-react';
+
 import { apiGet, apiPost } from '../../services/api';
 import './Header.css';
 
@@ -10,15 +11,14 @@ function Header() {
 
     const [isHidden, setIsHidden] = useState(false);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const [isBookingMenuOpen, setIsBookingMenuOpen] = useState(false);
     const [user, setUser] = useState(null);
     const [isAuthLoading, setIsAuthLoading] = useState(true);
 
     useEffect(() => {
         let cancelled = false;
 
-        const fetchCurrentUser = async () => {
-            setIsAuthLoading(true);
-
+        async function fetchCurrentUser() {
             try {
                 const currentUser = await apiGet('/me');
 
@@ -34,7 +34,7 @@ function Header() {
                     setIsAuthLoading(false);
                 }
             }
-        };
+        }
 
         fetchCurrentUser();
 
@@ -42,19 +42,6 @@ function Header() {
             cancelled = true;
         };
     }, [location.pathname]);
-
-    const handleLogout = async () => {
-        try {
-            await apiPost('/auth/logout', {});
-        } catch (error) {
-            console.error('Lỗi đăng xuất:', error);
-        } finally {
-            localStorage.removeItem('user');
-            setUser(null);
-            closeMenu();
-            navigate('/login', { replace: true });
-        }
-    };
 
     useEffect(() => {
         let lastScrollY = window.scrollY;
@@ -67,6 +54,7 @@ function Header() {
             } else if (currentScrollY > lastScrollY) {
                 setIsHidden(true);
                 setIsMenuOpen(false);
+                setIsBookingMenuOpen(false);
             } else {
                 setIsHidden(false);
             }
@@ -74,20 +62,34 @@ function Header() {
             lastScrollY = currentScrollY;
         };
 
-        window.addEventListener('scroll', handleScroll, {
-            passive: true,
-        });
+        window.addEventListener('scroll', handleScroll, { passive: true });
 
         return () => {
             window.removeEventListener('scroll', handleScroll);
         };
     }, []);
 
-    const closeMenu = () => setIsMenuOpen(false);
+    const closeMenu = () => {
+        setIsMenuOpen(false);
+        setIsBookingMenuOpen(false);
+    };
+
+    const handleLogout = async () => {
+        try {
+            await apiPost('/auth/logout', {});
+        } catch (error) {
+            console.error('Lỗi đăng xuất:', error);
+        } finally {
+            setUser(null);
+            closeMenu();
+            navigate('/login', { replace: true });
+        }
+    };
 
     return (
         <header className={`site-header ${isHidden ? 'header-hidden' : ''}`}>
             <div className="header-inner">
+                {/* Logo */}
                 <Link to="/" className="brand" onClick={closeMenu}>
                     <span className="brand-mark">
                         <Plus size={30} strokeWidth={3} />
@@ -112,65 +114,72 @@ function Header() {
                         Chuyên khoa
                     </NavLink>
 
-                    <NavLink to="/appointments" onClick={closeMenu}>
-                        Đặt lịch khám
-                    </NavLink>
+                    <div className="booking-dropdown">
+                        <div className="booking-dropdown-trigger">
+                            <NavLink to="/appointments" onClick={closeMenu}>
+                                Đặt lịch khám
+                            </NavLink>
+
+                            <button
+                                type="button"
+                                className="booking-dropdown-toggle"
+                                aria-label="Mở menu lịch khám"
+                                aria-expanded={isBookingMenuOpen}
+                                onClick={() => setIsBookingMenuOpen((open) => !open)}
+                            >
+                                <ChevronDown size={15} />
+                            </button>
+                        </div>
+
+                        <div className={`booking-dropdown-menu ${isBookingMenuOpen ? 'dropdown-open' : ''}`}>
+                            {user && !isAuthLoading && (
+                                <>
+                                    <NavLink to="/my-appointments" onClick={closeMenu}>
+                                        <CalendarDays size={17} />
+                                        <span>Lịch khám của tôi</span>
+                                    </NavLink>
+
+                                    <NavLink to="/my-exam-reports" onClick={closeMenu}>
+                                        <ClipboardCheck size={17} />
+                                        <span>Kết quả khám của tôi</span>
+                                    </NavLink>
+                                </>
+                            )}
+
+                            <NavLink to="/appointments" onClick={closeMenu}>
+                                <Plus size={17} />
+                                <span>Đặt lịch khám mới</span>
+                            </NavLink>
+                        </div>
+                    </div>
 
                     <NavLink to="/medical-services" onClick={closeMenu}>
                         Dịch vụ y tế
                     </NavLink>
-
-                    {!isAuthLoading && user && (
-                        <NavLink to="/my-appointments" onClick={closeMenu}>
-                            Lịch khám của tôi
-                        </NavLink>
-                    )}
                 </nav>
 
-                <div
-                    style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'flex-end',
-                        gap: '12px',
-                        minWidth: '180px',
-                        flexShrink: 0,
-                    }}
-                >
+                <div className="header-account">
                     {isAuthLoading ? (
-                        <div aria-label="Đang kiểm tra đăng nhập" style={{ width: '180px', height: '36px' }} />
+                        <div className="account-loading" aria-label="Đang kiểm tra đăng nhập" />
                     ) : user ? (
                         <>
-                            <span
-                                style={{
-                                    fontSize: '14px',
-                                    fontWeight: 600,
-                                    color: '#087f83',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '6px',
-                                }}
-                            >
+                            <span className="header-user">
                                 <User size={16} />
-                                {user.fullName || 'Tài khoản'}
+                                <span>{user.fullName || 'Tài khoản'}</span>
                             </span>
 
                             <button
                                 type="button"
                                 onClick={handleLogout}
-                                className="header-login"
-                                style={{
-                                    borderColor: '#f87171',
-                                    color: '#dc2626',
-                                }}
+                                className="header-login header-logout"
                                 title="Đăng xuất"
                             >
-                                <LogOut size={16} style={{ marginRight: '4px' }} />
-                                Đăng xuất
+                                <LogOut size={16} />
+                                <span>Đăng xuất</span>
                             </button>
                         </>
                     ) : (
-                        <Link to="/login" className="header-login">
+                        <Link to="/login" className="header-login" onClick={closeMenu}>
                             Đăng nhập
                         </Link>
                     )}
@@ -181,7 +190,10 @@ function Header() {
                     className="mobile-menu"
                     aria-label={isMenuOpen ? 'Đóng menu' : 'Mở menu'}
                     aria-expanded={isMenuOpen}
-                    onClick={() => setIsMenuOpen((open) => !open)}
+                    onClick={() => {
+                        setIsMenuOpen((open) => !open);
+                        setIsBookingMenuOpen(false);
+                    }}
                 >
                     {isMenuOpen ? <X size={23} /> : <Menu size={23} />}
                 </button>
@@ -205,45 +217,26 @@ function Header() {
                         Đặt lịch khám
                     </NavLink>
 
+                    {!isAuthLoading && user && (
+                        <div className="mobile-booking-submenu">
+                            <NavLink to="/my-appointments" onClick={closeMenu}>
+                                <CalendarDays size={17} />
+                                Lịch khám của tôi
+                            </NavLink>
+
+                            <NavLink to="/my-exam-reports" onClick={closeMenu}>
+                                <ClipboardCheck size={17} />
+                                Kết quả khám của tôi
+                            </NavLink>
+                        </div>
+                    )}
+
                     <NavLink to="/medical-services" onClick={closeMenu}>
                         Dịch vụ y tế
                     </NavLink>
 
-                    {!isAuthLoading && user && (
-                        <NavLink
-                            to="/my-appointments"
-                            onClick={closeMenu}
-                            style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '8px',
-                            }}
-                        >
-                            <CalendarDays size={18} />
-                            Lịch khám của tôi
-                        </NavLink>
-                    )}
-
                     {isAuthLoading ? null : user ? (
-                        <button
-                            type="button"
-                            onClick={handleLogout}
-                            style={{
-                                background: 'none',
-                                border: 'none',
-                                borderBottom: '1px solid #edf2f0',
-                                textAlign: 'left',
-                                padding: '13px 4px',
-                                color: '#dc2626',
-                                fontSize: '15px',
-                                fontWeight: 550,
-                                cursor: 'pointer',
-                                width: '100%',
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '8px',
-                            }}
-                        >
+                        <button type="button" className="mobile-logout" onClick={handleLogout}>
                             <LogOut size={18} />
                             Đăng xuất
                         </button>

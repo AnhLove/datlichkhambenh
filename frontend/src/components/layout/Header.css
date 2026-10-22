@@ -1,12 +1,17 @@
+/* =====================================
+   HEADER
+===================================== */
+
 .site-header {
     position: fixed;
     top: 0;
     left: 0;
     right: 0;
     width: 100%;
+    max-width: 100%;
     z-index: 1000;
     box-sizing: border-box;
-    background: #ffffff;
+    background: #fff;
     border-bottom: 1px solid #e5eeeb;
     transition: transform 0.3s ease-in-out;
 }
@@ -15,11 +20,10 @@
     transform: translateY(-100%);
 }
 
-/* Phạm vi container bên trong header */
 .site-header .header-inner {
     width: 100%;
-    max-width: 1440px;
-    min-height: 84px;
+    max-width: 1800px;
+    min-height: 82px;
     margin: 0 auto;
     padding: 0 28px;
     box-sizing: border-box;
@@ -27,33 +31,39 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 28px;
+    gap: 24px;
 }
+
+/* =====================================
+   LOGO
+===================================== */
 
 .brand {
     display: flex;
     align-items: center;
-    gap: 12px;
-    text-decoration: none;
+    gap: 11px;
+    flex: 0 0 auto;
+    min-width: 0;
     color: #173e39;
-    flex-shrink: 0;
+    text-decoration: none;
 }
 
 .brand-mark {
-    width: 48px;
-    height: 48px;
     display: grid;
     place-items: center;
-    background: #087f70;
-    color: #ffffff;
-    border-radius: 9px;
+    width: 46px;
+    height: 46px;
     flex-shrink: 0;
+    color: #fff;
+    background: #087f83;
+    border-radius: 9px;
 }
 
 .brand-text {
     display: flex;
     flex-direction: column;
     gap: 4px;
+    min-width: 0;
 }
 
 .brand-text strong {
@@ -69,48 +79,226 @@
     white-space: nowrap;
 }
 
+/* =====================================
+   DESKTOP NAVIGATION
+===================================== */
+
 .main-nav {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: clamp(18px, 2.2vw, 36px);
-    margin-left: auto;
-    margin-right: auto;
+    gap: clamp(14px, 1.5vw, 26px);
+    flex: 1 1 auto;
+    min-width: 0;
+    margin: 0;
 }
 
-.main-nav a {
+.main-nav > a,
+.booking-dropdown-trigger > a {
     position: relative;
-    padding: 8px 0;
+    display: inline-flex;
+    align-items: center;
+    padding: 10px 0;
     color: #435b56;
     text-decoration: none;
-    font-size: 15px;
-    font-weight: 550;
+    font-size: 14px;
+    font-weight: 600;
     white-space: nowrap;
     transition: color 0.2s ease;
 }
 
-.main-nav a:hover,
-.main-nav a.active {
-    color: #087f70;
+.main-nav > a:hover,
+.main-nav > a.active,
+.booking-dropdown-trigger > a:hover,
+.booking-dropdown-trigger > a.active {
+    color: #087f83;
+}
+
+/* =====================================
+   DROPDOWN ĐẶT LỊCH KHÁM
+===================================== */
+
+.booking-dropdown {
+    position: relative;
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.booking-dropdown-trigger {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+}
+
+.booking-dropdown-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 32px;
+    padding: 0;
+    border: 0;
+    border-radius: 5px;
+    background: transparent;
+    color: #435b56;
+    cursor: pointer;
+    transition:
+        color 0.2s ease,
+        background 0.2s ease,
+        transform 0.2s ease;
+}
+
+.booking-dropdown-toggle:hover {
+    color: #087f83;
+    background: #eff8f6;
+}
+
+.booking-dropdown:has(.dropdown-open) .booking-dropdown-toggle {
+    transform: rotate(180deg);
+}
+
+.booking-dropdown-menu {
+    display: block;
+    position: absolute;
+    top: 100%;
+    left: -16px;
+    min-width: 245px;
+    padding: 8px;
+    border: 1px solid #e3eeeb;
+    border-radius: 10px;
+    background: #fff;
+    box-shadow: 0 12px 30px rgb(23 62 57 / 12%);
+    z-index: 1100;
+
+    /* Đóng menu mặc định */
+    visibility: hidden;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(6px);
+
+    transition:
+        opacity 0.18s ease,
+        transform 0.18s ease,
+        visibility 0.18s ease;
+}
+
+/* Tạo vùng nối giữa nút và menu để rê chuột không bị mất hover */
+.booking-dropdown-menu::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: -10px;
+    height: 10px;
+}
+
+/* Mở khi rê chuột hoặc dùng bàn phím / state */
+.booking-dropdown:hover .booking-dropdown-menu,
+.booking-dropdown:focus-within .booking-dropdown-menu,
+.booking-dropdown-menu.dropdown-open {
+    visibility: visible;
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0);
+}
+
+.booking-dropdown:hover .booking-dropdown-toggle,
+.booking-dropdown:focus-within .booking-dropdown-toggle {
+    color: #087f83;
+}
+
+.booking-dropdown-menu a {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px;
+    border-radius: 7px;
+    color: #435b56;
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 500;
+    white-space: nowrap;
+    transition:
+        color 0.2s ease,
+        background 0.2s ease;
+}
+
+.booking-dropdown-menu a svg {
+    flex-shrink: 0;
+    color: #087f83;
+}
+
+.booking-dropdown-menu a:hover,
+.booking-dropdown-menu a.active {
+    color: #087f83;
+    background: #eff8f6;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .booking-dropdown-menu {
+        transition: none;
+    }
+}
+
+/* =====================================
+   ACCOUNT & AUTH SECTION
+===================================== */
+
+.header-account {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+    flex: 0 0 auto; /* Tránh bị co dãn tùy tiện làm méo layout bên phải */
+}
+
+.account-loading {
+    width: 110px;
+    height: 36px;
+}
+
+.header-user {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    max-width: 160px;
+    color: #087f83;
+    font-size: 13px;
+    font-weight: 600;
+    flex-shrink: 1;
+}
+
+.header-user svg {
+    flex-shrink: 0;
+}
+
+.header-user span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .header-login {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    min-height: 44px;
-    padding: 0 22px;
+    gap: 6px;
+    min-height: 42px;
+    padding: 0 16px;
     box-sizing: border-box;
+    flex-shrink: 0;
 
-    color: #087f70;
-    background: #ffffff;
-    text-decoration: none;
+    color: #087f83;
+    background: #fff;
     border: 1px solid #b9d9d2;
     border-radius: 7px;
-    font-size: 14px;
+    text-decoration: none;
+    font-size: 13px;
     font-weight: 600;
     white-space: nowrap;
-    flex-shrink: 0;
+    cursor: pointer;
+
     transition:
         color 0.2s ease,
         background 0.2s ease,
@@ -118,10 +306,25 @@
 }
 
 .header-login:hover {
-    color: #ffffff;
-    background: #087f70;
-    border-color: #087f70;
+    color: #fff;
+    background: #087f83;
+    border-color: #087f83;
 }
+
+.header-logout {
+    color: #dc2626;
+    border-color: #fca5a5;
+}
+
+.header-logout:hover {
+    color: #fff;
+    background: #dc2626;
+    border-color: #dc2626;
+}
+
+/* =====================================
+   MOBILE MENU & RESPONSIVE
+===================================== */
 
 .mobile-menu {
     display: none;
@@ -130,36 +333,88 @@
     width: 42px;
     height: 42px;
     padding: 0;
+    flex-shrink: 0;
     border: 1px solid #e0ebe8;
     border-radius: 7px;
-    background: #ffffff;
+    background: #fff;
     color: #173e39;
     cursor: pointer;
+}
+
+.mobile-menu:hover {
+    background: #f0f8f6;
 }
 
 .mobile-nav {
     display: none;
 }
 
-/* Tablet và điện thoại */
-@media (max-width: 1024px) {
+@media (max-width: 1350px) {
     .site-header .header-inner {
         min-height: 76px;
-        padding: 0 22px;
-        gap: 16px;
+        padding: 0 20px;
+        gap: 14px;
+    }
+
+    .brand {
+        gap: 8px;
+    }
+
+    .brand-mark {
+        width: 42px;
+        height: 42px;
+    }
+
+    .brand-text strong {
+        font-size: 12px;
+    }
+
+    .brand-text small {
+        font-size: 10px;
+    }
+
+    .main-nav {
+        gap: clamp(9px, 1vw, 15px);
+    }
+
+    .main-nav > a,
+    .booking-dropdown-trigger > a {
+        font-size: 12px;
+    }
+
+    .header-account {
+        gap: 7px;
+    }
+
+    .header-user {
+        max-width: 110px;
+        font-size: 12px;
+    }
+
+    .header-login {
+        min-height: 38px;
+        padding: 0 10px;
+        font-size: 11px;
+    }
+}
+
+@media (max-width: 1050px) {
+    .site-header .header-inner {
+        min-height: 76px;
+        padding: 0 20px;
+        gap: 12px;
     }
 
     .main-nav {
         display: none;
     }
 
-    .header-login {
+    .header-account {
         margin-left: auto;
     }
 
     .mobile-menu {
         display: inline-flex;
-        flex-shrink: 0;
     }
 
     .mobile-nav {
@@ -167,94 +422,134 @@
         flex-direction: column;
         gap: 0;
         width: 100%;
+        max-height: calc(100vh - 76px);
+        overflow-y: auto;
         padding: 8px 22px 16px;
         box-sizing: border-box;
-        background: #ffffff;
+        background: #fff;
         border-top: 1px solid #edf2f0;
     }
 
-    .mobile-nav a {
+    .mobile-nav > a,
+    .mobile-booking-submenu > a {
+        display: flex;
+        align-items: center;
+        gap: 9px;
         padding: 13px 4px;
         color: #435b56;
         text-decoration: none;
-        font-size: 15px;
+        font-size: 14px;
         border-bottom: 1px solid #edf2f0;
     }
 
-    .mobile-nav a:last-child {
-        border-bottom: 0;
+    .mobile-nav > a:hover,
+    .mobile-nav > a.active,
+    .mobile-booking-submenu > a:hover,
+    .mobile-booking-submenu > a.active {
+        color: #087f83;
     }
 
-    .mobile-nav a:hover {
-        color: #087f70;
+    .mobile-booking-submenu {
+        padding-left: 14px;
+        border-left: 2px solid #d4ebe5;
+    }
+
+    .mobile-booking-submenu svg {
+        color: #087f83;
+        flex-shrink: 0;
+    }
+
+    .mobile-logout {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        width: 100%;
+        padding: 13px 4px;
+        color: #dc2626;
+        background: transparent;
+        border: 0;
+        border-bottom: 1px solid #edf2f0;
+        text-align: left;
+        font-size: 14px;
+        cursor: pointer;
     }
 }
 
 @media (max-width: 560px) {
     .site-header .header-inner {
         min-height: 70px;
-        padding: 0 14px;
-        gap: 10px;
+        padding: 0 12px;
+        gap: 8px;
     }
 
     .brand {
-        gap: 9px;
-        min-width: 0;
+        gap: 7px;
     }
 
     .brand-mark {
-        width: 40px;
-        height: 40px;
-    }
-
-    .brand-text strong {
-        font-size: 11px;
-    }
-
-    .brand-text small {
-        font-size: 10px;
-        white-space: normal;
-    }
-
-    .header-login {
-        min-height: 38px;
-        padding: 0 11px;
-        font-size: 12px;
-    }
-
-    .mobile-menu {
         width: 38px;
         height: 38px;
     }
 
+    .brand-text {
+        gap: 3px;
+    }
+
+    .brand-text strong {
+        font-size: 10px;
+        letter-spacing: 0;
+    }
+
+    .brand-text small {
+        max-width: 170px;
+        font-size: 9px;
+        line-height: 1.3;
+        white-space: normal;
+    }
+
+    .header-user {
+        display: none;
+    }
+
+    .header-login {
+        min-height: 35px;
+        padding: 0 8px;
+        font-size: 10px;
+    }
+
+    .mobile-menu {
+        width: 36px;
+        height: 36px;
+    }
+
     .mobile-nav {
-        padding-right: 14px;
-        padding-left: 14px;
+        max-height: calc(100vh - 70px);
+        padding: 8px 14px 14px;
     }
+}
 
-    .site-layout {
-        width: 100%;
-        min-height: 100vh;
-        display: flex;
-        flex-direction: column;
-    }
+.site-layout {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    min-height: 100vh;
+}
 
+.site-main {
+    flex: 1;
+    width: 100%;
+    padding-top: 82px;
+    box-sizing: border-box;
+}
+
+@media (max-width: 1350px) {
     .site-main {
-        flex: 1;
-        width: 100%;
-        padding-top: 84px;
-        box-sizing: border-box;
+        padding-top: 76px;
     }
+}
 
-    @media (max-width: 1024px) {
-        .site-main {
-            padding-top: 76px;
-        }
-    }
-
-    @media (max-width: 560px) {
-        .site-main {
-            padding-top: 70px;
-        }
+@media (max-width: 560px) {
+    .site-main {
+        padding-top: 70px;
     }
 }
