@@ -4,6 +4,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import vn.namluongson.datlichkhambenhv.domain.dtos.requests.payment.CreatePaymentRequest;
@@ -31,5 +32,10 @@ public class PaymentController {
     @PatchMapping("/appointment/{appointmentId}/confirm")
     public ResponseEntity<ApiResponse> confirmPayment(@PathVariable @Positive Long appointmentId) {
         return ResponseEntity.ok(paymentService.confirmPayment(appointmentId));
+    }
+
+    @GetMapping("/my")
+    public ResponseEntity<ApiResponse> getMyPayments(Authentication authentication) {
+        return ResponseEntity.ok(paymentService.getMyPayments(authentication.getName()));
     }
 }

@@ -8,4 +8,6 @@ public interface IPaymentService {
     ApiResponse createPayment(CreatePaymentRequest request);
     ApiResponse getPaymentByAppointmentId(Long appointmentId);
     ApiResponse confirmPayment(Long appointmentId);
+
+    ApiResponse getMyPayments(String email);
 }

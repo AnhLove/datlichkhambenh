@@ -103,6 +103,7 @@ public class SecurityConfig {
 
                         .requestMatchers("/appointment-services/**").hasAnyRole("STAFF", "ADMIN")
 
+                        .requestMatchers(HttpMethod.GET, "/payments/my").hasRole("PATIENT")
                         .requestMatchers("/payments/**").hasAnyRole("STAFF", "ADMIN")
 
                         .anyRequest().authenticated()

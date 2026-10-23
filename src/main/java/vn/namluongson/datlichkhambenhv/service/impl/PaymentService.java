@@ -12,6 +12,7 @@ import vn.namluongson.datlichkhambenhv.domain.entities.Payment;
 import vn.namluongson.datlichkhambenhv.domain.enums.PaymentMethod;
 import vn.namluongson.datlichkhambenhv.domain.enums.PaymentStatus;
 import vn.namluongson.datlichkhambenhv.domain.response.ApiResponse;
+import vn.namluongson.datlichkhambenhv.exception.BusinessException;
 import vn.namluongson.datlichkhambenhv.repository.appointment.AppointmentRepository;
 import vn.namluongson.datlichkhambenhv.repository.appointment.AppointmentServiceRepository;
 import vn.namluongson.datlichkhambenhv.repository.payment.PaymentRepository;
@@ -19,6 +20,7 @@ import vn.namluongson.datlichkhambenhv.service.interfaces.IPaymentService;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -33,7 +35,7 @@ public class PaymentService implements IPaymentService {
         Appointment appointment = appointmentRepository.findById(request.getAppointmentId()).orElseThrow(() -> new IllegalArgumentException("Lịch hẹn không tồn tại"));
 
         if (paymentRepository.existsByAppointment_Id(appointment.getId())) {
-            throw new IllegalArgumentException("Lịch hẹn này đã có khoản thanh toán");
+            throw BusinessException.conflict("Lịch hẹn này đã có khoản thanh toán");
         }
 
         PaymentMethod method = findPaymentMethod(request.getMethod());
@@ -41,7 +43,7 @@ public class PaymentService implements IPaymentService {
         List<AppointmentService> services = appointmentServiceRepository.findByAppointment_IdOrderByIdAsc(appointment.getId());
 
         if (services.isEmpty()) {
-            throw new IllegalArgumentException("Lịch hẹn chưa có dịch vụ, không thể tạo thanh toán");
+            throw BusinessException.badRequest("Lịch hẹn chưa có dịch vụ, không thể tạo thanh toán");
         }
 
         long amount = 0L;
@@ -81,7 +83,7 @@ public class PaymentService implements IPaymentService {
         Payment payment = paymentRepository.findByAppointment_Id(appointmentId).orElseThrow(() -> new IllegalArgumentException("Không tìm thấy khoản thanh toán"));
 
         if (payment.getStatus() != PaymentStatus.PENDING.getCode()) {
-            throw new IllegalArgumentException("Chỉ khoản thanh toán đang chờ mới được xác nhận");
+            throw BusinessException.badRequest("Chỉ khoản thanh toán đang chờ mới được xác nhận");
         }
 
         payment.setStatus((long) PaymentStatus.PAID.getCode());
@@ -99,7 +101,7 @@ public class PaymentService implements IPaymentService {
             }
         }
 
-        throw new IllegalArgumentException("Phương thức thanh toán không hợp lệ");
+        throw BusinessException.badRequest("Phương thức thanh toán không hợp lệ");
     }
 
     private PaymentResponse toResponse(Payment payment) {
@@ -114,5 +116,21 @@ public class PaymentService implements IPaymentService {
                 .transactionCode(payment.getTransactionCode())
                 .paidAt(payment.getPaidAt())
                 .build();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public ApiResponse getMyPayments(String email) {
+        if (email == null || email.isBlank()) {
+            throw BusinessException.unauthorized("Không xác định được tài khoản đang đăng nhập");
+        }
+
+        List<Payment> payments = paymentRepository.findAllByAppointment_Patient_EmailOrderByAppointment_AppointmentDateDesc(email);
+
+        List<PaymentResponse> responses = payments.stream()
+                .map(this::toResponse)
+                .collect(Collectors.toList());
+
+        return new ApiResponse(200, "Lấy danh sách thanh toán thành công", responses);
     }
 }
