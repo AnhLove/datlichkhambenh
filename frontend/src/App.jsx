@@ -11,6 +11,7 @@ import RegisterPage from './pages/RegisterPage';
 import MedicalServicesPage from './pages/MedicalServicesPage';
 import MyExamReportsPage from './pages/MyExamReportsPage';
 import ProfilePage from './pages/ProfilePage';
+import MyPaymentsPage from './pages/MyPaymentsPage';
 
 import './App.css';
 
@@ -25,6 +26,7 @@ function App() {
                     <Route path="/appointments" element={<AppointmentsPage />} />
                     <Route path="/my-appointments" element={<MyAppointmentsPage />} />
                     <Route path="/my-exam-reports" element={<MyExamReportsPage />} />
+                    <Route path="/my-payments" element={<MyPaymentsPage />} />
                     <Route path="/profile" element={<ProfilePage />} />
                     <Route path="/login" element={<LoginPage />} />
                     <Route path="/register" element={<RegisterPage />} />

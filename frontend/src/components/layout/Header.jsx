@@ -1,6 +1,17 @@
 import { useState, useEffect } from 'react';
 import { Link, NavLink, useNavigate, useLocation } from 'react-router-dom';
-import { Plus, Menu, X, User, UserRound, LogOut, CalendarDays, ChevronDown, ClipboardCheck } from 'lucide-react';
+import {
+    Plus,
+    Menu,
+    X,
+    User,
+    UserRound,
+    LogOut,
+    CalendarDays,
+    ChevronDown,
+    ClipboardCheck,
+    ReceiptText,
+} from 'lucide-react';
 
 import { apiGet, apiPost } from '../../services/api';
 import './Header.css';
@@ -147,6 +158,11 @@ function Header() {
                                         <ClipboardCheck size={17} />
                                         <span>Kết quả khám của tôi</span>
                                     </NavLink>
+
+                                    <NavLink to="/my-payments" onClick={closeMenu}>
+                                        <ReceiptText size={17} />
+                                        <span>Lịch sử thanh toán</span>
+                                    </NavLink>
                                 </>
                             )}
 
@@ -236,6 +252,11 @@ function Header() {
                             <NavLink to="/my-exam-reports" onClick={closeMenu}>
                                 <ClipboardCheck size={17} />
                                 Kết quả khám của tôi
+                            </NavLink>
+
+                            <NavLink to="/my-payments" onClick={closeMenu}>
+                                <ReceiptText size={17} />
+                                Lịch sử thanh toán
                             </NavLink>
                         </div>
                     )}
