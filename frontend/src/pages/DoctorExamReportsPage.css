@@ -1,0 +1,146 @@
+.doctor-report-list {
+    display: grid;
+    gap: 16px;
+    margin-top: 22px;
+}
+
+.doctor-report-card {
+    padding: 22px;
+    border: 1px solid #e2eceb;
+    border-radius: 16px;
+    background: #fff;
+}
+
+.doctor-report-card-heading,
+.doctor-report-title {
+    display: flex;
+    align-items: center;
+    gap: 13px;
+}
+
+.doctor-report-card-heading {
+    justify-content: space-between;
+    align-items: flex-start;
+    padding-bottom: 16px;
+    border-bottom: 1px solid #edf2f1;
+}
+
+.doctor-report-title {
+    min-width: 0;
+}
+
+.doctor-report-icon {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    flex: 0 0 auto;
+    color: #087f83;
+    background: #e8f7f5;
+    border-radius: 12px;
+}
+
+.doctor-report-title h3 {
+    margin: 0 0 5px;
+    color: #173f3e;
+    font-size: 18px;
+}
+
+.doctor-report-title p {
+    margin: 0;
+    color: #718281;
+    font-size: 13px;
+}
+
+.doctor-report-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 800;
+    white-space: nowrap;
+}
+
+.doctor-report-status.issued {
+    color: #137448;
+    background: #e4f8ec;
+}
+
+.doctor-report-status.draft {
+    color: #946200;
+    background: #fff5d9;
+}
+
+.doctor-report-meta {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+    padding: 17px 0;
+}
+
+.doctor-report-meta > div {
+    display: flex;
+    align-items: flex-start;
+    gap: 9px;
+    color: #087f83;
+}
+
+.doctor-report-meta span {
+    display: grid;
+    gap: 4px;
+}
+
+.doctor-report-meta small {
+    color: #748382;
+    font-size: 12px;
+}
+
+.doctor-report-meta strong {
+    color: #284646;
+    font-size: 14px;
+    overflow-wrap: anywhere;
+}
+
+.doctor-report-content {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+}
+
+.doctor-report-content section {
+    padding: 15px;
+    border-radius: 12px;
+    background: #f7faf9;
+}
+
+.doctor-report-content h4 {
+    margin: 0 0 8px;
+    color: #284646;
+    font-size: 14px;
+}
+
+.doctor-report-content p {
+    margin: 0;
+    color: #5c7070;
+    font-size: 14px;
+    line-height: 1.65;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+.doctor-report-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 16px;
+    padding-top: 15px;
+    border-top: 1px solid #edf2f1;
+}
+
+@media (max-width: 600px) {
+    .doctor-report-card { padding: 16px; }
+    .doctor-report-card-heading { flex-direction: column; }
+    .doctor-report-meta,
+    .doctor-report-content { grid-template-columns: 1fr; }
+}

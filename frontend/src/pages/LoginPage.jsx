@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { apiPost } from '../services/api';
+import { apiPost, apiGet } from '../services/api';
 import './AuthPages.css';
 
 function LoginPage() {
@@ -26,16 +26,26 @@ function LoginPage() {
                 email: email.trim(),
                 password,
             });
+            const response = await apiGet('/me');
+            const user = response?.data?.data ?? response?.data ?? response;
 
-            // Chỉ lưu thông tin hiển thị, KHÔNG lưu JWT.
             localStorage.setItem(
                 'user',
                 JSON.stringify({
-                    email: email.trim(),
+                    email: user.email ?? email.trim(),
+                    role: Number(user.role),
                 })
             );
 
-            navigate('/', { replace: true });
+            const role = Number(user.role);
+
+            if (role === 2) {
+                navigate('/doctor/dashboard', { replace: true });
+            } else if (role === 1) {
+                navigate('/', { replace: true });
+            } else {
+                navigate('/', { replace: true });
+            }
         } catch (err) {
             setError(err.message || 'Đăng nhập thất bại. Vui lòng kiểm tra email và mật khẩu.');
         } finally {

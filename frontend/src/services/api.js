@@ -100,3 +100,17 @@ export function apiPut(path, body) {
 export function apiDelete(path) {
     return apiRequest(path, { method: 'DELETE' });
 }
+
+export function apiPatch(path, body) {
+    return apiRequest(path, {
+        method: 'PATCH',
+        ...(body !== undefined
+            ? {
+                  headers: {
+                      'Content-Type': 'application/json',
+                  },
+                  body: JSON.stringify(body),
+              }
+            : {}),
+    });
+}

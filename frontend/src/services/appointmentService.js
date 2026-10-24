@@ -22,3 +22,7 @@ export function createAppointment(request) {
 export function cancelAppointment(appointmentId, cancelReason) {
     return apiPost(`${API_BASE}/my/${appointmentId}/cancel`, { cancelReason });
 }
+
+export function getMyDoctorAppointments() {
+    return apiGet('/appointment/doctor/my');
+}
