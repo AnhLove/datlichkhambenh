@@ -1,10 +1,7 @@
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { apiGet } from '../services/api';
-
-function getCurrentUser(response) {
-    return response?.data?.data ?? response?.data ?? response;
-}
+import { unwrapData } from '../utils/unwrap';
 
 function RequireRole({ allowedRoles }) {
     const location = useLocation();
@@ -18,10 +15,9 @@ function RequireRole({ allowedRoles }) {
         async function checkUser() {
             try {
                 const response = await apiGet('/me');
-                const currentUser = getCurrentUser(response);
 
                 if (!cancelled) {
-                    setUser(currentUser);
+                    setUser(unwrapData(response));
                 }
             } catch {
                 if (!cancelled) {

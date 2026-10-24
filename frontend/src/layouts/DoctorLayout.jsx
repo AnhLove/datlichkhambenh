@@ -3,6 +3,7 @@ import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { Activity, CalendarDays, ClipboardList, LayoutDashboard, LogOut, Menu, Stethoscope, X } from 'lucide-react';
 
 import { apiGet, apiPost } from '../services/api';
+import { unwrapData } from '../utils/unwrap';
 import './DoctorLayout.css';
 
 function DoctorLayout() {
@@ -20,7 +21,7 @@ function DoctorLayout() {
                 const response = await apiGet('/me');
 
                 if (!cancelled) {
-                    setUser(response?.data ?? response);
+                    setUser(unwrapData(response));
                 }
             } catch {
                 if (!cancelled) {
@@ -48,6 +49,8 @@ function DoctorLayout() {
         } catch (error) {
             console.error('Lỗi đăng xuất:', error);
         } finally {
+            // Xóa thông tin hiển thị LoginPage đã lưu để không còn dữ liệu của phiên cũ
+            localStorage.removeItem('user');
             setUser(null);
             navigate('/login', { replace: true });
         }
@@ -77,7 +80,7 @@ function DoctorLayout() {
             <aside className={`doctor-sidebar ${isMenuOpen ? 'doctor-sidebar-open' : ''}`}>
                 <NavLink to="/doctor/dashboard" className="doctor-brand" onClick={closeMenu}>
                     <span className="doctor-brand-icon">
-                        <PlusIcon />
+                        <Stethoscope size={25} />
                     </span>
 
                     <span className="doctor-brand-text">
@@ -168,10 +171,6 @@ function DoctorLayout() {
             </div>
         </div>
     );
-}
-
-function PlusIcon() {
-    return <Stethoscope size={25} />;
 }
 
 export default DoctorLayout;

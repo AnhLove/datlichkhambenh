@@ -1,4 +1,4 @@
-import { apiGet, apiPost } from './api';
+import { apiGet, apiPost, apiPatch } from './api';
 
 const API_BASE = '/appointment';
 
@@ -24,5 +24,8 @@ export function cancelAppointment(appointmentId, cancelReason) {
 }
 
 export function getMyDoctorAppointments() {
-    return apiGet('/appointment/doctor/my');
+    return apiGet(`${API_BASE}/doctor/my`);
+}
+export function completeAppointment(appointmentId) {
+    return apiPatch(`${API_BASE}/${appointmentId}/complete`);
 }

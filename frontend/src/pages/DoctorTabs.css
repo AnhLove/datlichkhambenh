@@ -1,0 +1,53 @@
+.doctor-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.doctor-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 16px;
+    border: 1px solid #d6e4e1;
+    border-radius: 999px;
+    background: #ffffff;
+    color: #3d5a56;
+    font: inherit;
+    font-weight: 600;
+    cursor: pointer;
+    transition:
+        background 0.15s ease,
+        border-color 0.15s ease,
+        color 0.15s ease;
+}
+
+.doctor-tab:hover {
+    background: #f0f7f5;
+}
+
+.doctor-tab:focus-visible {
+    outline: 2px solid #0f766e;
+    outline-offset: 2px;
+}
+
+.doctor-tab-active,
+.doctor-tab-active:hover {
+    background: #0f766e;
+    border-color: #0f766e;
+    color: #ffffff;
+}
+
+.doctor-tab-count {
+    min-width: 22px;
+    padding: 1px 7px;
+    border-radius: 999px;
+    background: rgba(15, 118, 110, 0.12);
+    font-size: 0.8rem;
+    text-align: center;
+}
+
+.doctor-tab-active .doctor-tab-count {
+    background: rgba(255, 255, 255, 0.22);
+}

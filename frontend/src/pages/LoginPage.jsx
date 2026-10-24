@@ -1,7 +1,21 @@
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { apiPost, apiGet } from '../services/api';
+import { unwrapData } from '../utils/unwrap';
 import './AuthPages.css';
+
+// Bác sĩ luôn về cổng bác sĩ. Bệnh nhân quay lại trang đang định vào (nếu có), không thì về trang chủ.
+function getRedirectPath(role, from) {
+    if (role === 2) return '/doctor/dashboard';
+
+    const fromPath = from?.pathname;
+
+    if (role === 1 && fromPath && fromPath !== '/login' && !fromPath.startsWith('/doctor')) {
+        return `${fromPath}${from.search ?? ''}`;
+    }
+
+    return '/';
+}
 
 function LoginPage() {
     const [email, setEmail] = useState('');
@@ -12,6 +26,31 @@ function LoginPage() {
     const [error, setError] = useState('');
 
     const navigate = useNavigate();
+    const location = useLocation();
+    const from = location.state?.from;
+
+    // Đã có phiên đăng nhập thì không cần hiện form, chuyển thẳng theo vai trò
+    useEffect(() => {
+        let cancelled = false;
+
+        async function checkExistingSession() {
+            try {
+                const user = unwrapData(await apiGet('/me'));
+
+                if (!cancelled && user?.role) {
+                    navigate(getRedirectPath(Number(user.role), from), { replace: true });
+                }
+            } catch {
+                // Chưa đăng nhập: ở lại trang này
+            }
+        }
+
+        checkExistingSession();
+
+        return () => {
+            cancelled = true;
+        };
+    }, [navigate, from]);
 
     const handleSubmit = async (event) => {
         event.preventDefault();
@@ -26,26 +65,21 @@ function LoginPage() {
                 email: email.trim(),
                 password,
             });
-            const response = await apiGet('/me');
-            const user = response?.data?.data ?? response?.data ?? response;
 
+            // Đăng nhập xong, hỏi server "tôi là ai?" để lấy vai trò
+            const user = unwrapData(await apiGet('/me'));
+            const role = Number(user?.role);
+
+            // Chỉ lưu thông tin hiển thị, KHÔNG lưu JWT
             localStorage.setItem(
                 'user',
                 JSON.stringify({
-                    email: user.email ?? email.trim(),
-                    role: Number(user.role),
+                    email: user?.email ?? email.trim(),
+                    role,
                 })
             );
 
-            const role = Number(user.role);
-
-            if (role === 2) {
-                navigate('/doctor/dashboard', { replace: true });
-            } else if (role === 1) {
-                navigate('/', { replace: true });
-            } else {
-                navigate('/', { replace: true });
-            }
+            navigate(getRedirectPath(role, from), { replace: true });
         } catch (err) {
             setError(err.message || 'Đăng nhập thất bại. Vui lòng kiểm tra email và mật khẩu.');
         } finally {

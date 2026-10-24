@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import {
     ClipboardList,
     CalendarDays,
@@ -9,19 +10,10 @@ import {
     CheckCircle2,
     Send,
 } from 'lucide-react';
-import {
-    getMyDoctorExamReports,
-    issueExamReport,
-} from '../services/examReportService';
+import { getMyDoctorExamReports, issueExamReport } from '../services/examReportService';
+import { unwrapList } from '../utils/unwrap';
 import './DoctorAppointmentsPage.css';
 import './DoctorExamReportsPage.css';
-
-function unwrapList(response) {
-    if (Array.isArray(response)) return response;
-    if (Array.isArray(response?.data)) return response.data;
-    if (Array.isArray(response?.data?.data)) return response.data.data;
-    return [];
-}
 
 function formatDateTime(value) {
     if (!value) return 'Chưa phát hành';
@@ -83,7 +75,7 @@ function DoctorExamReportsPage() {
         }
 
         const confirmed = window.confirm(
-            `Bạn có chắc chắn muốn phát hành báo cáo khám #${report.id}? Sau khi phát hành, bệnh nhân có thể xem kết quả.`,
+            `Bạn có chắc chắn muốn phát hành báo cáo khám #${report.id}? Sau khi phát hành, bệnh nhân có thể xem kết quả.`
         );
 
         if (!confirmed) return;
@@ -93,7 +85,7 @@ function DoctorExamReportsPage() {
             setActionError('');
             setSuccessMessage('');
             await issueExamReport(report.id);
-            setSuccessMessage(`Đã gửi yêu cầu phát hành báo cáo #${report.id}.`);
+            setSuccessMessage(`Đã phát hành báo cáo #${report.id}. Bệnh nhân có thể xem kết quả khám.`);
             setIsLoading(true);
             setReloadKey((key) => key + 1);
         } catch (err) {
@@ -122,16 +114,31 @@ function DoctorExamReportsPage() {
 
             <section className="doctor-summary-grid doctor-report-summary">
                 <article className="doctor-summary-card">
-                    <span className="doctor-summary-icon"><FileText size={21} /></span>
-                    <div><p>Tổng báo cáo</p><strong>{reports.length}</strong></div>
+                    <span className="doctor-summary-icon">
+                        <FileText size={21} />
+                    </span>
+                    <div>
+                        <p>Tổng báo cáo</p>
+                        <strong>{reports.length}</strong>
+                    </div>
                 </article>
                 <article className="doctor-summary-card">
-                    <span className="doctor-summary-icon"><ClipboardList size={21} /></span>
-                    <div><p>Bản nháp</p><strong>{draftCount}</strong></div>
+                    <span className="doctor-summary-icon">
+                        <ClipboardList size={21} />
+                    </span>
+                    <div>
+                        <p>Bản nháp</p>
+                        <strong>{draftCount}</strong>
+                    </div>
                 </article>
                 <article className="doctor-summary-card">
-                    <span className="doctor-summary-icon"><CheckCircle2 size={21} /></span>
-                    <div><p>Đã phát hành</p><strong>{issuedCount}</strong></div>
+                    <span className="doctor-summary-icon">
+                        <CheckCircle2 size={21} />
+                    </span>
+                    <div>
+                        <p>Đã phát hành</p>
+                        <strong>{issuedCount}</strong>
+                    </div>
                 </article>
             </section>
 
@@ -152,7 +159,12 @@ function DoctorExamReportsPage() {
                         <h2>Danh sách báo cáo</h2>
                         <p>Báo cáo thuộc các lượt khám của bác sĩ đang đăng nhập.</p>
                     </div>
-                    <button type="button" className="doctor-secondary-button" onClick={handleReload} disabled={isLoading}>
+                    <button
+                        type="button"
+                        className="doctor-secondary-button"
+                        onClick={handleReload}
+                        disabled={isLoading}
+                    >
                         <RefreshCw size={16} className={isLoading ? 'doctor-spin' : ''} />
                         Làm mới
                     </button>
@@ -169,13 +181,22 @@ function DoctorExamReportsPage() {
                         <AlertCircle size={30} />
                         <h3>Không thể tải báo cáo</h3>
                         <p>{error}</p>
-                        <button type="button" className="doctor-primary-button" onClick={handleReload}>Thử lại</button>
+                        <button type="button" className="doctor-primary-button" onClick={handleReload}>
+                            Thử lại
+                        </button>
                     </div>
                 ) : reports.length === 0 ? (
                     <div className="doctor-state">
                         <ClipboardList size={34} />
                         <h3>Chưa có báo cáo khám</h3>
                         <p>Bạn có thể tạo báo cáo từ một lịch khám đã hoàn thành.</p>
+                        <Link
+                            to="/doctor/appointments"
+                            className="doctor-primary-button"
+                            style={{ textDecoration: 'none' }}
+                        >
+                            Đến lịch khám của tôi
+                        </Link>
                     </div>
                 ) : (
                     <div className="doctor-report-list">
@@ -187,7 +208,9 @@ function DoctorExamReportsPage() {
                                 <article className="doctor-report-card" key={report.id}>
                                     <div className="doctor-report-card-heading">
                                         <div className="doctor-report-title">
-                                            <span className="doctor-report-icon"><FileText size={22} /></span>
+                                            <span className="doctor-report-icon">
+                                                <FileText size={22} />
+                                            </span>
                                             <div>
                                                 <h3>Báo cáo #{report.id}</h3>
                                                 <p>Mã lịch khám: {report.appointmentId ?? '—'}</p>
@@ -202,11 +225,17 @@ function DoctorExamReportsPage() {
                                     <div className="doctor-report-meta">
                                         <div>
                                             <UserRound size={17} />
-                                            <span><small>Bệnh nhân</small><strong>{report.patientName || 'Chưa có thông tin'}</strong></span>
+                                            <span>
+                                                <small>Bệnh nhân</small>
+                                                <strong>{report.patientName || 'Chưa có thông tin'}</strong>
+                                            </span>
                                         </div>
                                         <div>
                                             <CalendarDays size={17} />
-                                            <span><small>Ngày phát hành</small><strong>{formatDateTime(report.issuedAt)}</strong></span>
+                                            <span>
+                                                <small>Ngày phát hành</small>
+                                                <strong>{formatDateTime(report.issuedAt)}</strong>
+                                            </span>
                                         </div>
                                     </div>
 

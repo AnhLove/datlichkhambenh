@@ -1,0 +1,48 @@
+.doctor-dashboard__stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.doctor-dashboard__stat {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 18px 20px;
+    border: 1px solid #e3eeeb;
+    border-radius: 16px;
+    background: #ffffff;
+}
+
+.doctor-dashboard__stat-icon {
+    display: grid;
+    flex-shrink: 0;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: #e6f4f1;
+    color: #0f766e;
+}
+
+.doctor-dashboard__stat-value {
+    display: block;
+    font-size: 1.6rem;
+    font-weight: 700;
+    line-height: 1.1;
+    color: #12332f;
+}
+
+.doctor-dashboard__stat-label {
+    display: block;
+    margin-top: 2px;
+    font-size: 0.85rem;
+    color: #5b7571;
+}
+
+.doctor-dashboard__stats-error {
+    margin: -8px 0 20px;
+    font-size: 0.9rem;
+    color: #b42318;
+}
