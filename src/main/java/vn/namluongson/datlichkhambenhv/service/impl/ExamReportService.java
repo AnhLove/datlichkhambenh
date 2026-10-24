@@ -1,7 +1,6 @@
 package vn.namluongson.datlichkhambenhv.service.impl;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -16,17 +15,21 @@ import vn.namluongson.datlichkhambenhv.domain.entities.User;
 import vn.namluongson.datlichkhambenhv.domain.enums.AppointmentStatus;
 import vn.namluongson.datlichkhambenhv.domain.enums.ReportStatus;
 import vn.namluongson.datlichkhambenhv.domain.enums.Role;
+import vn.namluongson.datlichkhambenhv.exception.BusinessException;
 import vn.namluongson.datlichkhambenhv.repository.appointment.AppointmentRepository;
 import vn.namluongson.datlichkhambenhv.repository.examreport.ExamReportRepository;
 import vn.namluongson.datlichkhambenhv.service.interfaces.IExamReportService;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 @Transactional
 public class ExamReportService implements IExamReportService {
+
+    private static final ZoneId VN_ZONE = ZoneId.of("Asia/Ho_Chi_Minh");
 
     private final ExamReportRepository examReportRepository;
     private final AppointmentRepository appointmentRepository;
@@ -35,7 +38,7 @@ public class ExamReportService implements IExamReportService {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         if (authentication == null || !(authentication.getPrincipal() instanceof CustomUserDetails userDetails)) {
-            throw new AccessDeniedException("Vui lòng đăng nhập");
+            throw BusinessException.unauthorized("Vui lòng đăng nhập");
         }
 
         return userDetails.getUser();
@@ -43,13 +46,13 @@ public class ExamReportService implements IExamReportService {
 
     private void checkDoctor(User user) {
         if (user.getRole() != Role.DOCTOR.getCode()) {
-            throw new AccessDeniedException("Chỉ bác sĩ mới được thực hiện chức năng này");
+            throw BusinessException.forbidden("Chỉ bác sĩ mới được thực hiện chức năng này");
         }
     }
 
     private void checkPatient(User user) {
         if (user.getRole() != Role.PATIENT.getCode()) {
-            throw new AccessDeniedException("Chỉ bệnh nhân mới được thực hiện chức năng này");
+            throw BusinessException.forbidden("Chỉ bệnh nhân mới được thực hiện chức năng này");
         }
     }
 
@@ -58,18 +61,19 @@ public class ExamReportService implements IExamReportService {
         User currentUser = getCurrentUser();
         checkDoctor(currentUser);
 
-        Appointment appointment = appointmentRepository.findById(request.getAppointmentId()).orElseThrow(() -> new RuntimeException("Không tìm thấy lịch hẹn"));
+        Appointment appointment = appointmentRepository.findById(request.getAppointmentId())
+                .orElseThrow(() -> BusinessException.notFound("Không tìm thấy lịch hẹn"));
 
         if (!appointment.getDoctor().getUser().getId().equals(currentUser.getId())) {
-            throw new AccessDeniedException("Bạn không phụ trách lịch hẹn này");
+            throw BusinessException.forbidden("Bạn không phụ trách lịch hẹn này");
         }
 
         if (!appointment.getStatus().equals(AppointmentStatus.COMPLETED.getCode())) {
-            throw new RuntimeException("Chỉ được lập phiếu khám khi lịch hẹn đã hoàn thành");
+            throw BusinessException.badRequest("Chỉ được lập phiếu khám khi lịch hẹn đã hoàn thành");
         }
 
         if (examReportRepository.findByAppointment_Id(appointment.getId()).isPresent()) {
-            throw new RuntimeException("Lịch hẹn này đã có phiếu khám");
+            throw BusinessException.conflict("Lịch hẹn này đã có phiếu khám");
         }
 
         ExamReport report = ExamReport.builder()
@@ -83,7 +87,7 @@ public class ExamReportService implements IExamReportService {
 
         ExamReport savedReport = examReportRepository.save(report);
 
-        return new ApiResponse(200,"Tạo phiếu khám thành công", toResponse(savedReport));
+        return new ApiResponse(200, "Tạo phiếu khám thành công", toResponse(savedReport));
     }
 
     @Override
@@ -91,22 +95,23 @@ public class ExamReportService implements IExamReportService {
         User currentUser = getCurrentUser();
         checkDoctor(currentUser);
 
-        ExamReport report = examReportRepository.findById(reportId).orElseThrow(() -> new RuntimeException("Không tìm thấy phiếu khám"));
+        ExamReport report = examReportRepository.findById(reportId)
+                .orElseThrow(() -> BusinessException.notFound("Không tìm thấy phiếu khám"));
 
         if (!report.getAppointment().getDoctor().getUser().getId().equals(currentUser.getId())) {
-            throw new AccessDeniedException("Bạn không phụ trách lịch hẹn này");
+            throw BusinessException.forbidden("Bạn không phụ trách lịch hẹn này");
         }
 
         if (!report.getStatus().equals((short) ReportStatus.DRAFT.getCode())) {
-            throw new RuntimeException("Chỉ được phát hành phiếu đang ở trạng thái DRAFT");
+            throw BusinessException.badRequest("Chỉ được phát hành phiếu đang ở trạng thái DRAFT");
         }
 
         report.setStatus((short) ReportStatus.ISSUED.getCode());
-        report.setIssuedAt(LocalDateTime.now());
+        report.setIssuedAt(LocalDateTime.now(VN_ZONE));
 
         ExamReport savedReport = examReportRepository.save(report);
 
-        return new ApiResponse(200,"Phát hành phiếu khám thành công", toResponse(savedReport));
+        return new ApiResponse(200, "Phát hành phiếu khám thành công", toResponse(savedReport));
     }
 
     @Override
@@ -116,10 +121,10 @@ public class ExamReportService implements IExamReportService {
         checkDoctor(currentUser);
 
         List<ExamReportResponse> reports = examReportRepository
-                        .findByIssuedBy_IdOrderByIssuedAtDesc(currentUser.getId())
-                        .stream()
-                        .map(this::toResponse)
-                        .toList();
+                .findByIssuedBy_IdOrderByIssuedAtDesc(currentUser.getId())
+                .stream()
+                .map(this::toResponse)
+                .toList();
 
         return new ApiResponse(200, "Lấy danh sách phiếu khám thành công", reports);
     }
@@ -131,11 +136,11 @@ public class ExamReportService implements IExamReportService {
         checkPatient(currentUser);
 
         List<ExamReportResponse> reports = examReportRepository
-                        .findByAppointment_Patient_IdOrderByIssuedAtDesc(currentUser.getId())
-                        .stream()
-                        .filter(report -> report.getStatus() != null && report.getStatus() == ReportStatus.ISSUED.getCode())
-                        .map(this::toResponse)
-                        .toList();
+                .findByAppointment_Patient_IdOrderByIssuedAtDesc(currentUser.getId())
+                .stream()
+                .filter(report -> report.getStatus() != null && report.getStatus() == ReportStatus.ISSUED.getCode())
+                .map(this::toResponse)
+                .toList();
 
         return new ApiResponse(200, "Lấy danh sách phiếu khám thành công", reports);
     }

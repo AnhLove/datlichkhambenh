@@ -13,6 +13,7 @@ import java.time.LocalDateTime;
 public class AppointmentResponse {
     private Long appointmentId;
     private String doctorName;
+    private String patientName;
     private String departmentName;
     private LocalDate appointmentDate;
     private String timeSlot;
