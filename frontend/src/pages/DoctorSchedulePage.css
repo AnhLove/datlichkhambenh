@@ -1,0 +1,95 @@
+.doctor-schedule-note {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin: 0 0 18px;
+    padding: 12px 14px;
+    border: 1px solid #cfe5e1;
+    border-radius: 12px;
+    background: #f0f7f5;
+    color: #2f4f4a;
+    font-size: 0.92rem;
+    line-height: 1.5;
+}
+
+.doctor-schedule-note svg {
+    flex-shrink: 0;
+    margin-top: 2px;
+    color: #0f766e;
+}
+
+.doctor-schedule-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.doctor-schedule-row {
+    display: grid;
+    grid-template-columns: minmax(150px, 1fr) minmax(110px, 0.8fr) minmax(170px, 1.2fr) auto;
+    align-items: center;
+    gap: 16px;
+    padding: 16px 20px;
+    border: 1px solid #e3eeeb;
+    border-radius: 16px;
+    background: #ffffff;
+}
+
+.doctor-schedule-day {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+}
+
+.doctor-schedule-day strong {
+    font-size: 1.05rem;
+    color: #12332f;
+}
+
+.doctor-schedule-current {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.doctor-schedule-current small,
+.doctor-schedule-select span {
+    font-size: 0.8rem;
+    color: #5b7571;
+}
+
+.doctor-schedule-current strong {
+    color: #12332f;
+}
+
+.doctor-schedule-select {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.doctor-schedule-select select {
+    padding: 9px 12px;
+    border: 1px solid #d6e4e1;
+    border-radius: 10px;
+    background: #ffffff;
+    color: #12332f;
+    font: inherit;
+}
+
+.doctor-schedule-select select:focus-visible {
+    outline: 2px solid #0f766e;
+    outline-offset: 1px;
+}
+
+@media (max-width: 760px) {
+    .doctor-schedule-row {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .doctor-schedule-select,
+    .doctor-schedule-row .doctor-primary-button {
+        grid-column: 1 / -1;
+    }
+}

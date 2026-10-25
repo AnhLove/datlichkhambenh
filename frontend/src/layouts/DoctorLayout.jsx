@@ -1,6 +1,16 @@
 import { useEffect, useState } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
-import { Activity, CalendarDays, ClipboardList, LayoutDashboard, LogOut, Menu, Stethoscope, X } from 'lucide-react';
+import {
+    Activity,
+    CalendarDays,
+    ClipboardList,
+    Clock3,
+    LayoutDashboard,
+    LogOut,
+    Menu,
+    Stethoscope,
+    X,
+} from 'lucide-react';
 
 import { apiGet, apiPost } from '../services/api';
 import { unwrapData } from '../utils/unwrap';
@@ -67,6 +77,11 @@ function DoctorLayout() {
             to: '/doctor/appointments',
             label: 'Lịch khám của tôi',
             icon: CalendarDays,
+        },
+        {
+            to: '/doctor/schedule',
+            label: 'Lịch làm việc',
+            icon: Clock3,
         },
         {
             to: '/doctor/exam-reports',
