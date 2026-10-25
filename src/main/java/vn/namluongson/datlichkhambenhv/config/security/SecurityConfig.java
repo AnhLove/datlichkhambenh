@@ -84,7 +84,7 @@ public class SecurityConfig {
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         .requestMatchers("/me/**").authenticated()
 
-                        .requestMatchers(HttpMethod.POST, "/appointment").hasRole("PATIENT")
+                        .requestMatchers(HttpMethod.POST, "/appointment").hasAnyRole("PATIENT", "STAFF", "ADMIN")
 
                         .requestMatchers(HttpMethod.PATCH, "/appointment/*/complete").hasAnyRole("DOCTOR", "ADMIN")
                         .requestMatchers(HttpMethod.GET, "/appointment/doctor/my").hasRole("DOCTOR")
@@ -92,8 +92,9 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PATCH,
                                 "/appointment/*/confirm",
                                 "/appointment/*/check-in",
-                                "/appointment/*/no-show").hasAnyRole("STAFF", "ADMIN")
-                        .requestMatchers(HttpMethod.GET, "/appointment/staff/today").hasAnyRole("STAFF", "ADMIN")
+                                "/appointment/*/no-show",
+                                "/appointment/*/reject").hasAnyRole("STAFF", "ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/appointment/staff/*").hasAnyRole("STAFF", "ADMIN")
 
                         .requestMatchers(HttpMethod.PUT, "/doctor-working-hour/my/*/*").hasRole("DOCTOR")
                         .requestMatchers(HttpMethod.POST, "/doctor-working-hour").hasRole("ADMIN")
@@ -102,6 +103,7 @@ public class SecurityConfig {
                         .requestMatchers("/doctor-working-hour/*/status").hasRole("ADMIN")
 
                         .requestMatchers(HttpMethod.GET, "/user/**").hasAnyRole("ADMIN", "STAFF")
+                        .requestMatchers(HttpMethod.POST, "/user").hasAnyRole("STAFF", "ADMIN")
                         .requestMatchers("/user", "/user/**").hasRole("ADMIN")
 
                         .requestMatchers("/department/**", "/doctor/**", "/medical-services/**").hasRole("ADMIN")

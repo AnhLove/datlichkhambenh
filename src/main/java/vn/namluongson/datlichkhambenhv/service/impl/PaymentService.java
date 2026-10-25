@@ -19,6 +19,7 @@ import vn.namluongson.datlichkhambenhv.repository.payment.PaymentRepository;
 import vn.namluongson.datlichkhambenhv.service.interfaces.IPaymentService;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -87,7 +88,7 @@ public class PaymentService implements IPaymentService {
         }
 
         payment.setStatus((long) PaymentStatus.PAID.getCode());
-        payment.setPaidAt(LocalDateTime.now());
+        payment.setPaidAt(LocalDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh")));
 
         Payment savedPayment = paymentRepository.save(payment);
 

@@ -67,4 +67,14 @@ public class AppointmentController {
     public ResponseEntity<?> getMyDoctorAppointments() {
         return ResponseEntity.ok(appointmentService.getMyDoctorAppointments());
     }
+
+    @GetMapping("/staff/by-date")
+    public ResponseEntity<?> getAppointmentsByDate(@RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
+        return ResponseEntity.ok(appointmentService.getAppointmentsByDate(date));
+    }
+
+    @PatchMapping("/{appointmentId}/reject")
+    public ResponseEntity<?> rejectAppointment(@PathVariable Long appointmentId, @Valid @RequestBody CancelAppointmentRequest request) {
+        return ResponseEntity.ok(appointmentService.rejectAppointment(appointmentId, request));
+    }
 }

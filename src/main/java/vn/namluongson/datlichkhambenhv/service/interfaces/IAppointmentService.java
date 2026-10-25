@@ -19,4 +19,6 @@ public interface IAppointmentService {
     ApiResponse completeAppointment(Long appointmentId);
     ApiResponse getTodayAppointments();
     ApiResponse getMyDoctorAppointments();
+    ApiResponse getAppointmentsByDate(LocalDate date);
+    ApiResponse rejectAppointment(Long appointmentId, CancelAppointmentRequest request);
 }

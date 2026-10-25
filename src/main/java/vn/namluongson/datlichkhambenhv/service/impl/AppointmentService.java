@@ -47,8 +47,20 @@ public class AppointmentService implements IAppointmentService {
             throw BusinessException.unauthorized("Vui lòng đăng nhập");
         }
         User currentUser = userDetails.getUser();
-        if (currentUser.getRole() != Role.PATIENT.getCode()) {
-            throw BusinessException.forbidden("Khong phai benh nhan");
+        User patient;
+
+        if (currentUser.getRole() == Role.PATIENT.getCode()) {
+            patient = currentUser;
+        } else if (currentUser.getRole() == Role.STAFF.getCode() || currentUser.getRole() == Role.ADMIN.getCode()) {
+            if (request.getPatientUuid() == null || request.getPatientUuid().isBlank()) {
+                throw BusinessException.badRequest("Vui long chon benh nhan");
+            }
+            patient = userRepository.findByUuid(request.getPatientUuid());
+            if (patient == null || patient.getRole() != Role.PATIENT.getCode()) {
+                throw BusinessException.notFound("Khong tim thay benh nhan");
+            }
+        } else {
+            throw BusinessException.forbidden("Khong co quyen dat lich");
         }
 
         if (request.getAppointmentDate().isBefore(LocalDate.now(VN_ZONE))) {
@@ -100,7 +112,7 @@ public class AppointmentService implements IAppointmentService {
         appointment.setTimeSlot(request.getTimeSlot());
         appointment.setReason(request.getReason());
         appointment.setStatus(AppointmentStatus.PENDING.getCode());
-        appointment.setPatient(currentUser);
+        appointment.setPatient(patient);
         appointment.setCreatedBy(currentUser);
         appointment.setCreatedAt(LocalDateTime.now(VN_ZONE));
 
@@ -360,6 +372,63 @@ public class AppointmentService implements IAppointmentService {
                 .toList();
 
         return new ApiResponse(200, "Danh sach lich hen hom nay", response);
+    }
+
+    @Override
+    public ApiResponse getAppointmentsByDate(LocalDate date) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null || !(authentication.getPrincipal() instanceof CustomUserDetails userDetails)) {
+            throw BusinessException.unauthorized("Vui lòng đăng nhập");
+        }
+
+        User currentUser = userDetails.getUser();
+
+        if (currentUser.getRole() != Role.STAFF.getCode() && currentUser.getRole() != Role.ADMIN.getCode()) {
+            throw BusinessException.forbidden("Khong co quyen xem lich hen");
+        }
+
+        List<AppointmentResponse> response = appointmentRepository.findByAppointmentDateOrderByTimeSlotAsc(date).stream()
+                .map(appointment -> {
+                    AppointmentResponse data = toResponse(appointment);
+                    data.setPatientName(appointment.getPatient().getFullName());
+                    data.setPatientPhone(appointment.getPatient().getPhone());
+                    return data;
+                })
+                .toList();
+
+        return new ApiResponse(200, "Danh sach lich hen theo ngay", response);
+    }
+
+    @Override
+    public ApiResponse rejectAppointment(Long appointmentId, CancelAppointmentRequest request) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null || !(authentication.getPrincipal() instanceof CustomUserDetails userDetails)) {
+            throw BusinessException.unauthorized("Vui lòng đăng nhập");
+        }
+
+        User currentUser = userDetails.getUser();
+
+        if (currentUser.getRole() != Role.STAFF.getCode() && currentUser.getRole() != Role.ADMIN.getCode()) {
+            throw BusinessException.forbidden("Khong co quyen huy lich hen");
+        }
+
+        Appointment appointment = appointmentRepository.findById(appointmentId)
+                .orElseThrow(() -> BusinessException.notFound("Khong tim thay lich hen"));
+
+        int currentStatus = appointment.getStatus();
+
+        if (currentStatus != AppointmentStatus.PENDING.getCode() && currentStatus != AppointmentStatus.CONFIRMED.getCode()) {
+            throw BusinessException.badRequest("Chi co lich cho xac nhan hoac da xac nhan moi duoc huy");
+        }
+
+        appointment.setStatus(AppointmentStatus.CANCELLED.getCode());
+        appointment.setCancelReason(request.getCancelReason());
+
+        Appointment savedAppointment = appointmentRepository.save(appointment);
+
+        return new ApiResponse(200, "Da huy lich hen", toResponse(savedAppointment));
     }
 
     @Override

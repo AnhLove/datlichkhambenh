@@ -29,7 +29,6 @@ public class UpdateUserRequest {
     @Size(max = 150, message = "Email không được vượt quá 150 ký tự")
     private String email;
 
-    // Không bắt buộc: để trống nghĩa là không đổi mật khẩu. Nếu có thì phải đủ 8 ký tự trở lên
     @Size(min = 8, max = 72, message = "Mật khẩu phải từ 8 đến 72 ký tự")
     private String password;
 

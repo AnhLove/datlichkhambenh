@@ -15,6 +15,8 @@ public class CreateAppointmentRequest {
     @NotBlank(message = "Vui lòng chọn bác sĩ")
     private String doctorUuid;
 
+    private String patientUuid;
+
     @NotNull(message = "Vui lòng chọn khoa")
     private Long departmentId;
 
