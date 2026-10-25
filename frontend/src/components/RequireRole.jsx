@@ -55,6 +55,9 @@ function RequireRole({ allowedRoles }) {
         if (role === 2) {
             return <Navigate to="/doctor/dashboard" replace />;
         }
+        if (role === 3) {
+            return <Navigate to="/reception/appointments" replace />;
+        }
         return <Navigate to="/" replace />;
     }
 

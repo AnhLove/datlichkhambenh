@@ -7,6 +7,7 @@ import './AuthPages.css';
 // Bác sĩ luôn về cổng bác sĩ. Bệnh nhân quay lại trang đang định vào (nếu có), không thì về trang chủ.
 function getRedirectPath(role, from) {
     if (role === 2) return '/doctor/dashboard';
+    if (role === 3) return '/reception/appointments';
 
     const fromPath = from?.pathname;
 
