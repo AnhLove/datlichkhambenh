@@ -30,7 +30,12 @@ public class DoctorWorkingHourController {
     }
 
     @PutMapping("/{id}/status")
-    public ResponseEntity<?> updateWorkingStatus(@Valid @PathVariable Long id,@RequestBody  UpdateDoctorWorkingHourStatusRequest request) throws Exception {
+    public ResponseEntity<?> updateWorkingStatus(@PathVariable Long id, @Valid @RequestBody UpdateDoctorWorkingHourStatusRequest request) throws Exception {
         return ResponseEntity.ok(service.updateWorkingStatus(id, request));
+    }
+
+    @PutMapping("/my/{dayOfWeek}/{shiftType}")
+    public ResponseEntity<?> saveMyWorkingHour(@PathVariable Short dayOfWeek, @PathVariable Short shiftType) {
+        return ResponseEntity.ok(service.saveMyWorkingHour(dayOfWeek, shiftType));
     }
 }

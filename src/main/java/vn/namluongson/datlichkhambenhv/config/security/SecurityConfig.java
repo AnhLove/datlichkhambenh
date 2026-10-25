@@ -95,7 +95,8 @@ public class SecurityConfig {
                                 "/appointment/*/no-show").hasAnyRole("STAFF", "ADMIN")
                         .requestMatchers(HttpMethod.GET, "/appointment/staff/today").hasAnyRole("STAFF", "ADMIN")
 
-                        .requestMatchers(HttpMethod.POST, "/doctor-working-hour").hasAnyRole("DOCTOR", "ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/doctor-working-hour/my/*/*").hasRole("DOCTOR")
+                        .requestMatchers(HttpMethod.POST, "/doctor-working-hour").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/doctor-working-hour/doctor/**").authenticated()
                         .requestMatchers("/doctor-working-hour/status/**").hasRole("ADMIN")
                         .requestMatchers("/doctor-working-hour/*/status").hasRole("ADMIN")

@@ -14,6 +14,7 @@ public interface DoctorWorkingHourRepository extends JpaRepository<DoctorWorking
     boolean existsByDoctor_IdAndDayOfWeek(Long doctorId, Short dayOfWeek);
     List<DoctorWorkingHour> findByDoctor_User_Uuid(String uuid);
     List<DoctorWorkingHour> findByStatus(Short status);
+    Optional<DoctorWorkingHour> findByDoctor_IdAndDayOfWeek(Long doctorId, Short dayOfWeek);
     @Query(value = """
                 SELECT COUNT(*) 
                 FROM DOCTOR_WORKING_HOURS DWH 
