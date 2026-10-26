@@ -6,6 +6,7 @@ import lombok.Setter;
 @Getter
 @Setter
 public class MedicalServiceResponse {
+    private Long id;
     private String departmentName;
     private String name;
     private Long price;

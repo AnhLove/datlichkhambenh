@@ -30,6 +30,7 @@ public class MedicalServiceService implements IMedicalServiceService {
 
         return medicalServices.stream().map(res -> {
             MedicalServiceResponse response = new MedicalServiceResponse();
+            response.setId(res.getId());
             response.setDepartmentName(res.getDepartment().getName());
             response.setName(res.getName());
             response.setPrice(res.getPrice());
@@ -46,6 +47,7 @@ public class MedicalServiceService implements IMedicalServiceService {
         }
 
         MedicalServiceResponse response = new MedicalServiceResponse();
+        response.setId(data.getId());
         response.setDepartmentName(data.getDepartment().getName());
         response.setName(data.getName());
         response.setPrice(data.getPrice());
