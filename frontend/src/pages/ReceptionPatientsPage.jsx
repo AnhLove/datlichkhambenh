@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import {
     Users,
     UserRound,
@@ -280,6 +281,18 @@ function ReceptionPatientsPage() {
                                                 </span>
                                             </div>
                                         </div>
+                                        {!isLocked && (
+                                            <div className="doctor-appointment-actions reception-actions">
+                                                <Link
+                                                    to={`/reception/booking?patient=${patient.uuid}`}
+                                                    className="doctor-primary-button"
+                                                    style={{ textDecoration: 'none' }}
+                                                >
+                                                    <CalendarDays size={16} />
+                                                    Đặt lịch khám
+                                                </Link>
+                                            </div>
+                                        )}
                                     </article>
                                 );
                             })}

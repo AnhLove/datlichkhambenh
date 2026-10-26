@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useLocation, useSearchParams } from 'react-router-dom';
 import {
     CalendarDays,
     Clock3,
@@ -65,7 +66,12 @@ function uniqueSorted(values) {
 }
 
 function ReceptionAppointmentsPage() {
-    const [date, setDate] = useState(getTodayString());
+    const [searchParams] = useSearchParams();
+    const location = useLocation();
+    const [date, setDate] = useState(() => {
+        const fromUrl = searchParams.get('date') ?? '';
+        return /^\d{4}-\d{2}-\d{2}$/.test(fromUrl) ? fromUrl : getTodayString();
+    });
     const [appointments, setAppointments] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState('');
@@ -76,7 +82,7 @@ function ReceptionAppointmentsPage() {
     const [statusFilter, setStatusFilter] = useState('all');
     const [busyId, setBusyId] = useState(null);
     const [actionError, setActionError] = useState('');
-    const [successMessage, setSuccessMessage] = useState('');
+    const [successMessage, setSuccessMessage] = useState(location.state?.message || '');
     const [rejectTarget, setRejectTarget] = useState(null);
     const [rejectReason, setRejectReason] = useState('');
     const [rejectError, setRejectError] = useState('');
@@ -342,7 +348,7 @@ function ReceptionAppointmentsPage() {
                     </button>
                 </div>
 
-                <div className="doctor-filters">
+                <div className="doctor-filters reception-filters">
                     <label className="doctor-search-field">
                         <Search size={17} />
                         <input

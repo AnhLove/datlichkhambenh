@@ -26,6 +26,7 @@ import DoctorExamReportsPage from './pages/DoctorExamReportsPage';
 
 import ReceptionAppointmentsPage from './pages/ReceptionAppointmentsPage';
 import ReceptionPatientsPage from './pages/ReceptionPatientsPage';
+import ReceptionBookingPage from './pages/ReceptionBookingPage';
 
 import './App.css';
 
@@ -33,7 +34,6 @@ function App() {
     return (
         <BrowserRouter>
             <Routes>
-                {/* Trang công khai */}
                 <Route element={<PublicLayout />}>
                     <Route path="/" element={<HomePage />} />
                     <Route path="/departments" element={<DepartmentsPage />} />
@@ -44,7 +44,6 @@ function App() {
                     <Route path="/register" element={<RegisterPage />} />
                 </Route>
 
-                {/* Khu vực bệnh nhân: role = 1 */}
                 <Route element={<RequireRole allowedRoles={[1]} />}>
                     <Route element={<PublicLayout />}>
                         <Route path="/my-appointments" element={<MyAppointmentsPage />} />
@@ -54,7 +53,6 @@ function App() {
                     </Route>
                 </Route>
 
-                {/* Khu vực bác sĩ: role = 2 */}
                 <Route element={<RequireRole allowedRoles={[2]} />}>
                     <Route element={<DoctorLayout />}>
                         <Route path="/doctor/dashboard" element={<DoctorDashboardPage />} />
@@ -64,11 +62,11 @@ function App() {
                     </Route>
                 </Route>
 
-                {/* Khu vực lễ tân: role = 3 */}
                 <Route element={<RequireRole allowedRoles={[3]} />}>
                     <Route element={<ReceptionLayout />}>
                         <Route path="/reception/appointments" element={<ReceptionAppointmentsPage />} />
                         <Route path="/reception/patients" element={<ReceptionPatientsPage />} />
+                        <Route path="/reception/booking" element={<ReceptionBookingPage />} />
                     </Route>
                 </Route>
             </Routes>

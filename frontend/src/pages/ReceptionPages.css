@@ -18,7 +18,7 @@
     flex-wrap: wrap;
     align-items: flex-end;
     gap: 12px;
-    margin-bottom: 14px;
+    margin: 18px 0 14px;
 }
 
 .reception-toolbar-note {
@@ -70,4 +70,144 @@
     .reception-form-grid {
         grid-template-columns: 1fr;
     }
+}
+
+/* Bộ lọc của trang lịch hẹn: 4 ô nằm trên một hàng */
+.doctor-filters.reception-filters {
+    display: grid;
+    grid-template-columns: minmax(220px, 2fr) repeat(3, minmax(140px, 1fr));
+    gap: 14px;
+}
+
+@media (max-width: 1100px) {
+    .doctor-filters.reception-filters {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+@media (max-width: 640px) {
+    .doctor-filters.reception-filters {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Đặt lịch hộ */
+.reception-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 18px;
+    color: #0f766e;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.reception-back:hover {
+    text-decoration: underline;
+}
+
+.reception-patient-box {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 20px;
+    padding: 14px 18px;
+    border: 1px solid #cfe5e1;
+    border-radius: 14px;
+    background: #f0f7f5;
+}
+
+.reception-patient-box small {
+    display: block;
+    color: #5b7571;
+}
+
+.reception-patient-box strong {
+    display: block;
+    font-size: 1.1rem;
+    color: #12332f;
+}
+
+.reception-patient-box span:not(.doctor-summary-icon) {
+    font-size: 0.9rem;
+    color: #3d5a56;
+}
+
+.reception-input select {
+    padding: 10px 12px;
+    border: 1px solid #d6e4e1;
+    border-radius: 10px;
+    background: #ffffff;
+    color: #12332f;
+    font: inherit;
+    font-weight: 400;
+}
+
+.reception-input select:focus-visible {
+    outline: 2px solid #0f766e;
+    outline-offset: 1px;
+}
+
+.reception-slot-block {
+    margin-bottom: 16px;
+}
+
+.reception-slot-label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #12332f;
+}
+
+.reception-slots {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.reception-slot {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 9px 14px;
+    border: 1px solid #d6e4e1;
+    border-radius: 999px;
+    background: #ffffff;
+    color: #3d5a56;
+    font: inherit;
+    font-weight: 600;
+    cursor: pointer;
+    transition:
+        background 0.15s ease,
+        border-color 0.15s ease,
+        color 0.15s ease;
+}
+
+.reception-slot:hover:not(:disabled) {
+    background: #f0f7f5;
+}
+
+.reception-slot-selected,
+.reception-slot-selected:hover:not(:disabled) {
+    background: #0f766e;
+    border-color: #0f766e;
+    color: #ffffff;
+}
+
+.reception-hint {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 8px 0 0;
+    font-size: 0.9rem;
+    color: #5b7571;
+}
+
+.reception-summary {
+    margin: 0 0 14px;
+    padding: 10px 14px;
+    border-radius: 12px;
+    background: #f0f7f5;
+    color: #2f4f4a;
+    font-size: 0.92rem;
 }

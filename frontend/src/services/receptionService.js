@@ -27,3 +27,7 @@ export function getAllUsers() {
 export function createPatient(payload) {
     return apiPost('/user', payload);
 }
+
+export function getUserByUuid(uuid) {
+    return apiGet(`/user/${encodeURIComponent(uuid)}`);
+}
