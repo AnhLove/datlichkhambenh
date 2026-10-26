@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useLocation, useSearchParams } from 'react-router-dom';
+import { Link, useLocation, useSearchParams } from 'react-router-dom';
 import {
     CalendarDays,
     Clock3,
@@ -535,6 +535,17 @@ function ReceptionAppointmentsPage() {
                                             >
                                                 {isThisBusy ? 'Đang xử lý...' : 'Check-in'}
                                             </button>
+                                        </div>
+                                    )}
+                                    {(statusCode === 3 || statusCode === 4) && (
+                                        <div className="doctor-appointment-actions reception-actions">
+                                            <Link
+                                                to={`/reception/billing/${appointment.appointmentId}?date=${appointment.appointmentDate ?? date}`}
+                                                className="doctor-secondary-button"
+                                                style={{ textDecoration: 'none' }}
+                                            >
+                                                Thu ngân
+                                            </Link>
                                         </div>
                                     )}
                                 </article>

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
-import { Activity, CalendarDays, LogOut, Menu, Users, X } from 'lucide-react';
+import { Activity, CalendarDays, LogOut, Menu, Receipt, Users, X } from 'lucide-react';
 
 import { apiGet, apiPost } from '../services/api';
 import { unwrapData } from '../utils/unwrap';
@@ -17,6 +17,11 @@ const NAV_ITEMS = [
         to: '/reception/patients',
         label: 'Bệnh nhân',
         icon: Users,
+    },
+    {
+        to: '/reception/billing',
+        label: 'Thu ngân',
+        icon: Receipt,
     },
 ];
 

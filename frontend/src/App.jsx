@@ -27,6 +27,8 @@ import DoctorExamReportsPage from './pages/DoctorExamReportsPage';
 import ReceptionAppointmentsPage from './pages/ReceptionAppointmentsPage';
 import ReceptionPatientsPage from './pages/ReceptionPatientsPage';
 import ReceptionBookingPage from './pages/ReceptionBookingPage';
+import ReceptionBillingPage from './pages/ReceptionBillingPage';
+import ReceptionBillingDetailPage from './pages/ReceptionBillingDetailPage';
 
 import './App.css';
 
@@ -67,6 +69,8 @@ function App() {
                         <Route path="/reception/appointments" element={<ReceptionAppointmentsPage />} />
                         <Route path="/reception/patients" element={<ReceptionPatientsPage />} />
                         <Route path="/reception/booking" element={<ReceptionBookingPage />} />
+                        <Route path="/reception/billing" element={<ReceptionBillingPage />} />
+                        <Route path="/reception/billing/:appointmentId" element={<ReceptionBillingDetailPage />} />
                     </Route>
                 </Route>
             </Routes>
