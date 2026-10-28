@@ -6,6 +6,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.LockedException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -45,6 +47,16 @@ public class GlobalExceptionHandler{
     })
     public ResponseEntity<ApiResponse> handleBadInput(Exception e) {
         return build(HttpStatus.BAD_REQUEST, "Du lieu gui len khong hop le");
+    }
+
+    @ExceptionHandler(LockedException.class)
+    public ResponseEntity<ApiResponse> handleLocked(LockedException e) {
+        return build(HttpStatus.UNAUTHORIZED, "Tài khoản của bạn đã bị khóa. Vui lòng liên hệ admin.");
+    }
+
+    @ExceptionHandler(BadCredentialsException.class)
+    public ResponseEntity<ApiResponse> handleBadCredentials(BadCredentialsException e) {
+        return build(HttpStatus.UNAUTHORIZED, "Email hoặc mật khẩu không chính xác");
     }
 
     @ExceptionHandler(AuthenticationException.class)

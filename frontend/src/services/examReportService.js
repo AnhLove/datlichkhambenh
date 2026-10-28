@@ -8,6 +8,10 @@ export function getMyDoctorExamReports() {
     return apiGet('/exam-reports/doctor/my');
 }
 
+export function getAllExamReports() {
+    return apiGet('/admin/exam-reports');
+}
+
 export function createExamReport(request) {
     return apiPost('/exam-reports', request);
 }

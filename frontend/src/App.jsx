@@ -33,6 +33,8 @@ import ReceptionBillingDetailPage from './pages/ReceptionBillingDetailPage';
 
 import AdminDashboardPage from './pages/AdminDashboardPage';
 import AdminSystemConfigPage from './pages/AdminSystemConfigPage';
+import AdminUsersPage from './pages/AdminUsersPage';
+import AdminExamReportsPage from './pages/AdminExamReportsPage';
 
 import './App.css';
 
@@ -83,6 +85,8 @@ function App() {
                         <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
                         <Route path="/admin/dashboard" element={<AdminDashboardPage />} />
                         <Route path="/admin/configs" element={<AdminSystemConfigPage />} />
+                        <Route path="/admin/users" element={<AdminUsersPage />} />
+                        <Route path="/admin/exam-reports" element={<AdminExamReportsPage />} />
                     </Route>
                 </Route>
             </Routes>

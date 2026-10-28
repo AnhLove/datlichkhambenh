@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
-import { Activity, LayoutDashboard, LogOut, Menu, Settings, ShieldCheck, X } from 'lucide-react';
+import { Activity, FileText, LayoutDashboard, LogOut, Menu, Settings, ShieldCheck, Users, X } from 'lucide-react';
 
 import { apiGet, apiPost } from '../services/api';
 import { unwrapData } from '../utils/unwrap';
@@ -8,6 +8,8 @@ import './AdminLayout.css';
 
 const navItems = [
     { to: '/admin/dashboard', label: 'Thống kê', icon: LayoutDashboard },
+    { to: '/admin/users', label: 'Tài khoản', icon: Users },
+    { to: '/admin/exam-reports', label: 'Phiếu khám', icon: FileText },
     { to: '/admin/configs', label: 'Cấu hình hệ thống', icon: Settings },
 ];
 
@@ -83,7 +85,9 @@ function AdminLayout() {
                                 key={to}
                                 to={to}
                                 onClick={closeMenu}
-                                className={({ isActive }) => `admin-nav-link ${isActive ? 'admin-nav-link-active' : ''}`}
+                                className={({ isActive }) =>
+                                    `admin-nav-link ${isActive ? 'admin-nav-link-active' : ''}`
+                                }
                             >
                                 <Icon size={19} />
                                 <span>{label}</span>
