@@ -30,7 +30,7 @@ public class MedicalServiceController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateMedicalService(@Valid @PathVariable Long id,@RequestBody UpdateMedicalServiceRequest request) {
+    public ResponseEntity<?> updateMedicalService(@PathVariable Long id, @Valid @RequestBody UpdateMedicalServiceRequest request) {
         return ResponseEntity.ok(service.updateMedicalService(id, request));
     }
 

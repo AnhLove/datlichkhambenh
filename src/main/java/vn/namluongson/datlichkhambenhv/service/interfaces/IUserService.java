@@ -18,4 +18,5 @@ public interface IUserService {
     UserResponse getCurrentUserByEmail(String email);
     UserResponse getCurrentUser();
     UserResponse updateMyProfile(UpdateMyProfileRequest request);
+    ApiResponse updateUserStatus(String uuid, UpdateUserStatusRequest request);
 }

@@ -15,6 +15,7 @@ import vn.namluongson.datlichkhambenhv.domain.entities.User;
 import vn.namluongson.datlichkhambenhv.domain.enums.AppointmentStatus;
 import vn.namluongson.datlichkhambenhv.domain.enums.Role;
 import vn.namluongson.datlichkhambenhv.domain.enums.TimeSlot;
+import vn.namluongson.datlichkhambenhv.domain.enums.UserStatus;
 import vn.namluongson.datlichkhambenhv.domain.response.ApiResponse;
 import vn.namluongson.datlichkhambenhv.exception.BusinessException;
 import vn.namluongson.datlichkhambenhv.repository.appointment.AppointmentRepository;
@@ -23,6 +24,7 @@ import vn.namluongson.datlichkhambenhv.repository.doctor.DoctorRepository;
 import vn.namluongson.datlichkhambenhv.repository.doctor.DoctorWorkingHourRepository;
 import vn.namluongson.datlichkhambenhv.repository.user.UserRepository;
 import vn.namluongson.datlichkhambenhv.service.interfaces.IAppointmentService;
+import vn.namluongson.datlichkhambenhv.service.interfaces.ISystemConfigService;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -38,7 +40,10 @@ public class AppointmentService implements IAppointmentService {
     private final DoctorRepository doctorRepository;
     private final DoctorWorkingHourRepository doctorWorkingHourRepository;
     private final DepartmentRepository departmentRepository;
+    private final ISystemConfigService systemConfigService;
     private static final ZoneId VN_ZONE = ZoneId.of("Asia/Ho_Chi_Minh");
+
+    private static final List<Integer> ACTIVE_STATUSES = List.of(1, 2, 3);
 
     @Override
     public ApiResponse createAppointment(CreateAppointmentRequest request) {
@@ -73,6 +78,9 @@ public class AppointmentService implements IAppointmentService {
         if (doctorUser.getRole() != Role.DOCTOR.getCode()) {
             throw BusinessException.badRequest("Khong phai bac si");
         }
+        if (isLocked(doctorUser)) {
+            throw BusinessException.badRequest("Bac si hien khong nhan lich");
+        }
         var doctor = doctorRepository.findById(doctorUser.getId()).orElse(null);
         if (doctor == null) {
             throw BusinessException.notFound("Khong ton tai bac si");
@@ -91,8 +99,14 @@ public class AppointmentService implements IAppointmentService {
             throw BusinessException.badRequest("khung gio da qua");
         }
 
+        int maxPerDay = systemConfigService.getInt(ISystemConfigService.MAX_APPOINTMENTS_PER_DAY, ISystemConfigService.DEFAULT_MAX_APPOINTMENTS_PER_DAY);
+        long activeCount = appointmentRepository.countByPatient_IdAndAppointmentDateAndStatusIn(patient.getId(), request.getAppointmentDate(), ACTIVE_STATUSES);
+        if (activeCount >= maxPerDay) {
+            throw BusinessException.badRequest("Benh nhan da dat toi da " + maxPerDay + " lich trong ngay");
+        }
+
         boolean exists = appointmentRepository.existsByDoctor_IdAndAppointmentDateAndTimeSlotAndStatusIn(
-                doctor.getId(), request.getAppointmentDate(), request.getTimeSlot(), List.of(1, 2, 3));
+                doctor.getId(), request.getAppointmentDate(), request.getTimeSlot(), ACTIVE_STATUSES);
         if (exists) {
             throw BusinessException.conflict("Khong con lich trong");
         }
@@ -135,6 +149,9 @@ public class AppointmentService implements IAppointmentService {
         if (doctorUser.getRole() != Role.DOCTOR.getCode()) {
             throw BusinessException.badRequest("Khong phai bac si");
         }
+        if (isLocked(doctorUser)) {
+            return List.of();
+        }
         var doctor = doctorRepository.findById(doctorUser.getId()).orElse(null);
         if (doctor == null) {
             throw BusinessException.notFound("Khong ton tai bac si");
@@ -160,7 +177,7 @@ public class AppointmentService implements IAppointmentService {
             availableTimeSlots = Arrays.stream(TimeSlot.values()).filter(slot -> slot.getShiftType().getCode() == shiftType).toList();
         }
 
-        var bookedAppointments = appointmentRepository.findByDoctor_IdAndAppointmentDateAndStatusIn(doctor.getId(), appointmentDate, List.of(1, 2, 3));
+        var bookedAppointments = appointmentRepository.findByDoctor_IdAndAppointmentDateAndStatusIn(doctor.getId(), appointmentDate, ACTIVE_STATUSES);
         var bookedTimeSlots = bookedAppointments.stream().map(Appointment::getTimeSlot).toList();
 
         availableTimeSlots = availableTimeSlots.stream().filter(slot -> !bookedTimeSlots.contains(slot.getValue())).toList();
@@ -220,6 +237,12 @@ public class AppointmentService implements IAppointmentService {
 
         if (currentStatus != AppointmentStatus.PENDING.getCode() && currentStatus != AppointmentStatus.CONFIRMED.getCode()) {
             throw BusinessException.badRequest("Lich hen hien tai khong the huy");
+        }
+
+        int minHours = systemConfigService.getInt(ISystemConfigService.CANCEL_MIN_HOURS, ISystemConfigService.DEFAULT_CANCEL_MIN_HOURS);
+        LocalDateTime slotStart = LocalDateTime.of(appointment.getAppointmentDate(), TimeSlot.fromValue(appointment.getTimeSlot()).getStartTime());
+        if (LocalDateTime.now(VN_ZONE).plusHours(minHours).isAfter(slotStart)) {
+            throw BusinessException.badRequest("Chi duoc huy lich truoc gio kham it nhat " + minHours + " gio");
         }
 
         appointment.setStatus(AppointmentStatus.CANCELLED.getCode());
@@ -332,7 +355,6 @@ public class AppointmentService implements IAppointmentService {
         Appointment appointment = appointmentRepository.findById(appointmentId)
                 .orElseThrow(() -> BusinessException.notFound("Khong tim thay lich hen"));
 
-        // Bác sĩ chỉ được hoàn thành lịch của chính mình (ADMIN bỏ qua bước này)
         if (currentUser.getRole() == Role.DOCTOR.getCode()
                 && !appointment.getDoctor().getUser().getId().equals(currentUser.getId())) {
             throw BusinessException.forbidden("Ban khong phu trach lich hen nay");
@@ -463,6 +485,10 @@ public class AppointmentService implements IAppointmentService {
         LocalDateTime now = LocalDateTime.now(VN_ZONE);
         LocalDateTime slotStart = LocalDateTime.of(date, slot.getStartTime());
         return !slotStart.isAfter(now);
+    }
+
+    private boolean isLocked(User user) {
+        return user.getStatus() == UserStatus.LOCKED.getCode();
     }
 
     private AppointmentResponse toResponse(Appointment a) {

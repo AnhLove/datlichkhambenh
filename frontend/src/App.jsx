@@ -1,10 +1,11 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 
 import RequireRole from './components/RequireRole';
 
 import PublicLayout from './layouts/PublicLayout';
 import DoctorLayout from './layouts/DoctorLayout';
 import ReceptionLayout from './layouts/ReceptionLayout';
+import AdminLayout from './layouts/AdminLayout';
 
 import HomePage from './pages/HomePage';
 import DepartmentsPage from './pages/DepartmentsPage';
@@ -29,6 +30,9 @@ import ReceptionPatientsPage from './pages/ReceptionPatientsPage';
 import ReceptionBookingPage from './pages/ReceptionBookingPage';
 import ReceptionBillingPage from './pages/ReceptionBillingPage';
 import ReceptionBillingDetailPage from './pages/ReceptionBillingDetailPage';
+
+import AdminDashboardPage from './pages/AdminDashboardPage';
+import AdminSystemConfigPage from './pages/AdminSystemConfigPage';
 
 import './App.css';
 
@@ -71,6 +75,14 @@ function App() {
                         <Route path="/reception/booking" element={<ReceptionBookingPage />} />
                         <Route path="/reception/billing" element={<ReceptionBillingPage />} />
                         <Route path="/reception/billing/:appointmentId" element={<ReceptionBillingDetailPage />} />
+                    </Route>
+                </Route>
+
+                <Route element={<RequireRole allowedRoles={[4]} />}>
+                    <Route element={<AdminLayout />}>
+                        <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
+                        <Route path="/admin/dashboard" element={<AdminDashboardPage />} />
+                        <Route path="/admin/configs" element={<AdminSystemConfigPage />} />
                     </Route>
                 </Route>
             </Routes>

@@ -110,8 +110,8 @@ public class SecurityConfig {
 
                         .requestMatchers("/exam-reports/doctor/**").hasRole("DOCTOR")
                         .requestMatchers("/exam-reports/patient/**").hasRole("PATIENT")
-                        .requestMatchers(HttpMethod.POST, "/exam-reports").hasRole("DOCTOR")
-                        .requestMatchers(HttpMethod.PATCH, "/exam-reports/*/issue").hasRole("DOCTOR")
+                        .requestMatchers(HttpMethod.POST, "/exam-reports").hasAnyRole("DOCTOR", "ADMIN")
+                        .requestMatchers(HttpMethod.PATCH, "/exam-reports/*/issue").hasAnyRole("DOCTOR", "ADMIN")
 
                         .requestMatchers("/appointment-services/**").hasAnyRole("STAFF", "ADMIN")
 

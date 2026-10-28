@@ -9,6 +9,7 @@ import vn.namluongson.datlichkhambenhv.domain.dtos.requests.user.*;
 import vn.namluongson.datlichkhambenhv.domain.dtos.responses.user.UserResponse;
 import vn.namluongson.datlichkhambenhv.domain.entities.User;
 import vn.namluongson.datlichkhambenhv.domain.enums.Role;
+import vn.namluongson.datlichkhambenhv.domain.enums.UserStatus;
 import vn.namluongson.datlichkhambenhv.domain.response.ApiResponse;
 import vn.namluongson.datlichkhambenhv.exception.BusinessException;
 import vn.namluongson.datlichkhambenhv.repository.user.UserRepository;
@@ -215,5 +216,36 @@ public class UserService implements IUserService {
         }
         userRepository.save(user);
         return getCurrentUserByEmail(user.getEmail());
+    }
+
+    @Override
+    public ApiResponse updateUserStatus(String uuid, UpdateUserStatusRequest request) {
+        User target = userRepository.findByUuid(uuid);
+        if (target == null) {
+            throw BusinessException.notFound("Khong tim thay tai khoan");
+        }
+
+        UserStatus newStatus;
+        try {
+            newStatus = UserStatus.fromCode(request.getStatus());
+        } catch (IllegalArgumentException e) {
+            throw BusinessException.badRequest("Trang thai khong hop le");
+        }
+
+        if (newStatus == UserStatus.LOCKED) {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            if (target.getEmail() != null && target.getEmail().equalsIgnoreCase(authentication.getName())) {
+                throw BusinessException.badRequest("Khong the tu khoa tai khoan cua minh");
+            }
+            if (target.getRole() == Role.ADMIN.getCode()) {
+                throw BusinessException.forbidden("Khong the khoa tai khoan quan tri vien");
+            }
+        }
+
+        target.setStatus((short) newStatus.getCode());
+        userRepository.save(target);
+
+        String message = newStatus == UserStatus.LOCKED ? "Da khoa tai khoan" : "Da mo khoa tai khoan";
+        return new ApiResponse(200, message, uuid);
     }
 }

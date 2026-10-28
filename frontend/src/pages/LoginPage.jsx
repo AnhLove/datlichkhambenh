@@ -4,10 +4,10 @@ import { apiPost, apiGet } from '../services/api';
 import { unwrapData } from '../utils/unwrap';
 import './AuthPages.css';
 
-// Bác sĩ luôn về cổng bác sĩ. Bệnh nhân quay lại trang đang định vào (nếu có), không thì về trang chủ.
 function getRedirectPath(role, from) {
     if (role === 2) return '/doctor/dashboard';
     if (role === 3) return '/reception/appointments';
+    if (role === 4) return '/admin/dashboard';
 
     const fromPath = from?.pathname;
 
@@ -30,7 +30,6 @@ function LoginPage() {
     const location = useLocation();
     const from = location.state?.from;
 
-    // Đã có phiên đăng nhập thì không cần hiện form, chuyển thẳng theo vai trò
     useEffect(() => {
         let cancelled = false;
 
@@ -42,7 +41,7 @@ function LoginPage() {
                     navigate(getRedirectPath(Number(user.role), from), { replace: true });
                 }
             } catch {
-                // Chưa đăng nhập: ở lại trang này
+                // Chưa đăng nhập
             }
         }
 
@@ -67,11 +66,9 @@ function LoginPage() {
                 password,
             });
 
-            // Đăng nhập xong, hỏi server "tôi là ai?" để lấy vai trò
             const user = unwrapData(await apiGet('/me'));
             const role = Number(user?.role);
 
-            // Chỉ lưu thông tin hiển thị, KHÔNG lưu JWT
             localStorage.setItem(
                 'user',
                 JSON.stringify({

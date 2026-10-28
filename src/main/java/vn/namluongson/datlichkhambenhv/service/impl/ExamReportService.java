@@ -1,6 +1,7 @@
 package vn.namluongson.datlichkhambenhv.service.impl;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -50,23 +51,40 @@ public class ExamReportService implements IExamReportService {
         }
     }
 
+    private void checkDoctorOrAdmin(User user) {
+        if (user.getRole() != Role.DOCTOR.getCode() && user.getRole() != Role.ADMIN.getCode()) {
+            throw BusinessException.forbidden("Chỉ bác sĩ hoặc quản trị viên mới được thực hiện chức năng này");
+        }
+    }
+
+    private void checkAdmin(User user) {
+        if (user.getRole() != Role.ADMIN.getCode()) {
+            throw BusinessException.forbidden("Chỉ quản trị viên mới được thực hiện chức năng này");
+        }
+    }
+
     private void checkPatient(User user) {
         if (user.getRole() != Role.PATIENT.getCode()) {
             throw BusinessException.forbidden("Chỉ bệnh nhân mới được thực hiện chức năng này");
         }
     }
 
+    private void checkResponsibleDoctor(User currentUser, Appointment appointment) {
+        if (currentUser.getRole() == Role.DOCTOR.getCode()
+                && !appointment.getDoctor().getUser().getId().equals(currentUser.getId())) {
+            throw BusinessException.forbidden("Bạn không phụ trách lịch hẹn này");
+        }
+    }
+
     @Override
     public ApiResponse createExamReport(CreateExamReportRequest request) {
         User currentUser = getCurrentUser();
-        checkDoctor(currentUser);
+        checkDoctorOrAdmin(currentUser);
 
         Appointment appointment = appointmentRepository.findById(request.getAppointmentId())
                 .orElseThrow(() -> BusinessException.notFound("Không tìm thấy lịch hẹn"));
 
-        if (!appointment.getDoctor().getUser().getId().equals(currentUser.getId())) {
-            throw BusinessException.forbidden("Bạn không phụ trách lịch hẹn này");
-        }
+        checkResponsibleDoctor(currentUser, appointment);
 
         if (!appointment.getStatus().equals(AppointmentStatus.COMPLETED.getCode())) {
             throw BusinessException.badRequest("Chỉ được lập phiếu khám khi lịch hẹn đã hoàn thành");
@@ -78,7 +96,7 @@ public class ExamReportService implements IExamReportService {
 
         ExamReport report = ExamReport.builder()
                 .appointment(appointment)
-                .issuedBy(currentUser)
+                .issuedBy(appointment.getDoctor().getUser())
                 .diagnosis(request.getDiagnosis())
                 .notes(request.getNotes())
                 .status((short) ReportStatus.DRAFT.getCode())
@@ -93,14 +111,12 @@ public class ExamReportService implements IExamReportService {
     @Override
     public ApiResponse issueExamReport(Long reportId) {
         User currentUser = getCurrentUser();
-        checkDoctor(currentUser);
+        checkDoctorOrAdmin(currentUser);
 
         ExamReport report = examReportRepository.findById(reportId)
                 .orElseThrow(() -> BusinessException.notFound("Không tìm thấy phiếu khám"));
 
-        if (!report.getAppointment().getDoctor().getUser().getId().equals(currentUser.getId())) {
-            throw BusinessException.forbidden("Bạn không phụ trách lịch hẹn này");
-        }
+        checkResponsibleDoctor(currentUser, report.getAppointment());
 
         if (!report.getStatus().equals((short) ReportStatus.DRAFT.getCode())) {
             throw BusinessException.badRequest("Chỉ được phát hành phiếu đang ở trạng thái DRAFT");
@@ -143,6 +159,21 @@ public class ExamReportService implements IExamReportService {
                 .toList();
 
         return new ApiResponse(200, "Lấy danh sách phiếu khám thành công", reports);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public ApiResponse getAllReports() {
+        User currentUser = getCurrentUser();
+        checkAdmin(currentUser);
+
+        List<ExamReportResponse> reports = examReportRepository
+                .findAll(Sort.by(Sort.Direction.DESC, "id"))
+                .stream()
+                .map(this::toResponse)
+                .toList();
+
+        return new ApiResponse(200, "Lấy toàn bộ phiếu khám thành công", reports);
     }
 
     private ExamReportResponse toResponse(ExamReport report) {

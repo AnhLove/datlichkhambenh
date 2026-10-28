@@ -8,4 +8,5 @@ public interface IExamReportService {
     ApiResponse issueExamReport(Long reportId);
     ApiResponse getMyDoctorReports();
     ApiResponse getMyPatientReports();
+    ApiResponse getAllReports();
 }

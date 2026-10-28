@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.*;
 import vn.namluongson.datlichkhambenhv.domain.dtos.requests.user.CreateUserRequest;
 import vn.namluongson.datlichkhambenhv.domain.dtos.requests.user.ListUserRequest;
 import vn.namluongson.datlichkhambenhv.domain.dtos.requests.user.UpdateUserRequest;
+import vn.namluongson.datlichkhambenhv.domain.dtos.requests.user.UpdateUserStatusRequest;
 import vn.namluongson.datlichkhambenhv.service.interfaces.IUserService;
 
 @RestController
@@ -44,5 +45,10 @@ public class UserController {
     @GetMapping("/get-list-by-name")
     public ResponseEntity<?> getListUserByName(@Param("name") String name) {
         return ResponseEntity.ok(iUserService.getListUserByName(name));
+    }
+
+    @PatchMapping("/{uuid}/status")
+    public ResponseEntity<?> updateUserStatus(@PathVariable String uuid, @Valid @RequestBody UpdateUserStatusRequest request) {
+        return ResponseEntity.ok(iUserService.updateUserStatus(uuid, request));
     }
 }
