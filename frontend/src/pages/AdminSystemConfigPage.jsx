@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Pencil, Plus, Trash2, X } from 'lucide-react';
 
 import {
@@ -11,7 +11,6 @@ import { unwrapList } from '../utils/unwrap';
 
 import './AdminPage.css';
 
-// Các khóa mà hệ thống đang đọc (khớp ISystemConfigService ở backend)
 const KNOWN_KEYS = {
     CANCEL_MIN_HOURS_BEFORE: {
         label: 'Hủy/đổi lịch trước giờ khám tối thiểu',
@@ -94,21 +93,33 @@ function AdminSystemConfigPage() {
     const [formError, setFormError] = useState('');
     const [saving, setSaving] = useState(false);
 
-    const loadConfigs = useCallback(async () => {
-        try {
-            const response = await getSystemConfigs();
-            setConfigs(unwrapList(response));
-            setLoadError('');
-        } catch (err) {
-            setLoadError(err.message || 'Không thể tải danh sách cấu hình.');
-        } finally {
-            setLoading(false);
-        }
-    }, []);
+    const [reloadKey, setReloadKey] = useState(0);
+
+    const reload = () => setReloadKey((key) => key + 1);
 
     useEffect(() => {
+        let cancelled = false;
+
+        async function loadConfigs() {
+            try {
+                const response = await getSystemConfigs();
+                if (cancelled) return;
+                setConfigs(unwrapList(response));
+                setLoadError('');
+            } catch (err) {
+                if (cancelled) return;
+                setLoadError(err.message || 'Không thể tải danh sách cấu hình.');
+            } finally {
+                if (!cancelled) setLoading(false);
+            }
+        }
+
         loadConfigs();
-    }, [loadConfigs]);
+
+        return () => {
+            cancelled = true;
+        };
+    }, [reloadKey]);
 
     useEffect(() => {
         if (!form) return undefined;
@@ -164,7 +175,7 @@ function AdminSystemConfigPage() {
 
             setForm(null);
             setNotice(form.mode === 'create' ? 'Đã tạo cấu hình.' : 'Đã lưu thay đổi.');
-            await loadConfigs();
+            reload();
         } catch (err) {
             setFormError(err.message || 'Không thể lưu cấu hình.');
         } finally {
@@ -182,7 +193,7 @@ function AdminSystemConfigPage() {
         try {
             await deleteSystemConfig(row.configKey);
             setNotice('Đã xóa cấu hình.');
-            await loadConfigs();
+            reload();
         } catch (err) {
             setNotice('');
             setLoadError(err.message || 'Không thể xóa cấu hình.');
@@ -294,7 +305,11 @@ function AdminSystemConfigPage() {
                     >
                         <div className="admin-modal__header">
                             <h2 id="config-modal-title">
-                                {form.mode === 'edit' ? 'Sửa cấu hình' : form.lockKey ? 'Thiết lập cấu hình' : 'Thêm cấu hình'}
+                                {form.mode === 'edit'
+                                    ? 'Sửa cấu hình'
+                                    : form.lockKey
+                                      ? 'Thiết lập cấu hình'
+                                      : 'Thêm cấu hình'}
                             </h2>
                             <button
                                 type="button"
@@ -315,14 +330,14 @@ function AdminSystemConfigPage() {
                                 maxLength={100}
                                 disabled={form.lockKey}
                                 placeholder="VD: CANCEL_MIN_HOURS_BEFORE"
-                                onChange={(event) => setForm((prev) => ({ ...prev, configKey: event.target.value.toUpperCase() }))}
+                                onChange={(event) =>
+                                    setForm((prev) => ({ ...prev, configKey: event.target.value.toUpperCase() }))
+                                }
                             />
                         </label>
 
                         <label className="admin-field">
-                            <span>
-                                Giá trị{formMeta?.unit ? ` (${formMeta.unit})` : ''}
-                            </span>
+                            <span>Giá trị{formMeta?.unit ? ` (${formMeta.unit})` : ''}</span>
                             <input
                                 type={formMeta?.type === 'number' ? 'number' : 'text'}
                                 value={form.configValue}

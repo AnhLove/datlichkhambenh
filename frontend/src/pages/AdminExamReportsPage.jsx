@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Plus, RefreshCw, Send, X } from 'lucide-react';
 
 import { createExamReport, getAllExamReports, issueExamReport } from '../services/examReportService';
@@ -43,21 +43,33 @@ function AdminExamReportsPage() {
     const [formError, setFormError] = useState('');
     const [saving, setSaving] = useState(false);
 
-    const loadReports = useCallback(async () => {
-        try {
-            const response = await getAllExamReports();
-            setReports(unwrapList(response));
-            setLoadError('');
-        } catch (err) {
-            setLoadError(err.message || 'Không thể tải danh sách phiếu khám.');
-        } finally {
-            setLoading(false);
-        }
-    }, []);
+    const [reloadKey, setReloadKey] = useState(0);
+
+    const reload = () => setReloadKey((key) => key + 1);
 
     useEffect(() => {
+        let cancelled = false;
+
+        async function loadReports() {
+            try {
+                const response = await getAllExamReports();
+                if (cancelled) return;
+                setReports(unwrapList(response));
+                setLoadError('');
+            } catch (err) {
+                if (cancelled) return;
+                setLoadError(err.message || 'Không thể tải danh sách phiếu khám.');
+            } finally {
+                if (!cancelled) setLoading(false);
+            }
+        }
+
         loadReports();
-    }, [loadReports]);
+
+        return () => {
+            cancelled = true;
+        };
+    }, [reloadKey]);
 
     useEffect(() => {
         if (!form) return undefined;
@@ -73,7 +85,7 @@ function AdminExamReportsPage() {
     const handleReload = () => {
         setLoading(true);
         setNotice('');
-        loadReports();
+        reload();
     };
 
     const openCreate = () => {
@@ -102,7 +114,7 @@ function AdminExamReportsPage() {
 
             setForm(null);
             setNotice('Đã lập phiếu khám (bản nháp).');
-            await loadReports();
+            reload();
         } catch (err) {
             setFormError(err.message || 'Không thể lập phiếu khám.');
         } finally {
@@ -122,7 +134,7 @@ function AdminExamReportsPage() {
         try {
             await issueExamReport(report.id);
             setNotice(`Đã phát hành phiếu khám #${report.id}.`);
-            await loadReports();
+            reload();
         } catch (err) {
             setNotice('');
             setLoadError(err.message || 'Không thể phát hành phiếu khám.');
