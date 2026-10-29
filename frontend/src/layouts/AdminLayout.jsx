@@ -1,6 +1,21 @@
 import { useEffect, useState } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
-import { Activity, FileText, LayoutDashboard, LogOut, Menu, Settings, ShieldCheck, Users, X } from 'lucide-react';
+
+import {
+    Activity,
+    Building2,
+    ClipboardList,
+    Clock3,
+    FileText,
+    LayoutDashboard,
+    LogOut,
+    Menu,
+    Settings,
+    ShieldCheck,
+    Stethoscope,
+    Users,
+    X,
+} from 'lucide-react';
 
 import { apiGet, apiPost } from '../services/api';
 import { unwrapData } from '../utils/unwrap';
@@ -9,6 +24,10 @@ import './AdminLayout.css';
 const navItems = [
     { to: '/admin/dashboard', label: 'Thống kê', icon: LayoutDashboard },
     { to: '/admin/users', label: 'Tài khoản', icon: Users },
+    { to: '/admin/doctors', label: 'Bác sĩ', icon: Stethoscope },
+    { to: '/admin/departments', label: 'Chuyên khoa', icon: Building2 },
+    { to: '/admin/medical-services', label: 'Dịch vụ y tế', icon: ClipboardList },
+    { to: '/admin/working-hours', label: 'Lịch làm việc', icon: Clock3 },
     { to: '/admin/exam-reports', label: 'Phiếu khám', icon: FileText },
     { to: '/admin/configs', label: 'Cấu hình hệ thống', icon: Settings },
 ];

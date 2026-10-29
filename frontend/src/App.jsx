@@ -36,6 +36,10 @@ import AdminDashboardPage from './pages/AdminDashboardPage';
 import AdminSystemConfigPage from './pages/AdminSystemConfigPage';
 import AdminUsersPage from './pages/AdminUsersPage';
 import AdminExamReportsPage from './pages/AdminExamReportsPage';
+import AdminWorkingHoursPage from './pages/AdminWorkingHoursPage.jsx';
+import AdminDoctorsPage from './pages/AdminDoctorsPage';
+import AdminDepartmentsPage from './pages/AdminDepartmentsPage';
+import AdminMedicalServicesPage from './pages/AdminMedicalServicesPage';
 
 import './App.css';
 
@@ -88,6 +92,10 @@ function App() {
                         <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
                         <Route path="/admin/dashboard" element={<AdminDashboardPage />} />
                         <Route path="/admin/configs" element={<AdminSystemConfigPage />} />
+                        <Route path="/admin/doctors" element={<AdminDoctorsPage />} />
+                        <Route path="/admin/departments" element={<AdminDepartmentsPage />} />
+                        <Route path="/admin/medical-services" element={<AdminMedicalServicesPage />} />
+                        <Route path="/admin/working-hours" element={<AdminWorkingHoursPage />} />
                         <Route path="/admin/users" element={<AdminUsersPage />} />
                         <Route path="/admin/exam-reports" element={<AdminExamReportsPage />} />
                     </Route>

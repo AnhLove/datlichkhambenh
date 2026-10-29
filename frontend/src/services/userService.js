@@ -4,6 +4,10 @@ export function getUsers() {
     return apiGet('/user/list');
 }
 
+export function getUserByUuid(uuid) {
+    return apiGet(`/user/${encodeURIComponent(uuid)}`);
+}
+
 export function createStaff(request) {
     return apiPost('/admin/staff', request);
 }
