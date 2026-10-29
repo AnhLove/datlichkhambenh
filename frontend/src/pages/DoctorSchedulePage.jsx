@@ -98,7 +98,8 @@ function DoctorSchedulePage() {
     };
 
     const handleSave = async (day) => {
-        const selected = drafts[day.value];
+        const currentItem = itemByDay.get(day.value);
+        const selected = drafts[day.value] ?? (currentItem ? String(currentItem.shiftType) : '');
 
         if (!selected) {
             setActionError('Vui lòng chọn ca làm việc.');
