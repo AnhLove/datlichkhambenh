@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 
 import RequireRole from './components/RequireRole';
+import RedirectStaffToPortal from './components/RedirectStaffToPortal';
 
 import PublicLayout from './layouts/PublicLayout';
 import DoctorLayout from './layouts/DoctorLayout';
@@ -42,14 +43,16 @@ function App() {
     return (
         <BrowserRouter>
             <Routes>
-                <Route element={<PublicLayout />}>
-                    <Route path="/" element={<HomePage />} />
-                    <Route path="/departments" element={<DepartmentsPage />} />
-                    <Route path="/doctors" element={<DoctorsPage />} />
-                    <Route path="/appointments" element={<AppointmentsPage />} />
-                    <Route path="/medical-services" element={<MedicalServicesPage />} />
-                    <Route path="/login" element={<LoginPage />} />
-                    <Route path="/register" element={<RegisterPage />} />
+                <Route element={<RedirectStaffToPortal />}>
+                    <Route element={<PublicLayout />}>
+                        <Route path="/" element={<HomePage />} />
+                        <Route path="/departments" element={<DepartmentsPage />} />
+                        <Route path="/doctors" element={<DoctorsPage />} />
+                        <Route path="/appointments" element={<AppointmentsPage />} />
+                        <Route path="/medical-services" element={<MedicalServicesPage />} />
+                        <Route path="/login" element={<LoginPage />} />
+                        <Route path="/register" element={<RegisterPage />} />
+                    </Route>
                 </Route>
 
                 <Route element={<RequireRole allowedRoles={[1]} />}>
