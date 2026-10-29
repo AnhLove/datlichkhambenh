@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Check, RefreshCw, X } from 'lucide-react';
 
+import { searchDoctors } from '../services/doctorService';
 import { getWorkingHoursByStatus, updateWorkingHourStatus } from '../services/workingHourService';
 import { unwrapList } from '../utils/unwrap';
 
@@ -19,29 +20,32 @@ const TABS = [
 const DAYS = { 1: 'Thứ 2', 2: 'Thứ 3', 3: 'Thứ 4', 4: 'Thứ 5', 5: 'Thứ 6', 6: 'Thứ 7', 7: 'Chủ nhật' };
 const SHIFTS = { 1: 'Cả ngày', 2: 'Buổi sáng', 3: 'Buổi chiều', 4: 'Nghỉ' };
 
-function getDoctorName(item) {
-    return (
-        item.doctorName || item.doctorFullName || item.fullName || (item.doctorId ? `Bác sĩ #${item.doctorId}` : '—')
-    );
-}
-
 function AdminWorkingHoursPage() {
     const [status, setStatus] = useState(STATUS_PENDING);
     const [items, setItems] = useState([]);
+    const [doctors, setDoctors] = useState([]);
     const [loading, setLoading] = useState(true);
     const [loadError, setLoadError] = useState('');
     const [notice, setNotice] = useState('');
     const [processingId, setProcessingId] = useState(null);
     const [reloadKey, setReloadKey] = useState(0);
 
+    const doctorByUuid = new Map(doctors.map((doctor) => [doctor.uuid, doctor]));
+
+    const getDoctorName = (item) => doctorByUuid.get(item.uuid)?.fullName || '—';
+
     useEffect(() => {
         let cancelled = false;
 
         async function loadItems() {
             try {
-                const response = await getWorkingHoursByStatus(status);
+                const [response, doctorResponse] = await Promise.all([
+                    getWorkingHoursByStatus(status),
+                    searchDoctors('', ''),
+                ]);
                 if (cancelled) return;
                 setItems(unwrapList(response));
+                setDoctors(unwrapList(doctorResponse));
                 setLoadError('');
             } catch (err) {
                 if (cancelled) return;
@@ -100,7 +104,10 @@ function AdminWorkingHoursPage() {
             <div className="admin-page__heading">
                 <div>
                     <h1>Duyệt lịch làm việc</h1>
-                    <p>Bác sĩ chỉ có khung giờ trống cho bệnh nhân sau khi lịch làm việc được duyệt.</p>
+                    <p>
+                        Bác sĩ chỉ có khung giờ trống cho bệnh nhân sau khi lịch làm việc được duyệt. Lịch đã xử lý
+                        không đổi lại được, bác sĩ phải gửi lại để chờ duyệt.
+                    </p>
                 </div>
             </div>
 
@@ -147,6 +154,7 @@ function AdminWorkingHoursPage() {
                             <thead>
                                 <tr>
                                     <th>Bác sĩ</th>
+                                    <th>Chuyên khoa</th>
                                     <th>Thứ</th>
                                     <th>Ca làm việc</th>
                                     <th className="admin-col-actions">Thao tác</th>
@@ -158,10 +166,11 @@ function AdminWorkingHoursPage() {
                                         <td>
                                             <strong>{getDoctorName(item)}</strong>
                                         </td>
+                                        <td>{doctorByUuid.get(item.uuid)?.departmentName || '—'}</td>
                                         <td>{DAYS[Number(item.dayOfWeek)] || '—'}</td>
                                         <td>{SHIFTS[Number(item.shiftType)] || '—'}</td>
                                         <td className="admin-col-actions">
-                                            {status !== STATUS_APPROVED && (
+                                            {status === STATUS_PENDING && (
                                                 <button
                                                     type="button"
                                                     className="admin-icon-btn"
@@ -174,7 +183,7 @@ function AdminWorkingHoursPage() {
                                                 </button>
                                             )}
 
-                                            {status !== STATUS_REJECTED && (
+                                            {status === STATUS_PENDING && (
                                                 <button
                                                     type="button"
                                                     className="admin-icon-btn admin-icon-btn-danger"
