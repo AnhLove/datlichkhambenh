@@ -11,6 +11,7 @@ import AdminLayout from './layouts/AdminLayout';
 import HomePage from './pages/HomePage';
 import DepartmentsPage from './pages/DepartmentsPage';
 import DoctorsPage from './pages/DoctorsPage';
+import DoctorDetailPage from './pages/DoctorDetailPage';
 import AppointmentsPage from './pages/AppointmentsPage';
 import MedicalServicesPage from './pages/MedicalServicesPage';
 import LoginPage from './pages/LoginPage';
@@ -52,6 +53,7 @@ function App() {
                         <Route path="/" element={<HomePage />} />
                         <Route path="/departments" element={<DepartmentsPage />} />
                         <Route path="/doctors" element={<DoctorsPage />} />
+                        <Route path="/doctors/:uuid" element={<DoctorDetailPage />} />
                         <Route path="/appointments" element={<AppointmentsPage />} />
                         <Route path="/medical-services" element={<MedicalServicesPage />} />
                         <Route path="/login" element={<LoginPage />} />

@@ -18,6 +18,10 @@ function getToday() {
     return `${year}-${month}-${day}`;
 }
 
+function getValidDate(value) {
+    return /^\d{4}-\d{2}-\d{2}$/.test(value || '') && value >= getToday() ? value : '';
+}
+
 function formatDate(value) {
     if (!value) return '';
     const [year, month, day] = value.split('-');
@@ -30,6 +34,8 @@ function AppointmentsPage() {
 
     const [searchParams] = useSearchParams();
     const initialDoctorUuid = searchParams.get('doctorUuid') || '';
+    const initialDate = getValidDate(searchParams.get('date'));
+    const initialSlot = searchParams.get('slot') || '';
 
     const [departments, setDepartments] = useState([]);
     const [allDoctors, setAllDoctors] = useState([]);
@@ -37,8 +43,8 @@ function AppointmentsPage() {
 
     const [departmentId, setDepartmentId] = useState('');
     const [doctorUuid, setDoctorUuid] = useState(initialDoctorUuid);
-    const [appointmentDate, setAppointmentDate] = useState('');
-    const [timeSlot, setTimeSlot] = useState('');
+    const [appointmentDate, setAppointmentDate] = useState(initialDate);
+    const [timeSlot, setTimeSlot] = useState(initialSlot);
     const [reason, setReason] = useState('');
 
     const [loadingDepartments, setLoadingDepartments] = useState(true);

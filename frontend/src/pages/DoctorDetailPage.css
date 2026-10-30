@@ -1,0 +1,257 @@
+.doctor-detail-page {
+    width: 100%;
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 32px 20px 72px;
+    box-sizing: border-box;
+    color: #183b3c;
+}
+
+.doctor-detail-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 20px;
+    color: #087f83;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.doctor-detail-back:hover {
+    text-decoration: underline;
+}
+
+.doctor-detail-state {
+    padding: 56px 0;
+    color: #617576;
+    text-align: center;
+}
+
+.doctor-detail-card {
+    margin-bottom: 20px;
+    padding: 28px;
+    background: #fff;
+    border: 1px solid #e1ebeb;
+    border-radius: 16px;
+}
+
+.doctor-detail-card h2 {
+    margin: 0 0 16px;
+    font-size: 20px;
+}
+
+/* ---------- Hero ---------- */
+.doctor-detail-hero {
+    display: flex;
+    align-items: flex-start;
+    gap: 28px;
+}
+
+.doctor-detail-avatar {
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: 160px;
+    height: 160px;
+    overflow: hidden;
+    color: #087f83;
+    background: #e7f5f4;
+    border-radius: 50%;
+}
+
+.doctor-detail-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.doctor-detail-name {
+    margin: 0 0 10px;
+    font-size: clamp(22px, 3.5vw, 28px);
+    line-height: 1.3;
+}
+
+.doctor-detail-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 16px;
+    margin-bottom: 18px;
+    color: #435b56;
+}
+
+.doctor-detail-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: #087f83;
+    font-weight: 700;
+}
+
+.doctor-detail-rows {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 10px 20px;
+    margin: 0;
+}
+
+.doctor-detail-rows dt {
+    color: #617576;
+}
+
+.doctor-detail-rows dd {
+    margin: 0;
+    font-weight: 600;
+}
+
+.doctor-detail-text {
+    margin: 0;
+    color: #435b56;
+    line-height: 1.7;
+    white-space: pre-line;
+}
+
+/* ---------- Đặt khám nhanh ---------- */
+.doctor-detail-days {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    padding-bottom: 6px;
+    overflow-x: auto;
+}
+
+.doctor-detail-day {
+    flex: 0 0 auto;
+    min-width: 132px;
+    padding: 10px 14px;
+    color: #183b3c;
+    text-align: center;
+    background: #fff;
+    border: 1px solid #cfe0dc;
+    border-radius: 10px;
+    cursor: pointer;
+}
+
+.doctor-detail-day strong {
+    display: block;
+    font-size: 14px;
+}
+
+.doctor-detail-day span {
+    color: #067647;
+    font-size: 13px;
+}
+
+.doctor-detail-day-empty span {
+    color: #7a8e8a;
+}
+
+.doctor-detail-day-active {
+    background: #eff8f6;
+    border-color: #087f83;
+    box-shadow: inset 0 -3px 0 #087f83;
+}
+
+.doctor-detail-group h3 {
+    margin: 0 0 10px;
+    color: #435b56;
+    font-size: 15px;
+}
+
+.doctor-detail-slots {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.doctor-detail-slot {
+    padding: 10px 8px;
+    color: #183b3c;
+    font-weight: 600;
+    background: #fff;
+    border: 1px solid #cfe0dc;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.doctor-detail-slot:hover {
+    border-color: #087f83;
+}
+
+.doctor-detail-slot-selected {
+    color: #fff;
+    background: #087f83;
+    border-color: #087f83;
+}
+
+.doctor-detail-day:focus-visible,
+.doctor-detail-slot:focus-visible,
+.doctor-detail-cta:focus-visible {
+    outline: 2px solid #087f83;
+    outline-offset: 2px;
+}
+
+.doctor-detail-empty {
+    margin: 0 0 20px;
+    padding: 20px 0;
+    color: #617576;
+    text-align: center;
+}
+
+.doctor-detail-cta-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding-top: 18px;
+    border-top: 1px solid #edf2f1;
+}
+
+.doctor-detail-note {
+    margin: 0;
+    color: #617576;
+    font-size: 13px;
+}
+
+.doctor-detail-cta {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 48px;
+    padding: 0 32px;
+    color: #fff;
+    font-weight: 700;
+    text-decoration: none;
+    background: #087f83;
+    border-radius: 10px;
+}
+
+.doctor-detail-cta:hover {
+    background: #066a6e;
+}
+
+@media (max-width: 640px) {
+    .doctor-detail-card {
+        padding: 20px;
+    }
+
+    .doctor-detail-hero {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+
+    .doctor-detail-meta {
+        justify-content: center;
+    }
+
+    .doctor-detail-rows {
+        text-align: left;
+    }
+
+    .doctor-detail-cta {
+        width: 100%;
+    }
+}
