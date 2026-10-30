@@ -28,19 +28,16 @@ public class UserService implements IUserService {
     private final PasswordEncoder passwordEncoder;
 
     public ApiResponse createUser(CreateUserRequest createUserRequest) {
-        User user = createAccount(createUserRequest.getFullName(), createUserRequest.getPhone(), createUserRequest.getEmail(),
-                createUserRequest.getPassword(), createUserRequest.getDateOfBirth(), Role.PATIENT);
+        User user = createAccount(createUserRequest.getFullName(), createUserRequest.getPhone(), createUserRequest.getEmail(), createUserRequest.getPassword(), createUserRequest.getDateOfBirth(), Role.PATIENT);
         return new ApiResponse(200, "Đăng ký thành công", user.getUuid());
     }
 
     public ApiResponse createStaff(CreateStaffRequest request) {
-        User user = createAccount(request.getFullName(), request.getPhone(), request.getEmail(),
-                request.getPassword(), request.getDateOfBirth(), Role.STAFF);
+        User user = createAccount(request.getFullName(), request.getPhone(), request.getEmail(), request.getPassword(), request.getDateOfBirth(), Role.STAFF);
         return new ApiResponse(200, "Tạo tài khoản lễ tân thành công", user.getUuid());
     }
 
-    private User createAccount(String fullName, String phone, String email,
-                               String rawPassword, LocalDate dateOfBirth, Role role) {
+    private User createAccount(String fullName, String phone, String email, String rawPassword, LocalDate dateOfBirth, Role role) {
         String normalizedEmail = email.trim().toLowerCase();
         String normalizedPhone = phone.trim();
 
@@ -247,5 +244,27 @@ public class UserService implements IUserService {
 
         String message = newStatus == UserStatus.LOCKED ? "Da khoa tai khoan" : "Da mo khoa tai khoan";
         return new ApiResponse(200, message, uuid);
+    }
+
+    @Override
+    public ApiResponse changePassword(ChangePasswordRequest request) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+        User user = userRepository.findByEmailIgnoreCase(email);
+        if (user == null) {
+            throw BusinessException.notFound("Không tìm thấy tài khoản");
+        }
+
+        if(!passwordEncoder.matches(request.getCurrentPassword(), user.getPasswordHash())) {
+            throw BusinessException.badRequest("Mật khẩu cũ không chính xác");
+        }
+
+        if(request.getNewPassword().equals(request.getCurrentPassword())) {
+            throw BusinessException.badRequest("Mật khẩu mới không giống mật khẩu cũ");
+        }
+
+        user.setPasswordHash(passwordEncoder.encode(request.getNewPassword()));
+        userRepository.save(user);
+        return new ApiResponse(200, "Cập nhật mật khẩu thành công", null);
     }
 }

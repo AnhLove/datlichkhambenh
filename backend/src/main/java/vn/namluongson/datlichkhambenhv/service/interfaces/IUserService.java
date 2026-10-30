@@ -19,4 +19,5 @@ public interface IUserService {
     UserResponse getCurrentUser();
     UserResponse updateMyProfile(UpdateMyProfileRequest request);
     ApiResponse updateUserStatus(String uuid, UpdateUserStatusRequest request);
+    ApiResponse changePassword(ChangePasswordRequest request);
 }
