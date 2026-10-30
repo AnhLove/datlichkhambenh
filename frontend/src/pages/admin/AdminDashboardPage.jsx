@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { CalendarDays, CheckCircle2, Percent, RefreshCw, UserX, Wallet, XCircle } from 'lucide-react';
 
 import { getAppointmentStatistics, getRevenueStatistics, getTopDoctors } from '../../services/statisticsService';
@@ -33,62 +33,66 @@ const formatMoney = (value) => `${formatNumber(value)} ₫`;
 
 function AdminDashboardPage() {
     const [range, setRange] = useState(getMonthRange);
+    const [appliedRange, setAppliedRange] = useState(getMonthRange);
     const [data, setData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
-    const requestIdRef = useRef(0);
 
-    const load = useCallback(async (from, to) => {
-        if (!from || !to) {
+    useEffect(() => {
+        let cancelled = false;
+
+        async function loadStatistics() {
+            try {
+                const [appointmentResponse, revenueResponse, topDoctorResponse] = await Promise.all([
+                    getAppointmentStatistics(appliedRange.from, appliedRange.to),
+                    getRevenueStatistics(appliedRange.from, appliedRange.to),
+                    getTopDoctors(appliedRange.from, appliedRange.to),
+                ]);
+
+                if (cancelled) return;
+
+                setData({
+                    appointments: unwrapData(appointmentResponse) || {},
+                    revenue: unwrapData(revenueResponse) || {},
+                    topDoctors: unwrapList(topDoctorResponse),
+                });
+                setError('');
+            } catch (err) {
+                if (cancelled) return;
+                setData(null);
+                setError(err.message || 'Không thể tải số liệu thống kê.');
+            } finally {
+                if (!cancelled) setLoading(false);
+            }
+        }
+
+        loadStatistics();
+
+        return () => {
+            cancelled = true;
+        };
+    }, [appliedRange]);
+
+    const applyRange = (nextRange) => {
+        if (!nextRange.from || !nextRange.to) {
             setError('Hãy chọn đủ ngày bắt đầu và ngày kết thúc.');
             return;
         }
 
-        if (from > to) {
+        if (nextRange.from > nextRange.to) {
             setError('Ngày bắt đầu phải trước hoặc cùng ngày kết thúc.');
             return;
         }
 
-        const requestId = ++requestIdRef.current;
-        setLoading(true);
-        setError('');
-
-        try {
-            const [appointmentResponse, revenueResponse, topDoctorResponse] = await Promise.all([
-                getAppointmentStatistics(from, to),
-                getRevenueStatistics(from, to),
-                getTopDoctors(from, to),
-            ]);
-
-            if (requestId !== requestIdRef.current) return;
-
-            setData({
-                appointments: unwrapData(appointmentResponse) || {},
-                revenue: unwrapData(revenueResponse) || {},
-                topDoctors: unwrapList(topDoctorResponse),
-            });
-        } catch (err) {
-            if (requestId !== requestIdRef.current) return;
-            setData(null);
-            setError(err.message || 'Không thể tải số liệu thống kê.');
-        } finally {
-            if (requestId === requestIdRef.current) setLoading(false);
-        }
-    }, []);
-
-    useEffect(() => {
-        const initial = getMonthRange();
-        load(initial.from, initial.to);
-    }, [load]);
-
-    const applyRange = (nextRange) => {
         setRange(nextRange);
-        load(nextRange.from, nextRange.to);
+        setError('');
+        setLoading(true);
+        setAppliedRange({ ...nextRange });
     };
 
     const handleSubmit = (event) => {
         event.preventDefault();
-        load(range.from, range.to);
+        applyRange(range);
     };
 
     const appointments = data?.appointments;
@@ -217,7 +221,9 @@ function AdminDashboardPage() {
                     </span>
                     <div>
                         <strong>{show(formatMoney(data?.revenue?.totalRevenue))}</strong>
-                        <span>Doanh thu · {show(formatNumber(data?.revenue?.paidTransactions))} giao dịch đã thanh toán</span>
+                        <span>
+                            Doanh thu · {show(formatNumber(data?.revenue?.paidTransactions))} giao dịch đã thanh toán
+                        </span>
                     </div>
                 </div>
             </div>
@@ -250,7 +256,10 @@ function AdminDashboardPage() {
                                             <td>{doctor.doctorName}</td>
                                             <td>
                                                 <div className="admin-bar">
-                                                    <span className="admin-bar__fill" style={{ width: `${percent}%` }} />
+                                                    <span
+                                                        className="admin-bar__fill"
+                                                        style={{ width: `${percent}%` }}
+                                                    />
                                                     <strong>{formatNumber(count)}</strong>
                                                 </div>
                                             </td>
