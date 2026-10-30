@@ -15,7 +15,7 @@ import {
 
 import { apiGet, apiPost } from '../services/api';
 import { unwrapData } from '../utils/unwrap';
-import './DoctorLayout.css';
+import './StaffLayout.css';
 
 function DoctorLayout() {
     const navigate = useNavigate();

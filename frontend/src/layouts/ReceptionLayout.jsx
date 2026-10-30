@@ -4,7 +4,7 @@ import { Activity, CalendarDays, LogOut, Menu, Receipt, Users, X, UserRound } fr
 
 import { apiGet, apiPost } from '../services/api';
 import { unwrapData } from '../utils/unwrap';
-import './DoctorLayout.css';
+import './StaffLayout.css';
 
 const NAV_ITEMS = [
     {

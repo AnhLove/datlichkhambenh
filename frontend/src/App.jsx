@@ -1,46 +1,46 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 
-import RequireRole from './components/RequireRole';
-import RedirectStaffToPortal from './components/RedirectStaffToPortal';
+import RequireRole from './components/common/RequireRole';
+import RedirectStaffToPortal from './components/common/RedirectStaffToPortal';
 
 import PublicLayout from './layouts/PublicLayout';
 import DoctorLayout from './layouts/DoctorLayout';
 import ReceptionLayout from './layouts/ReceptionLayout';
 import AdminLayout from './layouts/AdminLayout';
 
-import HomePage from './pages/HomePage';
-import DepartmentsPage from './pages/DepartmentsPage';
-import DoctorsPage from './pages/DoctorsPage';
-import DoctorDetailPage from './pages/DoctorDetailPage';
-import AppointmentsPage from './pages/AppointmentsPage';
-import MedicalServicesPage from './pages/MedicalServicesPage';
-import LoginPage from './pages/LoginPage';
-import RegisterPage from './pages/RegisterPage';
+import HomePage from './pages/public/HomePage';
+import DepartmentsPage from './pages/public/DepartmentsPage';
+import DoctorsPage from './pages/public/DoctorsPage';
+import DoctorDetailPage from './pages/public/DoctorDetailPage';
+import AppointmentsPage from './pages/patient/AppointmentsPage';
+import MedicalServicesPage from './pages/public/MedicalServicesPage';
+import LoginPage from './pages/auth/LoginPage';
+import RegisterPage from './pages/auth/RegisterPage';
 
-import MyAppointmentsPage from './pages/MyAppointmentsPage';
-import MyExamReportsPage from './pages/MyExamReportsPage';
-import MyPaymentsPage from './pages/MyPaymentsPage';
-import ProfilePage from './pages/ProfilePage';
+import MyAppointmentsPage from './pages/patient/MyAppointmentsPage';
+import MyExamReportsPage from './pages/patient/MyExamReportsPage';
+import MyPaymentsPage from './pages/patient/MyPaymentsPage';
+import ProfilePage from './pages/account/ProfilePage';
 
-import DoctorDashboardPage from './pages/DoctorDashboardPage';
-import DoctorAppointmentsPage from './pages/DoctorAppointmentsPage';
-import DoctorSchedulePage from './pages/DoctorSchedulePage';
-import DoctorExamReportsPage from './pages/DoctorExamReportsPage';
+import DoctorDashboardPage from './pages/doctor/DoctorDashboardPage';
+import DoctorAppointmentsPage from './pages/doctor/DoctorAppointmentsPage';
+import DoctorSchedulePage from './pages/doctor/DoctorSchedulePage';
+import DoctorExamReportsPage from './pages/doctor/DoctorExamReportsPage';
 
-import ReceptionAppointmentsPage from './pages/ReceptionAppointmentsPage';
-import ReceptionPatientsPage from './pages/ReceptionPatientsPage';
-import ReceptionBookingPage from './pages/ReceptionBookingPage';
-import ReceptionBillingPage from './pages/ReceptionBillingPage';
-import ReceptionBillingDetailPage from './pages/ReceptionBillingDetailPage';
+import ReceptionAppointmentsPage from './pages/reception/ReceptionAppointmentsPage';
+import ReceptionPatientsPage from './pages/reception/ReceptionPatientsPage';
+import ReceptionBookingPage from './pages/reception/ReceptionBookingPage';
+import ReceptionBillingPage from './pages/reception/ReceptionBillingPage';
+import ReceptionBillingDetailPage from './pages/reception/ReceptionBillingDetailPage';
 
-import AdminDashboardPage from './pages/AdminDashboardPage';
-import AdminSystemConfigPage from './pages/AdminSystemConfigPage';
-import AdminUsersPage from './pages/AdminUsersPage';
-import AdminExamReportsPage from './pages/AdminExamReportsPage';
-import AdminWorkingHoursPage from './pages/AdminWorkingHoursPage.jsx';
-import AdminDoctorsPage from './pages/AdminDoctorsPage';
-import AdminDepartmentsPage from './pages/AdminDepartmentsPage';
-import AdminMedicalServicesPage from './pages/AdminMedicalServicesPage';
+import AdminDashboardPage from './pages/admin/AdminDashboardPage';
+import AdminSystemConfigPage from './pages/admin/AdminSystemConfigPage';
+import AdminUsersPage from './pages/admin/AdminUsersPage';
+import AdminExamReportsPage from './pages/admin/AdminExamReportsPage';
+import AdminWorkingHoursPage from './pages/admin/AdminWorkingHoursPage.jsx';
+import AdminDoctorsPage from './pages/admin/AdminDoctorsPage';
+import AdminDepartmentsPage from './pages/admin/AdminDepartmentsPage';
+import AdminMedicalServicesPage from './pages/admin/AdminMedicalServicesPage';
 
 import './App.css';
 
