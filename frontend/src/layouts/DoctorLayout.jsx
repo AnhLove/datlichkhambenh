@@ -10,6 +10,7 @@ import {
     Menu,
     Stethoscope,
     X,
+    UserRound,
 } from 'lucide-react';
 
 import { apiGet, apiPost } from '../services/api';
@@ -59,7 +60,6 @@ function DoctorLayout() {
         } catch (error) {
             console.error('Lỗi đăng xuất:', error);
         } finally {
-            // Xóa thông tin hiển thị LoginPage đã lưu để không còn dữ liệu của phiên cũ
             localStorage.removeItem('user');
             setUser(null);
             navigate('/login', { replace: true });
@@ -87,6 +87,11 @@ function DoctorLayout() {
             to: '/doctor/exam-reports',
             label: 'Báo cáo khám',
             icon: ClipboardList,
+        },
+        {
+            to: '/doctor/profile',
+            label: 'Hồ sơ cá nhân',
+            icon: UserRound,
         },
     ];
 

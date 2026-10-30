@@ -13,7 +13,7 @@ import './AdminPage.css';
 
 const KNOWN_KEYS = {
     CANCEL_MIN_HOURS_BEFORE: {
-        label: 'Hủy/đổi lịch trước giờ khám tối thiểu',
+        label: 'Hủy lịch trước giờ khám tối thiểu',
         unit: 'giờ',
         type: 'number',
         min: 0,

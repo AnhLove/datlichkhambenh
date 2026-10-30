@@ -15,6 +15,7 @@ import {
     Stethoscope,
     Users,
     X,
+    UserRound,
 } from 'lucide-react';
 
 import { apiGet, apiPost } from '../services/api';
@@ -30,6 +31,7 @@ const navItems = [
     { to: '/admin/working-hours', label: 'Lịch làm việc', icon: Clock3 },
     { to: '/admin/exam-reports', label: 'Phiếu khám', icon: FileText },
     { to: '/admin/configs', label: 'Cấu hình hệ thống', icon: Settings },
+    { to: '/admin/profile', label: 'Hồ sơ cá nhân', icon: UserRound },
 ];
 
 function AdminLayout() {

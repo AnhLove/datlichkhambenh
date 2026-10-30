@@ -58,7 +58,6 @@ function App() {
                         <Route path="/register" element={<RegisterPage />} />
                     </Route>
                 </Route>
-
                 <Route element={<RequireRole allowedRoles={[1]} />}>
                     <Route element={<PublicLayout />}>
                         <Route path="/my-appointments" element={<MyAppointmentsPage />} />
@@ -67,16 +66,15 @@ function App() {
                         <Route path="/profile" element={<ProfilePage />} />
                     </Route>
                 </Route>
-
                 <Route element={<RequireRole allowedRoles={[2]} />}>
                     <Route element={<DoctorLayout />}>
                         <Route path="/doctor/dashboard" element={<DoctorDashboardPage />} />
                         <Route path="/doctor/appointments" element={<DoctorAppointmentsPage />} />
                         <Route path="/doctor/schedule" element={<DoctorSchedulePage />} />
                         <Route path="/doctor/exam-reports" element={<DoctorExamReportsPage />} />
+                        <Route path="/doctor/profile" element={<ProfilePage />} />
                     </Route>
                 </Route>
-
                 <Route element={<RequireRole allowedRoles={[3]} />}>
                     <Route element={<ReceptionLayout />}>
                         <Route path="/reception/appointments" element={<ReceptionAppointmentsPage />} />
@@ -84,9 +82,9 @@ function App() {
                         <Route path="/reception/booking" element={<ReceptionBookingPage />} />
                         <Route path="/reception/billing" element={<ReceptionBillingPage />} />
                         <Route path="/reception/billing/:appointmentId" element={<ReceptionBillingDetailPage />} />
+                        <Route path="/reception/profile" element={<ProfilePage />} />
                     </Route>
                 </Route>
-
                 <Route element={<RequireRole allowedRoles={[4]} />}>
                     <Route element={<AdminLayout />}>
                         <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
@@ -98,6 +96,7 @@ function App() {
                         <Route path="/admin/working-hours" element={<AdminWorkingHoursPage />} />
                         <Route path="/admin/users" element={<AdminUsersPage />} />
                         <Route path="/admin/exam-reports" element={<AdminExamReportsPage />} />
+                        <Route path="/admin/profile" element={<ProfilePage />} />
                     </Route>
                 </Route>
             </Routes>

@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 
 import { getMyProfile, updateMyProfile } from '../services/profileService';
+import ChangePasswordCard from '../components/ChangePasswordCard';
 
 import './ProfilePage.css';
 
@@ -323,6 +324,8 @@ function ProfilePage() {
                         </div>
                     </form>
                 </div>
+                <ChangePasswordCard />
+                <p>Thông tin hồ sơ được cập nhật cho tài khoản đang đăng nhập. Email đăng nhập không thể thay đổi.</p>
 
                 <div className="profile-security-note">
                     <CheckCircle2 size={20} />

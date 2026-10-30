@@ -1,10 +1,9 @@
 import { useEffect, useState } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
-import { Activity, CalendarDays, LogOut, Menu, Receipt, Users, X } from 'lucide-react';
+import { Activity, CalendarDays, LogOut, Menu, Receipt, Users, X, UserRound } from 'lucide-react';
 
 import { apiGet, apiPost } from '../services/api';
 import { unwrapData } from '../utils/unwrap';
-// Dùng lại toàn bộ style của cổng bác sĩ để hai khu vực có cùng giao diện
 import './DoctorLayout.css';
 
 const NAV_ITEMS = [
@@ -22,6 +21,11 @@ const NAV_ITEMS = [
         to: '/reception/billing',
         label: 'Thu ngân',
         icon: Receipt,
+    },
+    {
+        to: '/reception/profile',
+        label: 'Hồ sơ cá nhân',
+        icon: UserRound,
     },
 ];
 

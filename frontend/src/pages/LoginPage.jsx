@@ -185,9 +185,7 @@ function LoginPage() {
                                 <span>Ghi nhớ đăng nhập</span>
                             </label>
 
-                            <Link className="auth-link" to="/login">
-                                Quên mật khẩu?
-                            </Link>
+                            <small>Quên mật khẩu? Vui lòng liên hệ quản trị viên.</small>
                         </div>
 
                         {error && (
