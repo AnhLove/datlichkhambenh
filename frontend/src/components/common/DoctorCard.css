@@ -89,7 +89,6 @@
     border-top: 1px solid var(--border, #e2ece9);
 }
 
-/* Cả thẻ đều bấm được */
 .doctor-card-link::after {
     position: absolute;
     inset: 0;
