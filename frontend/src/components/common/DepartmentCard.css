@@ -1,0 +1,106 @@
+.department-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background: var(--white, #fff);
+    border: 1px solid var(--border, #e2ece9);
+    border-radius: var(--radius-lg, 14px);
+    box-shadow: var(--shadow-sm, none);
+    transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease,
+        border-color 0.2s ease;
+}
+
+.department-card:hover {
+    border-color: var(--primary, #087f70);
+    box-shadow: var(--shadow-md, 0 12px 30px rgb(15 40 38 / 12%));
+    transform: translateY(-4px);
+}
+
+.department-card-media {
+    position: relative;
+    display: grid;
+    place-items: center;
+    aspect-ratio: 16 / 10;
+    color: var(--primary, #087f70);
+    background: linear-gradient(135deg, var(--primary-light, #e8f6f2), #fff);
+}
+
+.department-card-media img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.4s ease;
+}
+
+.department-card:hover .department-card-media img {
+    transform: scale(1.05);
+}
+
+.department-card-icon {
+    position: absolute;
+    bottom: -22px;
+    left: 18px;
+    z-index: 1;
+    display: grid;
+    place-items: center;
+    width: 46px;
+    height: 46px;
+    color: var(--primary, #087f70);
+    background: var(--white, #fff);
+    border: 1px solid var(--border, #e2ece9);
+    border-radius: 12px;
+    box-shadow: var(--shadow-sm, none);
+}
+
+.department-card-body {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    padding: 34px 20px 20px;
+}
+
+.department-card-body h3 {
+    margin: 0 0 8px;
+    color: var(--text, #183b38);
+    font-size: 18px;
+    line-height: 1.35;
+}
+
+.department-card-body p {
+    display: -webkit-box;
+    min-height: 3em;
+    margin: 0 0 18px;
+    overflow: hidden;
+    color: var(--muted, #687e7a);
+    font-size: 14px;
+    line-height: 1.5;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+}
+
+.department-card-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: auto;
+    color: var(--primary, #087f70);
+    font-weight: 700;
+    text-decoration: none;
+}
+
+/* Cả thẻ đều bấm được, không chỉ dòng chữ */
+.department-card-link::after {
+    position: absolute;
+    inset: 0;
+    content: '';
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .department-card,
+    .department-card-media img {
+        transition: none;
+    }
+}

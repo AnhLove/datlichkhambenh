@@ -1,25 +1,14 @@
 import { useEffect, useState } from 'react';
-import { Activity, ArrowRight, Brain, Eye, HeartPulse, Stethoscope, Bone, Baby, Ear, Scan } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
+
+import DepartmentCard from '../common/DepartmentCard';
 import { getDepartments } from '../../services/departmentService';
+import { unwrapList } from '../../utils/unwrap';
+
 import './SpecialtySection.css';
 
-const defaultIcon = Stethoscope;
-
-function getSpecialtyIcon(name = '') {
-    const normalizedName = name.toLowerCase();
-
-    if (normalizedName.includes('xương khớp')) return Bone;
-    if (normalizedName.includes('mắt')) return Eye;
-    if (normalizedName.includes('tim mạch')) return HeartPulse;
-    if (normalizedName.includes('thần kinh')) return Brain;
-    if (normalizedName.includes('sản')) return Baby;
-    if (normalizedName.includes('tai mũi họng')) return Ear;
-    if (normalizedName.includes('răng hàm mặt')) return Scan;
-    if (normalizedName.includes('hô hấp')) return Activity;
-
-    return defaultIcon;
-}
+const FEATURED_COUNT = 4;
 
 function SpecialtySection() {
     const [specialties, setSpecialties] = useState([]);
@@ -27,20 +16,28 @@ function SpecialtySection() {
     const [error, setError] = useState('');
 
     useEffect(() => {
-        getDepartments()
-            .then((data) => {
-                setSpecialties(data);
-            })
-            .catch((err) => {
+        let cancelled = false;
+
+        async function loadSpecialties() {
+            try {
+                const data = await getDepartments();
+                if (cancelled) return;
+                setSpecialties(unwrapList(data));
+            } catch (err) {
+                if (cancelled) return;
                 console.error('Lỗi lấy danh sách khoa:', err);
                 setError('Không thể tải danh sách chuyên khoa.');
-            })
-            .finally(() => {
-                setLoading(false);
-            });
-    }, []);
+            } finally {
+                if (!cancelled) setLoading(false);
+            }
+        }
 
-    const featuredSpecialties = specialties.slice(0, 4);
+        loadSpecialties();
+
+        return () => {
+            cancelled = true;
+        };
+    }, []);
 
     return (
         <section className="specialty-section" id="specialties">
@@ -58,32 +55,17 @@ function SpecialtySection() {
                     </Link>
                 </div>
 
-                {loading && <p>Đang tải danh sách chuyên khoa...</p>}
-
                 {!loading && error && <p role="alert">{error}</p>}
 
-                {!loading && !error && (
+                {(loading || !error) && (
                     <div className="specialty-grid">
-                        {featuredSpecialties.map((department) => {
-                            const Icon = getSpecialtyIcon(department.name);
-
-                            return (
-                                <article className="specialty-card" key={department.id}>
-                                    <div className="specialty-icon">
-                                        <Icon size={24} />
-                                    </div>
-
-                                    <h3>{department.name}</h3>
-
-                                    <p>{department.description || 'Thông tin khám và tư vấn chuyên khoa.'}</p>
-
-                                    <Link to={`/doctors?departmentId=${department.id}`} className="specialty-link">
-                                        Tìm bác sĩ
-                                        <ArrowRight size={15} />
-                                    </Link>
-                                </article>
-                            );
-                        })}
+                        {loading
+                            ? Array.from({ length: FEATURED_COUNT }, (_, index) => (
+                                  <div className="specialty-skeleton" key={index} aria-hidden="true" />
+                              ))
+                            : specialties
+                                  .slice(0, FEATURED_COUNT)
+                                  .map((department) => <DepartmentCard department={department} key={department.id} />)}
                     </div>
                 )}
             </div>

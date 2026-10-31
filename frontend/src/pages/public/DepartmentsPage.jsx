@@ -1,52 +1,48 @@
-import { useEffect, useState, useRef } from 'react';
-import { ArrowRight, Search, Stethoscope } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { Search } from 'lucide-react';
+
+import DepartmentCard from '../../components/common/DepartmentCard';
 import { getDepartments } from '../../services/departmentService';
+import { unwrapList } from '../../utils/unwrap';
+
 import './DepartmentsPage.css';
 
+const SKELETON_COUNT = 8;
+
 function DepartmentsPage() {
-    const [departments, setDepartments] = useState([]);
     const [keyword, setKeyword] = useState('');
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState('');
-    const isMounted = useRef(true);
+    const [debouncedKeyword, setDebouncedKeyword] = useState('');
+    const [result, setResult] = useState({ key: null, items: [], error: '' });
 
     useEffect(() => {
-        return () => {
-            isMounted.current = false;
-        };
-    }, []);
+        const timer = setTimeout(() => setDebouncedKeyword(keyword.trim()), 300);
 
-    useEffect(() => {
-        let active = true;
-
-        const fetchDepartments = async () => {
-            setLoading(true);
-            setError('');
-
-            try {
-                const data = await getDepartments(keyword);
-                if (active) {
-                    setDepartments(data);
-                }
-            } catch (err) {
-                if (active) {
-                    console.error('Lỗi tải danh sách khoa:', err);
-                    setError('Không thể tải danh sách chuyên khoa.');
-                }
-            } finally {
-                if (active) {
-                    setLoading(false);
-                }
-            }
-        };
-
-        fetchDepartments();
-
-        return () => {
-            active = false;
-        };
+        return () => clearTimeout(timer);
     }, [keyword]);
+
+    useEffect(() => {
+        let cancelled = false;
+
+        async function loadDepartments() {
+            try {
+                const data = await getDepartments(debouncedKeyword);
+                if (cancelled) return;
+                setResult({ key: debouncedKeyword, items: unwrapList(data), error: '' });
+            } catch (err) {
+                if (cancelled) return;
+                console.error('Lỗi tải danh sách khoa:', err);
+                setResult({ key: debouncedKeyword, items: [], error: 'Không thể tải danh sách chuyên khoa.' });
+            }
+        }
+
+        loadDepartments();
+
+        return () => {
+            cancelled = true;
+        };
+    }, [debouncedKeyword]);
+
+    const loading = result.key !== debouncedKeyword;
 
     return (
         <main className="departments-page">
@@ -58,7 +54,7 @@ function DepartmentsPage() {
                 </div>
 
                 <div className="departments-search">
-                    <Search size={20} />
+                    <Search size={20} aria-hidden="true" />
                     <input
                         type="search"
                         placeholder="Tìm theo tên chuyên khoa..."
@@ -68,28 +64,22 @@ function DepartmentsPage() {
                     />
                 </div>
 
-                {loading && <p>Đang tải danh sách chuyên khoa...</p>}
-
-                {!loading && error && <p role="alert">{error}</p>}
-
-                {!loading && !error && departments.length === 0 && <p>Không tìm thấy chuyên khoa phù hợp.</p>}
-
-                {!loading && !error && departments.length > 0 && (
+                {loading ? (
+                    <div className="departments-grid" role="status" aria-label="Đang tải danh sách chuyên khoa">
+                        {Array.from({ length: SKELETON_COUNT }, (_, index) => (
+                            <div className="departments-skeleton" key={index} aria-hidden="true" />
+                        ))}
+                    </div>
+                ) : result.error ? (
+                    <p className="departments-state departments-error" role="alert">
+                        {result.error}
+                    </p>
+                ) : result.items.length === 0 ? (
+                    <p className="departments-state">Không tìm thấy chuyên khoa phù hợp.</p>
+                ) : (
                     <div className="departments-grid">
-                        {departments.map((department) => (
-                            <article className="department-card" key={department.id}>
-                                <div className="department-card-icon">
-                                    <Stethoscope size={24} />
-                                </div>
-
-                                <h2>{department.name}</h2>
-                                <p>{department.description || 'Thông tin đang được cập nhật.'}</p>
-
-                                <Link to={`/doctors?departmentId=${department.id}`} className="department-card-link">
-                                    Tìm bác sĩ
-                                    <ArrowRight size={16} />
-                                </Link>
-                            </article>
+                        {result.items.map((department) => (
+                            <DepartmentCard department={department} key={department.id} />
                         ))}
                     </div>
                 )}

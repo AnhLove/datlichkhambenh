@@ -1,14 +1,23 @@
 import { useEffect, useState } from 'react';
-import { ArrowRight, Search, Stethoscope, UserRound } from 'lucide-react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { CalendarDays, Search, Stethoscope } from 'lucide-react';
+import { useSearchParams } from 'react-router-dom';
 
+import DoctorCard from '../../components/common/DoctorCard';
 import { getDepartments } from '../../services/departmentService';
 import { searchDoctors } from '../../services/doctorService';
+import { unwrapList } from '../../utils/unwrap';
 
 import './DoctorsPage.css';
 
+const SKELETON_COUNT = 6;
+
+function formatDisplayDate(value) {
+    return /^\d{4}-\d{2}-\d{2}$/.test(value) ? value.split('-').reverse().join('/') : '';
+}
+
 function DoctorsPage() {
     const [searchParams, setSearchParams] = useSearchParams();
+    const appointmentDate = searchParams.get('appointmentDate') || '';
 
     const [departments, setDepartments] = useState([]);
     const [departmentsLoading, setDepartmentsLoading] = useState(true);
@@ -16,52 +25,40 @@ function DoctorsPage() {
     const [departmentRetryCount, setDepartmentRetryCount] = useState(0);
 
     const [departmentId, setDepartmentId] = useState(searchParams.get('departmentId') || '');
-
     const [keyword, setKeyword] = useState(searchParams.get('fullName') || '');
-
     const [submittedKeyword, setSubmittedKeyword] = useState(searchParams.get('fullName') || '');
 
-    const [doctorResult, setDoctorResult] = useState({
-        key: null,
-        doctors: [],
-        error: '',
-    });
-
+    const [doctorResult, setDoctorResult] = useState({ key: null, doctors: [], error: '' });
     const [retryCount, setRetryCount] = useState(0);
 
     const selectedDepartment = departments.find((department) => String(department.id) === departmentId);
-
     const departmentName = selectedDepartment?.name || '';
-
     const requestKey = JSON.stringify([departmentName, submittedKeyword]);
 
     const doctors = doctorResult.doctors;
-
     const doctorsLoading = !departmentsLoading && !departmentError && doctorResult.key !== requestKey;
-
+    const isLoading = departmentsLoading || doctorsLoading;
     const error = departmentError || doctorResult.error;
+    const displayDate = formatDisplayDate(appointmentDate);
 
     useEffect(() => {
         let cancelled = false;
 
-        getDepartments()
-            .then((data) => {
+        async function loadDepartments() {
+            try {
+                const data = await getDepartments();
                 if (cancelled) return;
-
-                setDepartments(Array.isArray(data) ? data : []);
-            })
-            .catch((err) => {
+                setDepartments(unwrapList(data));
+            } catch (err) {
                 if (cancelled) return;
-
                 console.error('Lỗi tải danh sách khoa:', err);
-
                 setDepartmentError('Không thể tải danh sách chuyên khoa. Vui lòng thử lại.');
-            })
-            .finally(() => {
-                if (!cancelled) {
-                    setDepartmentsLoading(false);
-                }
-            });
+            } finally {
+                if (!cancelled) setDepartmentsLoading(false);
+            }
+        }
+
+        loadDepartments();
 
         return () => {
             cancelled = true;
@@ -70,32 +67,28 @@ function DoctorsPage() {
 
     useEffect(() => {
         if (departmentsLoading || departmentError) {
-            return;
+            return undefined;
         }
 
         let cancelled = false;
 
-        searchDoctors(departmentName, submittedKeyword)
-            .then((data) => {
+        async function loadDoctors() {
+            try {
+                const data = await searchDoctors(departmentName, submittedKeyword);
                 if (cancelled) return;
-
-                setDoctorResult({
-                    key: requestKey,
-                    doctors: Array.isArray(data) ? data : [],
-                    error: '',
-                });
-            })
-            .catch((err) => {
+                setDoctorResult({ key: requestKey, doctors: unwrapList(data), error: '' });
+            } catch (err) {
                 if (cancelled) return;
-
                 console.error('Lỗi tải danh sách bác sĩ:', err);
-
                 setDoctorResult({
                     key: requestKey,
                     doctors: [],
                     error: 'Không thể tải danh sách bác sĩ. Vui lòng thử lại.',
                 });
-            });
+            }
+        }
+
+        loadDoctors();
 
         return () => {
             cancelled = true;
@@ -105,13 +98,9 @@ function DoctorsPage() {
     function updateSearchParams(nextDepartmentId, nextKeyword) {
         const nextParams = new URLSearchParams();
 
-        if (nextDepartmentId) {
-            nextParams.set('departmentId', nextDepartmentId);
-        }
-
-        if (nextKeyword) {
-            nextParams.set('fullName', nextKeyword);
-        }
+        if (nextDepartmentId) nextParams.set('departmentId', nextDepartmentId);
+        if (nextKeyword) nextParams.set('fullName', nextKeyword);
+        if (appointmentDate) nextParams.set('appointmentDate', appointmentDate);
 
         setSearchParams(nextParams);
     }
@@ -122,7 +111,6 @@ function DoctorsPage() {
         const trimmedKeyword = keyword.trim();
 
         setSubmittedKeyword(trimmedKeyword);
-
         updateSearchParams(departmentId, trimmedKeyword);
     }
 
@@ -130,7 +118,6 @@ function DoctorsPage() {
         const nextDepartmentId = event.target.value;
 
         setDepartmentId(nextDepartmentId);
-
         updateSearchParams(nextDepartmentId, submittedKeyword);
     }
 
@@ -141,7 +128,59 @@ function DoctorsPage() {
     }
 
     function handleRetryDoctors() {
+        setDoctorResult((previous) => ({ ...previous, key: null, error: '' }));
         setRetryCount((count) => count + 1);
+    }
+
+    const getDoctorLink = (doctor) =>
+        appointmentDate
+            ? `/doctors/${doctor.uuid}?date=${encodeURIComponent(appointmentDate)}`
+            : `/doctors/${doctor.uuid}`;
+
+    let content;
+
+    if (departmentError) {
+        content = (
+            <div className="doctors-message doctors-error" role="alert">
+                <p>{departmentError}</p>
+                <button type="button" onClick={handleRetryDepartments}>
+                    Thử tải lại
+                </button>
+            </div>
+        );
+    } else if (isLoading) {
+        content = (
+            <div className="doctors-grid" role="status" aria-label="Đang tải danh sách bác sĩ">
+                {Array.from({ length: SKELETON_COUNT }, (_, index) => (
+                    <div className="doctors-skeleton" key={index} aria-hidden="true" />
+                ))}
+            </div>
+        );
+    } else if (doctorResult.error) {
+        content = (
+            <div className="doctors-message doctors-error" role="alert">
+                <p>{doctorResult.error}</p>
+                <button type="button" onClick={handleRetryDoctors}>
+                    Thử tìm lại
+                </button>
+            </div>
+        );
+    } else if (doctors.length === 0) {
+        content = (
+            <div className="doctors-empty">
+                <Stethoscope size={30} aria-hidden="true" />
+                <h3>Chưa tìm thấy bác sĩ phù hợp</h3>
+                <p>Hãy thử thay đổi tên bác sĩ hoặc chọn chuyên khoa khác.</p>
+            </div>
+        );
+    } else {
+        content = (
+            <div className="doctors-grid">
+                {doctors.map((doctor) => (
+                    <DoctorCard key={doctor.uuid} doctor={doctor} to={getDoctorLink(doctor)} showBio />
+                ))}
+            </div>
+        );
     }
 
     return (
@@ -153,6 +192,13 @@ function DoctorsPage() {
                     <h1>Đội ngũ bác sĩ</h1>
 
                     <p>Tìm kiếm bác sĩ theo chuyên khoa và lựa chọn người phù hợp với nhu cầu khám bệnh của bạn.</p>
+
+                    {displayDate && (
+                        <p className="doctors-date-note">
+                            <CalendarDays size={17} aria-hidden="true" />
+                            Ngày khám dự kiến: <strong>{displayDate}</strong>
+                        </p>
+                    )}
                 </div>
 
                 <form className="doctors-filter" onSubmit={handleSearch}>
@@ -185,100 +231,19 @@ function DoctorsPage() {
                         </select>
                     </label>
 
-                    <button
-                        className="doctors-search-button"
-                        type="submit"
-                        disabled={departmentsLoading || doctorsLoading}
-                    >
+                    <button className="doctors-search-button" type="submit" disabled={isLoading}>
                         <Search size={17} aria-hidden="true" />
                         Tìm bác sĩ
                     </button>
                 </form>
 
-                {/* Tiêu đề kết quả */}
                 <div className="doctors-results-heading">
                     <h2>Danh sách bác sĩ</h2>
 
-                    {!departmentsLoading && !doctorsLoading && !error && <span>{doctors.length} bác sĩ</span>}
+                    {!isLoading && !error && <span>{doctors.length} bác sĩ</span>}
                 </div>
 
-                {departmentsLoading && (
-                    <p className="doctors-message" role="status">
-                        Đang tải danh sách chuyên khoa...
-                    </p>
-                )}
-
-                {!departmentsLoading && departmentError && (
-                    <div className="doctors-message doctors-error" role="alert">
-                        <p>{departmentError}</p>
-
-                        <button type="button" onClick={handleRetryDepartments}>
-                            Thử tải lại
-                        </button>
-                    </div>
-                )}
-
-                {!departmentsLoading && !departmentError && doctorsLoading && (
-                    <p className="doctors-message" role="status">
-                        Đang tải danh sách bác sĩ...
-                    </p>
-                )}
-
-                {!departmentsLoading && !departmentError && !doctorsLoading && doctorResult.error && (
-                    <div className="doctors-message doctors-error" role="alert">
-                        <p>{doctorResult.error}</p>
-
-                        <button type="button" onClick={handleRetryDoctors}>
-                            Thử tìm lại
-                        </button>
-                    </div>
-                )}
-
-                {!departmentsLoading && !doctorsLoading && !error && doctors.length === 0 && (
-                    <div className="doctors-empty">
-                        <Stethoscope size={30} aria-hidden="true" />
-
-                        <h3>Chưa tìm thấy bác sĩ phù hợp</h3>
-
-                        <p>Hãy thử thay đổi tên bác sĩ hoặc chọn chuyên khoa khác.</p>
-                    </div>
-                )}
-
-                {!departmentsLoading && !doctorsLoading && !error && doctors.length > 0 && (
-                    <div className="doctors-grid">
-                        {doctors.map((doctor) => (
-                            <article className="doctor-card" key={doctor.uuid}>
-                                <div className="doctor-card-top">
-                                    <div className="doctor-avatar" aria-hidden="true">
-                                        <UserRound size={31} />
-                                    </div>
-
-                                    <span className="doctor-department">
-                                        {doctor.departmentName || 'Chưa cập nhật chuyên khoa'}
-                                    </span>
-                                </div>
-
-                                <h3>{doctor.fullName || 'Chưa cập nhật tên bác sĩ'}</h3>
-
-                                <p className="doctor-experience">
-                                    Kinh nghiệm:{' '}
-                                    <strong>
-                                        {doctor.yearsExperience ?? 'Đang cập nhật'}
-
-                                        {doctor.yearsExperience != null ? ' năm' : ''}
-                                    </strong>
-                                </p>
-
-                                <p className="doctor-bio">{doctor.bio || 'Thông tin giới thiệu đang được cập nhật.'}</p>
-
-                                <Link to={`/doctors/${doctor.uuid}`} className="doctor-booking-link">
-                                    Đặt lịch khám
-                                    <ArrowRight size={16} aria-hidden="true" />
-                                </Link>
-                            </article>
-                        ))}
-                    </div>
-                )}
+                {content}
             </section>
         </main>
     );
