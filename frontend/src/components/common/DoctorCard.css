@@ -73,6 +73,7 @@
     font-size: 14px;
     line-height: 1.55;
     -webkit-line-clamp: 3;
+    line-clamp: 3;
     -webkit-box-orient: vertical;
 }
 
