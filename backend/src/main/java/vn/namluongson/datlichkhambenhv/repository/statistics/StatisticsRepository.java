@@ -63,7 +63,7 @@ public interface StatisticsRepository extends Repository<Appointment, Long> {
 
     @Query("""
         SELECT new vn.namluongson.datlichkhambenhv.domain.dtos.responses.statistics.TopDoctorStatisticsResponse(
-            d.id,
+            d.user.uuid,
             d.user.fullName,
             COUNT(a.id)
         )
@@ -71,7 +71,7 @@ public interface StatisticsRepository extends Repository<Appointment, Long> {
         JOIN a.doctor d
         WHERE a.appointmentDate BETWEEN :fromDate AND :toDate
           AND a.status = :completedStatus
-        GROUP BY d.id, d.user.fullName
+        GROUP BY d.id, d.user.uuid, d.user.fullName
         ORDER BY COUNT(a.id) DESC
         """)
     List<TopDoctorStatisticsResponse> findTopDoctors(
