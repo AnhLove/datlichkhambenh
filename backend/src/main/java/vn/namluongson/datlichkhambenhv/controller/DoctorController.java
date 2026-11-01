@@ -1,9 +1,10 @@
 package vn.namluongson.datlichkhambenhv.controller;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.repository.query.Param;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import vn.namluongson.datlichkhambenhv.domain.dtos.requests.doctor.CreateDoctorRequest;
 import vn.namluongson.datlichkhambenhv.domain.dtos.requests.doctor.ListDoctorRequest;
@@ -13,6 +14,7 @@ import vn.namluongson.datlichkhambenhv.service.interfaces.IDoctorService;
 @RestController
 @RequestMapping("/doctor")
 @RequiredArgsConstructor
+@Validated
 public class DoctorController {
     private final IDoctorService iDoctorService;
 
@@ -22,17 +24,17 @@ public class DoctorController {
     }
 
     @PutMapping
-    public ResponseEntity<?> updateDoctor(@Valid @RequestBody UpdateDoctorRequest request) throws Exception {
+    public ResponseEntity<?> updateDoctor(@Valid @RequestBody UpdateDoctorRequest request) {
         return ResponseEntity.ok(iDoctorService.updateDoctor(request));
     }
 
     @DeleteMapping("/{uuid}")
-    public ResponseEntity<?> deleteDoctor(@PathVariable("uuid") String uuid) throws Exception{
+    public ResponseEntity<?> deleteDoctor(@PathVariable("uuid") @Size(max = 36) String uuid) {
         return ResponseEntity.ok(iDoctorService.deleteDoctor(uuid));
     }
 
     @GetMapping("/list")
-    public ResponseEntity<?> getListDoctors(@Param("fullName")ListDoctorRequest request) {
+    public ResponseEntity<?> getListDoctors(@Valid ListDoctorRequest request) {
         return ResponseEntity.ok(iDoctorService.getListDoctors(request));
     }
 
@@ -42,7 +44,9 @@ public class DoctorController {
     }
 
     @GetMapping("/get-list-department-doctorname")
-    public ResponseEntity<?> getListDepartment_DoctorName(@RequestParam(value = "departmentName", required = false) String departmentName, @RequestParam(value = "fullName", required = false) String fullName){
+    public ResponseEntity<?> getListDepartment_DoctorName(
+            @RequestParam(value = "departmentName", required = false) @Size(max = 100) String departmentName,
+            @RequestParam(value = "fullName", required = false) @Size(max = 150) String fullName) {
         return ResponseEntity.ok(iDoctorService.getListDepartment_DoctorName(departmentName, fullName));
     }
 }

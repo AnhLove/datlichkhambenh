@@ -2,8 +2,6 @@ package vn.namluongson.datlichkhambenhv.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.repository.query.Param;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import vn.namluongson.datlichkhambenhv.domain.dtos.requests.department.CreateDepartmentRequest;
@@ -44,12 +42,12 @@ public class DepartmentController {
     }
 
     @GetMapping("/list")
-    public ResponseEntity<?> getListDepartments(@Param("name") ListDepartmentRequest request) {
+    public ResponseEntity<?> getListDepartments(@Valid ListDepartmentRequest request) {
         return ResponseEntity.ok(iDepartmentService.getListDepartments(request));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<?> getDepartmentById(@PathVariable("id") Long id) throws Exception{
+    public ResponseEntity<?> getDepartmentById(@PathVariable("id") Long id) throws Exception {
         return ResponseEntity.ok(iDepartmentService.getDepartmentById(id));
     }
 }

@@ -4,6 +4,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import vn.namluongson.datlichkhambenhv.domain.dtos.requests.BasePagingRequest;
 import vn.namluongson.datlichkhambenhv.domain.dtos.requests.user.CreateStaffRequest;
 import vn.namluongson.datlichkhambenhv.service.interfaces.IExamReportService;
 import vn.namluongson.datlichkhambenhv.service.interfaces.IUserService;
@@ -21,7 +22,7 @@ public class AdminController {
     }
 
     @GetMapping("/exam-reports")
-    public ResponseEntity<?> getAllReports() {
-        return ResponseEntity.ok(examReportService.getAllReports());
+    public ResponseEntity<?> getAllReports(@Valid BasePagingRequest paging) {
+        return ResponseEntity.ok(examReportService.getAllReports(paging));
     }
 }

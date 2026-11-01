@@ -2,6 +2,7 @@ package vn.namluongson.datlichkhambenhv.controller;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -21,13 +22,13 @@ public class AppointmentServiceController {
         return ResponseEntity.ok(appointmentServiceService.addServiceToAppointment(request));
     }
 
-    @GetMapping("/appointment/{appointmentId}")
-    public ResponseEntity<?> getServicesByAppointmentId(@PathVariable @Positive Long appointmentId) {
-        return ResponseEntity.ok(appointmentServiceService.getServicesByAppointmentId(appointmentId));
+    @GetMapping("/appointment/{appointmentUuid}")
+    public ResponseEntity<?> getServicesByAppointmentUuid(@PathVariable @Size(max = 36) String appointmentUuid) {
+        return ResponseEntity.ok(appointmentServiceService.getServicesByAppointmentUuid(appointmentUuid));
     }
 
-    @DeleteMapping("/appointment/{appointmentId}/service/{serviceId}")
-    public ResponseEntity<?> removeServiceFromAppointment(@PathVariable @Positive Long appointmentId, @PathVariable @Positive Long serviceId) {
-        return ResponseEntity.ok(appointmentServiceService.removeServiceFromAppointment(appointmentId, serviceId));
+    @DeleteMapping("/appointment/{appointmentUuid}/service/{serviceId}")
+    public ResponseEntity<?> removeServiceFromAppointment(@PathVariable @Size(max = 36) String appointmentUuid, @PathVariable @Positive Long serviceId) {
+        return ResponseEntity.ok(appointmentServiceService.removeServiceFromAppointment(appointmentUuid, serviceId));
     }
 }

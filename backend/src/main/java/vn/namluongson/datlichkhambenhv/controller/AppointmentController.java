@@ -1,10 +1,13 @@
 package vn.namluongson.datlichkhambenhv.controller;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import vn.namluongson.datlichkhambenhv.domain.dtos.requests.BasePagingRequest;
 import vn.namluongson.datlichkhambenhv.domain.dtos.requests.appointment.CancelAppointmentRequest;
 import vn.namluongson.datlichkhambenhv.domain.dtos.requests.appointment.CreateAppointmentRequest;
 import vn.namluongson.datlichkhambenhv.service.interfaces.IAppointmentService;
@@ -15,66 +18,67 @@ import java.time.LocalDate;
 @RestController
 @RequestMapping("/appointment")
 @RequiredArgsConstructor
+@Validated
 public class AppointmentController {
     private final IAppointmentService appointmentService;
- 
+
     @PostMapping
     public ResponseEntity<?> createAppointment(@Valid @RequestBody CreateAppointmentRequest request) {
         return ResponseEntity.ok(appointmentService.createAppointment(request));
     }
 
     @GetMapping("/available-slots")
-    public ResponseEntity<?> getAvailableSlots(@RequestParam String doctorUuid, @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
+    public ResponseEntity<?> getAvailableSlots(@RequestParam @Size(max = 36) String doctorUuid, @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
         return ResponseEntity.ok(appointmentService.getAvailableSlots(doctorUuid, date));
     }
 
     @GetMapping("/my")
-    public ResponseEntity<?> getMyAppointments() {
-        return ResponseEntity.ok(appointmentService.getMyAppointments());
+    public ResponseEntity<?> getMyAppointments(@Valid BasePagingRequest paging) {
+        return ResponseEntity.ok(appointmentService.getMyAppointments(paging));
     }
 
-    @PostMapping("/my/{appointmentId}/cancel")
-    public ResponseEntity<?> cancelAppointment(@PathVariable Long appointmentId, @Valid @RequestBody CancelAppointmentRequest request) {
-        return ResponseEntity.ok(appointmentService.cancelAppointment(appointmentId, request));
+    @PostMapping("/my/{appointmentUuid}/cancel")
+    public ResponseEntity<?> cancelAppointment(@PathVariable @Size(max = 36) String appointmentUuid, @Valid @RequestBody CancelAppointmentRequest request) {
+        return ResponseEntity.ok(appointmentService.cancelAppointment(appointmentUuid, request));
     }
 
-    @PatchMapping("/{appointmentId}/confirm")
-    public ResponseEntity<?> confirmAppointment(@PathVariable Long appointmentId) {
-        return ResponseEntity.ok(appointmentService.confirmAppointment(appointmentId));
+    @PatchMapping("/{appointmentUuid}/confirm")
+    public ResponseEntity<?> confirmAppointment(@PathVariable @Size(max = 36) String appointmentUuid) {
+        return ResponseEntity.ok(appointmentService.confirmAppointment(appointmentUuid));
     }
 
-    @PatchMapping("/{appointmentId}/check-in")
-    public ResponseEntity<?> checkInAppointment(@PathVariable Long appointmentId) {
-        return ResponseEntity.ok(appointmentService.checkInAppointment(appointmentId));
+    @PatchMapping("/{appointmentUuid}/check-in")
+    public ResponseEntity<?> checkInAppointment(@PathVariable @Size(max = 36) String appointmentUuid) {
+        return ResponseEntity.ok(appointmentService.checkInAppointment(appointmentUuid));
     }
 
-    @PatchMapping("/{appointmentId}/no-show")
-    public ResponseEntity<?> noShowAppointment(@PathVariable Long appointmentId) {
-        return ResponseEntity.ok(appointmentService.noShowAppointment(appointmentId));
+    @PatchMapping("/{appointmentUuid}/no-show")
+    public ResponseEntity<?> noShowAppointment(@PathVariable @Size(max = 36) String appointmentUuid) {
+        return ResponseEntity.ok(appointmentService.noShowAppointment(appointmentUuid));
     }
 
-    @PatchMapping("/{appointmentId}/complete")
-    public ResponseEntity<?> completeAppointment(@PathVariable Long appointmentId) {
-        return ResponseEntity.ok(appointmentService.completeAppointment(appointmentId));
+    @PatchMapping("/{appointmentUuid}/complete")
+    public ResponseEntity<?> completeAppointment(@PathVariable @Size(max = 36) String appointmentUuid) {
+        return ResponseEntity.ok(appointmentService.completeAppointment(appointmentUuid));
     }
 
     @GetMapping("/staff/today")
-    public ResponseEntity<?> getTodayAppointments() {
-        return ResponseEntity.ok(appointmentService.getTodayAppointments());
+    public ResponseEntity<?> getTodayAppointments(@Valid BasePagingRequest paging) {
+        return ResponseEntity.ok(appointmentService.getTodayAppointments(paging));
     }
 
     @GetMapping("/doctor/my")
-    public ResponseEntity<?> getMyDoctorAppointments() {
-        return ResponseEntity.ok(appointmentService.getMyDoctorAppointments());
+    public ResponseEntity<?> getMyDoctorAppointments(@Valid BasePagingRequest paging) {
+        return ResponseEntity.ok(appointmentService.getMyDoctorAppointments(paging));
     }
 
     @GetMapping("/staff/by-date")
-    public ResponseEntity<?> getAppointmentsByDate(@RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
-        return ResponseEntity.ok(appointmentService.getAppointmentsByDate(date));
+    public ResponseEntity<?> getAppointmentsByDate(@RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date, @Valid BasePagingRequest paging) {
+        return ResponseEntity.ok(appointmentService.getAppointmentsByDate(date, paging));
     }
 
-    @PatchMapping("/{appointmentId}/reject")
-    public ResponseEntity<?> rejectAppointment(@PathVariable Long appointmentId, @Valid @RequestBody CancelAppointmentRequest request) {
-        return ResponseEntity.ok(appointmentService.rejectAppointment(appointmentId, request));
+    @PatchMapping("/{appointmentUuid}/reject")
+    public ResponseEntity<?> rejectAppointment(@PathVariable @Size(max = 36) String appointmentUuid, @Valid @RequestBody CancelAppointmentRequest request) {
+        return ResponseEntity.ok(appointmentService.rejectAppointment(appointmentUuid, request));
     }
 }
