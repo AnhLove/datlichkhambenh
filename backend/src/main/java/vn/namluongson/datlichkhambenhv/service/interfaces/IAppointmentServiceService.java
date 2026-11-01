@@ -5,6 +5,6 @@ import vn.namluongson.datlichkhambenhv.domain.response.ApiResponse;
 
 public interface IAppointmentServiceService {
     ApiResponse addServiceToAppointment(AddAppointmentServiceRequest request);
-    ApiResponse getServicesByAppointmentId(Long appointmentId);
-    ApiResponse removeServiceFromAppointment(Long appointmentId, Long serviceId);
+    ApiResponse getServicesByAppointmentUuid(String appointmentUuid);
+    ApiResponse removeServiceFromAppointment(String appointmentUuid, Long serviceId);
 }

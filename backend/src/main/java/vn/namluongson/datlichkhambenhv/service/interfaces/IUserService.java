@@ -3,16 +3,17 @@ package vn.namluongson.datlichkhambenhv.service.interfaces;
 import vn.namluongson.datlichkhambenhv.domain.dtos.requests.user.*;
 import vn.namluongson.datlichkhambenhv.domain.dtos.responses.user.UserResponse;
 import vn.namluongson.datlichkhambenhv.domain.response.ApiResponse;
+import vn.namluongson.datlichkhambenhv.domain.response.PageResponse;
 
 import java.util.List;
 
 public interface IUserService {
     ApiResponse createUser(CreateUserRequest userRequest);
     ApiResponse createStaff(CreateStaffRequest request);
-    ApiResponse updateUser(UpdateUserRequest userRequest) throws Exception;
-    ApiResponse deleteUser(Long id) throws Exception;
-    List<UserResponse> getListUsers(ListUserRequest request);
-    UserResponse getUserByUuid(String uuid) throws Exception;
+    ApiResponse updateUser(UpdateUserRequest userRequest);
+    ApiResponse deleteUser(String uuid);
+    PageResponse<UserResponse> getListUsers(UserPagingRequest request);
+    UserResponse getUserByUuid(String uuid);
 
     List<UserResponse> getListUserByName(String name);
     UserResponse getCurrentUserByEmail(String email);
