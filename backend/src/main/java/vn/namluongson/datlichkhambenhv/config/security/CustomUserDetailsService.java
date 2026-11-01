@@ -5,7 +5,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
-import vn.namluongson.datlichkhambenhv.exception.BusinessException;
 import vn.namluongson.datlichkhambenhv.repository.user.UserRepository;
 
 @Service
@@ -16,8 +15,8 @@ public class CustomUserDetailsService implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
         var user = userRepository.findByEmailIgnoreCase(email);
-        if(user == null) {
-            throw BusinessException.notFound("Email Không tồn tại");
+        if (user == null) {
+            throw new UsernameNotFoundException("Invalid credentials");
         }
         return new CustomUserDetails(user);
     }

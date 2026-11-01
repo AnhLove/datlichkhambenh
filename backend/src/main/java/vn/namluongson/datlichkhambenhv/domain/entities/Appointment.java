@@ -21,6 +21,9 @@ public class Appointment {
     @Column(name = "ID")
     private Long id;
 
+    @Column(name = "UUID", nullable = false, unique = true, updatable = false, length = 36)
+    private String uuid;
+
     @ManyToOne
     @JoinColumn(name = "PATIENT_ID")
     private User patient;
@@ -58,4 +61,10 @@ public class Appointment {
     @Column(name = "CREATED_AT")
     private LocalDateTime createdAt;
 
+    @PrePersist
+    void assignUuid() {
+        if (uuid == null) {
+            uuid = java.util.UUID.randomUUID().toString();
+        }
+    }
 }

@@ -20,6 +20,9 @@ public class ExamReport {
     @Column(name = "ID")
     private Long id;
 
+    @Column(name = "UUID", nullable = false, unique = true, updatable = false, length = 36)
+    private String uuid;
+
     @OneToOne
     @JoinColumn(name = "APPOINTMENT_ID", nullable = false, unique = true)
     private Appointment appointment;
@@ -39,4 +42,11 @@ public class ExamReport {
 
     @Column(name = "ISSUED_AT")
     private LocalDateTime issuedAt;
+
+    @PrePersist
+    void assignUuid() {
+        if (uuid == null) {
+            uuid = java.util.UUID.randomUUID().toString();
+        }
+    }
 }

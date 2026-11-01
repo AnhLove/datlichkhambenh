@@ -18,6 +18,9 @@ public class DoctorWorkingHour {
     @Column(name = "ID")
     private Long id;
 
+    @Column(name = "UUID", nullable = false, unique = true, updatable = false, length = 36)
+    private String uuid;
+
     @ManyToOne
     @JoinColumn(name = "DOCTOR_ID")
     private Doctor doctor;
@@ -35,4 +38,10 @@ public class DoctorWorkingHour {
     @Column(name = "STATUS")
     private Short status;
 
+    @PrePersist
+    void assignUuid() {
+        if (uuid == null) {
+            uuid = java.util.UUID.randomUUID().toString();
+        }
+    }
 }
