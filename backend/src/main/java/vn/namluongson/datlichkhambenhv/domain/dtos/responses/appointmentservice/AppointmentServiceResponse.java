@@ -6,8 +6,7 @@ import lombok.Getter;
 @Getter
 @Builder
 public class AppointmentServiceResponse {
-    private Long id;
-    private Long appointmentId;
+    private String appointmentUuid;
     private Long serviceId;
     private String serviceName;
     private Long priceAtTime;

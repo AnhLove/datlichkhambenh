@@ -8,11 +8,8 @@ import java.time.LocalDateTime;
 @Getter
 @Builder
 public class ExamReportResponse {
-
-    private Long id;
-
-    private Long appointmentId;
-
+    private String uuid;
+    private String appointmentUuid;
     private String patientName;
 
     private String doctorName;

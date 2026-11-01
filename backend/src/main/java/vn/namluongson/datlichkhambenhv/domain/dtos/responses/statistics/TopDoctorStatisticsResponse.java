@@ -6,7 +6,7 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public class TopDoctorStatisticsResponse {
-    private Long doctorId;
+    private String doctorUuid;
     private String doctorName;
     private Long completedAppointments;
 }

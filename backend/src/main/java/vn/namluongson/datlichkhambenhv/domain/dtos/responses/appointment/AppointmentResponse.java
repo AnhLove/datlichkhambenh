@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class AppointmentResponse {
-    private Long appointmentId;
+    private String uuid;
     private String doctorName;
     private String patientName;
     private String patientPhone;

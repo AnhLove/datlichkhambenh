@@ -1,4 +1,3 @@
-
 package vn.namluongson.datlichkhambenhv.domain.dtos.responses.payment;
 
 import lombok.Builder;
@@ -10,6 +9,7 @@ import java.time.LocalDateTime;
 @Getter
 @Builder
 public class PaymentResponse {
+    private String appointmentUuid;
     private String patientName;
     private String doctorName;
     private LocalDate appointmentDate;
@@ -21,3 +21,4 @@ public class PaymentResponse {
     private String transactionCode;
     private LocalDateTime paidAt;
 }
+
