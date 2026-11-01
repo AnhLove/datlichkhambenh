@@ -1,5 +1,6 @@
 package vn.namluongson.datlichkhambenhv.exception;
 
+import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.HandlerMethodValidationException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 import vn.namluongson.datlichkhambenhv.domain.response.ApiResponse;
@@ -37,6 +39,11 @@ public class GlobalExceptionHandler{
                 .map(error -> error.getDefaultMessage())
                 .orElse("Du lieu khong hop le");
         return build(HttpStatus.BAD_REQUEST, message);
+    }
+
+    @ExceptionHandler({ConstraintViolationException.class, HandlerMethodValidationException.class})
+    public ResponseEntity<ApiResponse> handleConstraintViolation(Exception e) {
+        return build(HttpStatus.BAD_REQUEST, "Du lieu gui len khong hop le");
     }
 
     @ExceptionHandler({
