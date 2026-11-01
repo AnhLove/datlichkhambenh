@@ -13,7 +13,8 @@ import {
 } from 'lucide-react';
 import { getMyDoctorAppointments, completeAppointment } from '../../services/appointmentService';
 import { createExamReport, getMyDoctorExamReports } from '../../services/examReportService';
-import { unwrapList } from '../../utils/unwrap';
+import { fetchAllPages } from '../../utils/paging';
+import { matchesCode, shortCode } from '../../utils/code';
 import { getTodayString } from '../../utils/date';
 import '../../styles/staff-portal.css';
 import './DoctorTabs.css';
@@ -97,14 +98,14 @@ function DoctorAppointmentsPage() {
         async function loadData() {
             try {
                 const [appointmentResponse, reportResponse] = await Promise.all([
-                    getMyDoctorAppointments(),
-                    getMyDoctorExamReports(),
+                    fetchAllPages(getMyDoctorAppointments),
+                    fetchAllPages(getMyDoctorExamReports),
                 ]);
 
                 if (cancelled) return;
 
-                setAppointments(unwrapList(appointmentResponse));
-                setReports(unwrapList(reportResponse));
+                setAppointments(appointmentResponse);
+                setReports(reportResponse);
                 setError('');
             } catch (err) {
                 if (cancelled) return;
@@ -122,7 +123,7 @@ function DoctorAppointmentsPage() {
     }, [reloadKey]);
 
     const reportAppointmentIds = useMemo(
-        () => new Set(reports.map((report) => Number(report.appointmentId))),
+        () => new Set(reports.map((report) => String(report.appointmentUuid))),
         [reports]
     );
 
@@ -146,7 +147,7 @@ function DoctorAppointmentsPage() {
             const matchesStatus = statusFilter === 'all' || Number(appointment.status) === Number(statusFilter);
             const matchesSearch =
                 !normalizedSearch ||
-                String(appointment.appointmentId ?? '').includes(normalizedSearch) ||
+                matchesCode(appointment.uuid, normalizedSearch) ||
                 String(appointment.patientName ?? '')
                     .toLowerCase()
                     .includes(normalizedSearch) ||
@@ -182,7 +183,7 @@ function DoctorAppointmentsPage() {
     };
 
     const handleComplete = async (appointment) => {
-        const id = appointment?.appointmentId;
+        const id = appointment?.uuid;
 
         if (!id) {
             setActionError('Không tìm thấy mã lịch khám.');
@@ -191,7 +192,7 @@ function DoctorAppointmentsPage() {
 
         const who = appointment.patientName ? ` của ${appointment.patientName}` : '';
         const confirmed = window.confirm(
-            `Hoàn thành lịch khám #${id}${who}? Sau khi hoàn thành, bạn có thể lập báo cáo khám. Thao tác này không thể hoàn tác.`
+            `Hoàn thành lịch khám #${shortCode(id)}${who}? Sau khi hoàn thành, bạn có thể lập báo cáo khám. Thao tác này không thể hoàn tác.`
         );
 
         if (!confirmed) return;
@@ -203,7 +204,7 @@ function DoctorAppointmentsPage() {
 
             await completeAppointment(id);
 
-            setSuccessMessage(`Đã hoàn thành lịch khám #${id}. Bạn có thể tạo báo cáo khám ngay bây giờ.`);
+            setSuccessMessage(`Đã hoàn thành lịch khám #${shortCode(id)}. Bạn có thể tạo báo cáo khám ngay bây giờ.`);
             setIsLoading(true);
             setReloadKey((key) => key + 1);
         } catch (err) {
@@ -233,9 +234,9 @@ function DoctorAppointmentsPage() {
     const handleCreateReport = async (event) => {
         event.preventDefault();
 
-        const appointmentId = selectedAppointment?.appointmentId;
+        const appointmentUuid = selectedAppointment?.uuid;
 
-        if (!appointmentId) {
+        if (!appointmentUuid) {
             setFormError('Không tìm thấy mã lịch khám.');
             return;
         }
@@ -255,14 +256,14 @@ function DoctorAppointmentsPage() {
             setFormError('');
 
             await createExamReport({
-                appointmentId,
+                appointmentUuid,
                 diagnosis: diagnosis.trim(),
                 notes: notes.trim(),
             });
 
             setSelectedAppointment(null);
             setSuccessMessage(
-                `Đã tạo báo cáo nháp cho lịch khám #${appointmentId}. Vào mục Báo cáo khám để phát hành cho bệnh nhân.`
+                `Đã tạo báo cáo nháp cho lịch khám #${shortCode(appointmentUuid)}. Vào mục Báo cáo khám để phát hành cho bệnh nhân.`
             );
             setIsLoading(true);
             setReloadKey((key) => key + 1);
@@ -415,15 +416,14 @@ function DoctorAppointmentsPage() {
                         {filteredAppointments.map((appointment, index) => {
                             const status = getStatus(appointment.status);
                             const statusCode = Number(appointment.status);
-                            const appointmentId = Number(appointment.appointmentId);
-                            const hasReport = reportAppointmentIds.has(appointmentId);
+                            const hasReport = reportAppointmentIds.has(String(appointment.uuid));
 
                             return (
-                                <article className="doctor-appointment-card" key={appointment.appointmentId ?? index}>
+                                <article className="doctor-appointment-card" key={appointment.uuid ?? index}>
                                     <div className="doctor-appointment-top">
                                         <div>
                                             <span className="doctor-field-label">Mã lịch khám</span>
-                                            <h3>#{appointment.appointmentId ?? '—'}</h3>
+                                            <h3>#{shortCode(appointment.uuid)}</h3>
                                         </div>
                                         <span className={`doctor-status doctor-status-${status.className}`}>
                                             {status.label}
@@ -470,7 +470,7 @@ function DoctorAppointmentsPage() {
                                                 disabled={completingId !== null}
                                             >
                                                 <Stethoscope size={16} />
-                                                {completingId === appointment.appointmentId
+                                                {completingId === appointment.uuid
                                                     ? 'Đang xử lý...'
                                                     : 'Hoàn thành khám'}
                                             </button>
@@ -519,7 +519,7 @@ function DoctorAppointmentsPage() {
                                 <span className="doctor-page-eyebrow">
                                     <FileText size={15} /> BÁO CÁO KHÁM
                                 </span>
-                                <h2 id="doctor-report-title">Tạo báo cáo #{selectedAppointment.appointmentId}</h2>
+                                <h2 id="doctor-report-title">Tạo báo cáo #{shortCode(selectedAppointment.uuid)}</h2>
                                 {selectedAppointment.patientName && <p>Bệnh nhân: {selectedAppointment.patientName}</p>}
                             </div>
                             <button
@@ -591,3 +591,4 @@ function DoctorAppointmentsPage() {
 }
 
 export default DoctorAppointmentsPage;
+

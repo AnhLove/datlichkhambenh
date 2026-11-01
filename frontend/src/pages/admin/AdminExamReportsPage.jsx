@@ -2,13 +2,15 @@ import { useEffect, useState } from 'react';
 import { Plus, RefreshCw, Send, X } from 'lucide-react';
 
 import { createExamReport, getAllExamReports, issueExamReport } from '../../services/examReportService';
-import { unwrapList } from '../../utils/unwrap';
+import { fetchAllPages } from '../../utils/paging';
+import { shortCode } from '../../utils/code';
 
 import './AdminPage.css';
 
 const STATUS_DRAFT = 1;
 const STATUS_ISSUED = 2;
-const EMPTY_FORM = { appointmentId: '', diagnosis: '', notes: '' };
+const EMPTY_FORM = { appointmentUuid: '', diagnosis: '', notes: '' };
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 function formatDateTime(value) {
     if (!value) return 'Chưa phát hành';
@@ -25,8 +27,8 @@ function formatDateTime(value) {
 }
 
 function validateForm(form) {
-    if (!/^\d+$/.test(form.appointmentId.trim()) || Number(form.appointmentId) < 1) {
-        return 'Mã lịch khám phải là số nguyên dương.';
+    if (!UUID_REGEX.test(form.appointmentUuid.trim())) {
+        return 'Mã lịch khám phải là uuid đầy đủ (36 ký tự, ví dụ 550e8400-e29b-41d4-a716-446655440000).';
     }
     if (!form.diagnosis.trim()) return 'Chẩn đoán không được để trống.';
     return '';
@@ -52,9 +54,9 @@ function AdminExamReportsPage() {
 
         async function loadReports() {
             try {
-                const response = await getAllExamReports();
+                const response = await fetchAllPages(getAllExamReports);
                 if (cancelled) return;
-                setReports(unwrapList(response));
+                setReports(response);
                 setLoadError('');
             } catch (err) {
                 if (cancelled) return;
@@ -107,7 +109,7 @@ function AdminExamReportsPage() {
 
         try {
             await createExamReport({
-                appointmentId: Number(form.appointmentId),
+                appointmentUuid: form.appointmentUuid.trim(),
                 diagnosis: form.diagnosis.trim(),
                 notes: form.notes.trim(),
             });
@@ -124,16 +126,16 @@ function AdminExamReportsPage() {
 
     const handleIssue = async (report) => {
         const confirmed = window.confirm(
-            `Phát hành phiếu khám #${report.id}? Sau khi phát hành, bệnh nhân có thể xem kết quả.`
+            `Phát hành phiếu khám #${shortCode(report.uuid)}? Sau khi phát hành, bệnh nhân có thể xem kết quả.`
         );
         if (!confirmed) return;
 
-        setIssuingId(report.id);
+        setIssuingId(report.uuid);
         setLoadError('');
 
         try {
-            await issueExamReport(report.id);
-            setNotice(`Đã phát hành phiếu khám #${report.id}.`);
+            await issueExamReport(report.uuid);
+            setNotice(`Đã phát hành phiếu khám #${shortCode(report.uuid)}.`);
             reload();
         } catch (err) {
             setNotice('');
@@ -216,9 +218,9 @@ function AdminExamReportsPage() {
                                     const isDraft = Number(report.status) === STATUS_DRAFT;
 
                                     return (
-                                        <tr key={report.id}>
-                                            <td>#{report.id}</td>
-                                            <td>{report.appointmentId ?? '—'}</td>
+                                        <tr key={report.uuid}>
+                                            <td>#{shortCode(report.uuid)}</td>
+                                            <td>#{shortCode(report.appointmentUuid)}</td>
                                             <td>{report.patientName || '—'}</td>
                                             <td>{report.doctorName || '—'}</td>
                                             <td className="admin-muted">{report.diagnosis || '—'}</td>
@@ -234,9 +236,9 @@ function AdminExamReportsPage() {
                                                         type="button"
                                                         className="admin-icon-btn"
                                                         title="Phát hành"
-                                                        aria-label={`Phát hành phiếu khám ${report.id}`}
+                                                        aria-label={`Phát hành phiếu khám ${shortCode(report.uuid)}`}
                                                         onClick={() => handleIssue(report)}
-                                                        disabled={issuingId === report.id}
+                                                        disabled={issuingId === report.uuid}
                                                     >
                                                         <Send size={16} />
                                                     </button>
@@ -277,13 +279,13 @@ function AdminExamReportsPage() {
                         <label className="admin-field">
                             <span>Mã lịch khám</span>
                             <input
-                                type="number"
-                                min={1}
-                                value={form.appointmentId}
+                                type="text"
+                                maxLength={36}
+                                value={form.appointmentUuid}
                                 autoFocus
-                                placeholder="Lịch khám đã hoàn thành, chưa có phiếu"
+                                placeholder="Dán uuid đầy đủ của lịch khám đã hoàn thành"
                                 onChange={(event) =>
-                                    setForm((prev) => ({ ...prev, appointmentId: event.target.value }))
+                                    setForm((prev) => ({ ...prev, appointmentUuid: event.target.value }))
                                 }
                             />
                         </label>
@@ -328,3 +330,4 @@ function AdminExamReportsPage() {
 }
 
 export default AdminExamReportsPage;
+

@@ -20,7 +20,8 @@ import {
     markNoShow,
     rejectAppointment,
 } from '../../services/receptionService';
-import { unwrapList } from '../../utils/unwrap';
+import { fetchAllPages } from '../../utils/paging';
+import { matchesCode, shortCode } from '../../utils/code';
 import { getTodayString } from '../../utils/date';
 import '../../styles/staff-portal.css';
 import './ReceptionPages.css';
@@ -93,9 +94,9 @@ function ReceptionAppointmentsPage() {
 
         async function loadAppointments() {
             try {
-                const response = await getAppointmentsByDate(date);
+                const response = await fetchAllPages((page, size) => getAppointmentsByDate(date, page, size));
                 if (cancelled) return;
-                setAppointments(unwrapList(response));
+                setAppointments(response);
                 setError('');
             } catch (err) {
                 if (cancelled) return;
@@ -127,7 +128,7 @@ function ReceptionAppointmentsPage() {
             const matchesStatus = statusFilter === 'all' || Number(item.status) === Number(statusFilter);
             const matchesSearch =
                 !keyword ||
-                String(item.appointmentId ?? '').includes(keyword) ||
+                matchesCode(item.uuid, keyword) ||
                 String(item.patientName ?? '')
                     .toLowerCase()
                     .includes(keyword) ||
@@ -160,7 +161,7 @@ function ReceptionAppointmentsPage() {
     };
 
     const runAction = async (appointment, action, confirmText, successText) => {
-        const id = appointment?.appointmentId;
+        const id = appointment?.uuid;
 
         if (!id) {
             setActionError('Không tìm thấy mã lịch khám.');
@@ -191,24 +192,24 @@ function ReceptionAppointmentsPage() {
         runAction(
             appointment,
             confirmAppointment,
-            `Xác nhận lịch khám #${appointment.appointmentId}${who(appointment)}?`,
-            `Đã xác nhận lịch khám #${appointment.appointmentId}.`
+            `Xác nhận lịch khám #${shortCode(appointment.uuid)}${who(appointment)}?`,
+            `Đã xác nhận lịch khám #${shortCode(appointment.uuid)}.`
         );
 
     const handleCheckIn = (appointment) =>
         runAction(
             appointment,
             checkInAppointment,
-            `Check-in cho lịch khám #${appointment.appointmentId}${who(appointment)}?`,
-            `Đã check-in lịch khám #${appointment.appointmentId}. Bệnh nhân đang chờ khám.`
+            `Check-in cho lịch khám #${shortCode(appointment.uuid)}${who(appointment)}?`,
+            `Đã check-in lịch khám #${shortCode(appointment.uuid)}. Bệnh nhân đang chờ khám.`
         );
 
     const handleNoShow = (appointment) =>
         runAction(
             appointment,
             markNoShow,
-            `Đánh dấu bệnh nhân không đến cho lịch khám #${appointment.appointmentId}${who(appointment)}? Thao tác này không thể hoàn tác.`,
-            `Đã đánh dấu lịch khám #${appointment.appointmentId} là bệnh nhân không đến.`
+            `Đánh dấu bệnh nhân không đến cho lịch khám #${shortCode(appointment.uuid)}${who(appointment)}? Thao tác này không thể hoàn tác.`,
+            `Đã đánh dấu lịch khám #${shortCode(appointment.uuid)} là bệnh nhân không đến.`
         );
 
     const openReject = (appointment) => {
@@ -229,7 +230,7 @@ function ReceptionAppointmentsPage() {
     const handleReject = async (event) => {
         event.preventDefault();
 
-        const id = rejectTarget?.appointmentId;
+        const id = rejectTarget?.uuid;
         const reason = rejectReason.trim();
 
         if (!id) {
@@ -256,7 +257,7 @@ function ReceptionAppointmentsPage() {
             const isPending = Number(rejectTarget.status) === 1;
             setRejectTarget(null);
             setRejectReason('');
-            setSuccessMessage(isPending ? `Đã từ chối lịch khám #${id}.` : `Đã hủy lịch khám #${id}.`);
+            setSuccessMessage(isPending ? `Đã từ chối lịch khám #${shortCode(id)}.` : `Đã hủy lịch khám #${shortCode(id)}.`);
             reload();
         } catch (err) {
             setRejectError(err?.message || 'Không thể hủy lịch hẹn.');
@@ -420,14 +421,14 @@ function ReceptionAppointmentsPage() {
                             const status = getStatus(appointment.status);
                             const statusCode = Number(appointment.status);
                             const isBusy = busyId !== null;
-                            const isThisBusy = busyId === appointment.appointmentId;
+                            const isThisBusy = busyId === appointment.uuid;
 
                             return (
-                                <article className="doctor-appointment-card" key={appointment.appointmentId ?? index}>
+                                <article className="doctor-appointment-card" key={appointment.uuid ?? index}>
                                     <div className="doctor-appointment-top">
                                         <div>
                                             <span className="doctor-field-label">Mã lịch khám</span>
-                                            <h3>#{appointment.appointmentId ?? '—'}</h3>
+                                            <h3>#{shortCode(appointment.uuid)}</h3>
                                         </div>
                                         <span className={`doctor-status doctor-status-${status.className}`}>
                                             {status.label}
@@ -540,7 +541,7 @@ function ReceptionAppointmentsPage() {
                                     {(statusCode === 3 || statusCode === 4) && (
                                         <div className="doctor-appointment-actions reception-actions">
                                             <Link
-                                                to={`/reception/billing/${appointment.appointmentId}?date=${appointment.appointmentDate ?? date}`}
+                                                to={`/reception/billing/${appointment.uuid}?date=${appointment.appointmentDate ?? date}`}
                                                 className="doctor-secondary-button"
                                                 style={{ textDecoration: 'none' }}
                                             >
@@ -573,7 +574,7 @@ function ReceptionAppointmentsPage() {
                                 <span className="doctor-page-eyebrow">
                                     <AlertCircle size={15} /> {isRejectPending ? 'TỪ CHỐI LỊCH' : 'HỦY LỊCH'}
                                 </span>
-                                <h2 id="reception-reject-title">Lịch khám #{rejectTarget.appointmentId}</h2>
+                                <h2 id="reception-reject-title">Lịch khám #{shortCode(rejectTarget.uuid)}</h2>
                                 {rejectTarget.patientName && <p>Bệnh nhân: {rejectTarget.patientName}</p>}
                             </div>
                             <button
@@ -633,3 +634,4 @@ function ReceptionAppointmentsPage() {
 }
 
 export default ReceptionAppointmentsPage;
+

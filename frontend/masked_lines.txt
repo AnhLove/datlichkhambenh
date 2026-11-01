@@ -1,0 +1,90 @@
+src/components/common/LocalImage.jsx:36:            key={`${folder}/${slug}`}
+src/components/home/BookingSection.jsx:66:                            <option key={department.id} value={department.id}>
+src/components/home/DoctorShowcaseSection.jsx:90:                              <div className="doctor-showcase-skeleton" key={index} aria-hidden="true" />
+src/components/home/DoctorShowcaseSection.jsx:93:                              <div className="doctor-showcase-item" key={doctor.uuid}>
+src/components/home/SpecialtySection.jsx:64:                                  <div className="specialty-skeleton" key={index} aria-hidden="true" />
+src/components/home/SpecialtySection.jsx:68:                                  .map((department) => <DepartmentCard department={department} key={department.id} />)}
+src/components/home/StepsSection.jsx:48:                            <article className="step-item" key={step.id}>
+src/components/layout/Footer.jsx:40:                            <li key={link.to}>
+src/components/layout/Footer.jsx:52:                            <li key={item.label}>
+src/layouts/AdminLayout.jsx:106:                                key={to}
+src/layouts/DoctorLayout.jsx:118:                                key={to}
+src/layouts/ReceptionLayout.jsx:101:                                key={to}
+src/pages/account/ChangePasswordCard.jsx:8:const EMPTY_FORM = { currentPassword: '', newPassword: '', confirmPassword: '' };
+src/pages/account/ChangePasswordCard.jsx:52:                currentPassword: form.currentPassword,
+src/pages/account/ChangePasswordCard.jsx:53:                newPassword: form.newPassword,
+src/pages/admin/AdminDashboardPage.jsx:254:                                        <tr key={doctor.doctorId ?? index}>
+src/pages/admin/AdminDepartmentsPage.jsx:206:                                    <tr key={department.id}>
+src/pages/admin/AdminDoctorsPage.jsx:20:    password: '',
+src/pages/admin/AdminDoctorsPage.jsx:171:                await createDoctor({ ...payload, password: form.password });
+src/pages/admin/AdminDoctorsPage.jsx:243:                            <option key={department.id} value={department.name}>
+src/pages/admin/AdminDoctorsPage.jsx:286:                                    <tr key={doctor.uuid}>
+src/pages/admin/AdminDoctorsPage.jsx:399:                                    <option key={department.id} value={String(department.id)}>
+src/pages/admin/AdminExamReportsPage.jsx:219:                                        <tr key={report.id}>
+src/pages/admin/AdminMedicalServicesPage.jsx:237:                                    <tr key={service.id}>
+src/pages/admin/AdminMedicalServicesPage.jsx:305:                                    <option key={department.id} value={String(department.id)}>
+src/pages/admin/AdminSystemConfigPage.jsx:39:const EMPTY_FORM = { mode: 'create', lockKey: false, configKey: '', configValue: '', description: '' };
+src/pages/admin/AdminSystemConfigPage.jsx:47:            configKey: key,
+src/pages/admin/AdminSystemConfigPage.jsx:144:            lockKey: true,
+src/pages/admin/AdminSystemConfigPage.jsx:145:            configKey: row.configKey,
+src/pages/admin/AdminSystemConfigPage.jsx:161:            configKey: form.configKey.trim(),
+src/pages/admin/AdminSystemConfigPage.jsx:251:                                        <tr key={row.configKey}>
+src/pages/admin/AdminSystemConfigPage.jsx:334:                                    setForm((prev) => ({ ...prev, configKey: event.target.value.toUpperCase() }))
+src/pages/admin/AdminUsersPage.jsx:20:const EMPTY_FORM = { fullName: '', phone: '', email: '', password: '', dateOfBirth: '' };
+src/pages/admin/AdminUsersPage.jsx:105:                password: form.password,
+src/pages/admin/AdminUsersPage.jsx:188:                            <option key={code} value={code}>
+src/pages/admin/AdminUsersPage.jsx:246:                                        <tr key={user.uuid}>
+src/pages/admin/AdminUsersPage.jsx:342:                                onChange={(event) => setForm((prev) => ({ ...prev, password: event.target.value }))}
+src/pages/admin/AdminWorkingHoursPage.jsx:118:                            key={tab.value}
+src/pages/admin/AdminWorkingHoursPage.jsx:165:                                    <tr key={item.id}>
+src/pages/auth/RegisterPage.jsx:15:        password: '',
+src/pages/auth/RegisterPage.jsx:16:        confirmPassword: '',
+src/pages/auth/RegisterPage.jsx:85:                password: form.password,
+src/pages/doctor/DoctorAppointmentsPage.jsx:31:    { key: 'today', label: 'Hôm nay' },
+src/pages/doctor/DoctorAppointmentsPage.jsx:32:    { key: 'upcoming', label: 'Sắp tới' },
+src/pages/doctor/DoctorAppointmentsPage.jsx:33:    { key: 'all', label: 'Tất cả' },
+src/pages/doctor/DoctorAppointmentsPage.jsx:351:                            key={item.key}
+src/pages/doctor/DoctorAppointmentsPage.jsx:422:                                <article className="doctor-appointment-card" key={appointment.appointmentId ?? index}>
+src/pages/doctor/DoctorExamReportsPage.jsx:208:                                <article className="doctor-report-card" key={report.id}>
+src/pages/doctor/DoctorSchedulePage.jsx:238:                                <article className="doctor-schedule-row" key={day.value}>
+src/pages/doctor/DoctorSchedulePage.jsx:262:                                                <option key={shift.value} value={shift.value}>
+src/pages/patient/AppointmentsPage.jsx:336:                                        <option key={department.id} value={String(department.id)}>
+src/pages/patient/AppointmentsPage.jsx:359:                                        <option key={doctor.uuid} value={doctor.uuid}>
+src/pages/patient/AppointmentsPage.jsx:420:                                                key={slot.timeSlot}
+src/pages/patient/MyAppointmentsPage.jsx:291:                                    key={
+src/pages/patient/MyExamReportsPage.jsx:142:                            <article className="exam-report-card" key={report.id}>
+src/pages/patient/MyPaymentsPage.jsx:231:                                    key={
+src/pages/public/DepartmentsPage.jsx:15:    const [result, setResult] = useState({ key: null, items: [], error: '' });
+src/pages/public/DepartmentsPage.jsx:30:                setResult({ key: debouncedKeyword, items: unwrapList(data), error: '' });
+src/pages/public/DepartmentsPage.jsx:34:                setResult({ key: debouncedKeyword, items: [], error: 'Không thể tải danh sách chuyên khoa.' });
+src/pages/public/DepartmentsPage.jsx:70:                            <div className="departments-skeleton" key={index} aria-hidden="true" />
+src/pages/public/DepartmentsPage.jsx:82:                            <DepartmentCard department={department} key={department.id} />
+src/pages/public/DoctorDetailPage.jsx:47:        { key: 'morning', label: 'Buổi sáng', items: groups.morning },
+src/pages/public/DoctorDetailPage.jsx:48:        { key: 'afternoon', label: 'Buổi chiều', items: groups.afternoon },
+src/pages/public/DoctorDetailPage.jsx:49:        { key: 'other', label: 'Khung giờ', items: groups.other },
+src/pages/public/DoctorDetailPage.jsx:181:                                        key={day.value}
+src/pages/public/DoctorDetailPage.jsx:201:                                <div className="doctor-detail-group" key={group.key}>
+src/pages/public/DoctorDetailPage.jsx:207:                                                key={slot.timeSlot}
+src/pages/public/DoctorsPage.jsx:31:    const [doctorResult, setDoctorResult] = useState({ key: null, doctors: [], error: '' });
+src/pages/public/DoctorsPage.jsx:79:                setDoctorResult({ key: requestKey, doctors: unwrapList(data), error: '' });
+src/pages/public/DoctorsPage.jsx:84:                    key: requestKey,
+src/pages/public/DoctorsPage.jsx:131:        setDoctorResult((previous) => ({ ...previous, key: null, error: '' }));
+src/pages/public/DoctorsPage.jsx:155:                    <div className="doctors-skeleton" key={index} aria-hidden="true" />
+src/pages/public/DoctorsPage.jsx:180:                    <DoctorCard key={doctor.uuid} doctor={doctor} to={getDoctorLink(doctor)} showBio />
+src/pages/public/DoctorsPage.jsx:227:                                <option key={department.id} value={String(department.id)}>
+src/pages/public/MedicalServicesPage.jsx:100:                                key={`${service.departmentName}-${service.name}-${index}`}
+src/pages/reception/ReceptionAppointmentsPage.jsx:366:                                <option key={name} value={name}>
+src/pages/reception/ReceptionAppointmentsPage.jsx:377:                                <option key={name} value={name}>
+src/pages/reception/ReceptionAppointmentsPage.jsx:388:                                <option key={code} value={code}>
+src/pages/reception/ReceptionAppointmentsPage.jsx:426:                                <article className="doctor-appointment-card" key={appointment.appointmentId ?? index}>
+src/pages/reception/ReceptionBillingDetailPage.jsx:358:                                            <tr key={item.id}>
+src/pages/reception/ReceptionBillingDetailPage.jsx:423:                                                    key={getServiceId(service)}
+src/pages/reception/ReceptionBillingDetailPage.jsx:486:                                                <option key={item.value} value={String(item.value)}>
+src/pages/reception/ReceptionBillingDetailPage.jsx:633:                                    <tr key={item.id}>
+src/pages/reception/ReceptionBillingPage.jsx:218:                                <article className="doctor-appointment-card" key={appointment.appointmentId}>
+src/pages/reception/ReceptionBookingPage.jsx:322:                                            <option key={department.id} value={String(department.id)}>
+src/pages/reception/ReceptionBookingPage.jsx:342:                                            <option key={doctor.uuid} value={doctor.uuid}>
+src/pages/reception/ReceptionBookingPage.jsx:388:                                                    key={slot.timeSlot}
+src/pages/reception/ReceptionPatientsPage.jsx:30:    password: '',
+src/pages/reception/ReceptionPatientsPage.jsx:147:                password: form.password,
+src/pages/reception/ReceptionPatientsPage.jsx:248:                                    <article className="doctor-appointment-card" key={patient.uuid}>

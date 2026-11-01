@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
     Users,
@@ -13,7 +13,8 @@ import {
     X,
 } from 'lucide-react';
 import { getAllUsers, createPatient } from '../../services/receptionService';
-import { unwrapList } from '../../utils/unwrap';
+import Pagination from '../../components/common/Pagination';
+import { unwrapPage } from '../../utils/unwrap';
 import { getTodayString } from '../../utils/date';
 import '../../styles/staff-portal.css';
 import './ReceptionPages.css';
@@ -21,7 +22,16 @@ import './ReceptionPages.css';
 // Giống các ràng buộc ở CreateUserRequest của backend
 const PHONE_REGEX = /^(0|\+84)\d{9}$/;
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const MAX_VISIBLE = 50;
+const PAGE_SIZE = 20;
+const ROLE_PATIENT = 1;
+
+// Ô tìm kiếm gửi lên backend: toàn số thì tìm theo SĐT, có @ thì theo email, còn lại theo họ tên
+function buildKeywordFilter(text) {
+    if (!text) return {};
+    if (/^[+\d]+$/.test(text)) return { phone: text };
+    if (text.includes('@')) return { email: text };
+    return { fullName: text };
+}
 
 const EMPTY_FORM = {
     fullName: '',
@@ -51,10 +61,14 @@ function validateForm(form) {
 
 function ReceptionPatientsPage() {
     const [patients, setPatients] = useState([]);
+    const [page, setPage] = useState(1);
+    const [pageInfo, setPageInfo] = useState({ page: 1, totalPages: 0, totalElements: 0 });
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState('');
     const [reloadKey, setReloadKey] = useState(0);
     const [searchTerm, setSearchTerm] = useState('');
+    const [appliedSearch, setAppliedSearch] = useState('');
+    const appliedSearchRef = useRef('');
     const [successMessage, setSuccessMessage] = useState('');
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [form, setForm] = useState(EMPTY_FORM);
@@ -66,13 +80,22 @@ function ReceptionPatientsPage() {
 
         async function loadPatients() {
             try {
-                const response = await getAllUsers();
+                // Backend đã chỉ trả bệnh nhân cho tài khoản lễ tân; gửi role=1 để rõ ràng
+                const response = await getAllUsers({
+                    page,
+                    size: PAGE_SIZE,
+                    role: ROLE_PATIENT,
+                    ...buildKeywordFilter(appliedSearch),
+                });
                 if (cancelled) return;
-                // Backend trả mọi vai trò, chỉ giữ bệnh nhân (role = 1)
-                setPatients(unwrapList(response).filter((user) => Number(user.role) === 1));
+
+                const result = unwrapPage(response);
+                setPatients(result.content);
+                setPageInfo({ page: result.page, totalPages: result.totalPages, totalElements: result.totalElements });
                 setError('');
             } catch (err) {
                 if (cancelled) return;
+                setPatients([]);
                 setError(err?.message || 'Không thể tải danh sách bệnh nhân.');
             } finally {
                 if (!cancelled) setIsLoading(false);
@@ -84,25 +107,27 @@ function ReceptionPatientsPage() {
         return () => {
             cancelled = true;
         };
-    }, [reloadKey]);
+    }, [page, appliedSearch, reloadKey]);
 
-    const filteredPatients = useMemo(() => {
-        const keyword = searchTerm.trim().toLowerCase();
-        if (!keyword) return patients;
+    // Đợi người dùng gõ xong 400ms rồi mới gọi backend
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            const next = searchTerm.trim();
+            if (next === appliedSearchRef.current) return;
 
-        return patients.filter(
-            (patient) =>
-                String(patient.fullName ?? '')
-                    .toLowerCase()
-                    .includes(keyword) ||
-                String(patient.phone ?? '').includes(keyword) ||
-                String(patient.email ?? '')
-                    .toLowerCase()
-                    .includes(keyword)
-        );
-    }, [patients, searchTerm]);
+            appliedSearchRef.current = next;
+            setAppliedSearch(next);
+            setPage(1);
+            setIsLoading(true);
+        }, 400);
 
-    const visiblePatients = filteredPatients.slice(0, MAX_VISIBLE);
+        return () => clearTimeout(timer);
+    }, [searchTerm]);
+
+    const handlePageChange = (nextPage) => {
+        setPage(nextPage);
+        setIsLoading(true);
+    };
 
     const reload = () => {
         setIsLoading(true);
@@ -152,7 +177,11 @@ function ReceptionPatientsPage() {
             setSuccessMessage(
                 `Đã tạo hồ sơ cho ${form.fullName.trim()}. Hãy báo email đăng nhập và mật khẩu tạm cho bệnh nhân.`
             );
-            setSearchTerm(form.phone.trim());
+            const createdPhone = form.phone.trim();
+            setSearchTerm(createdPhone);
+            appliedSearchRef.current = createdPhone;
+            setAppliedSearch(createdPhone);
+            setPage(1);
             reload();
         } catch (err) {
             setFormError(err?.message || 'Không thể tạo hồ sơ bệnh nhân.');
@@ -226,7 +255,7 @@ function ReceptionPatientsPage() {
                             Thử lại
                         </button>
                     </div>
-                ) : filteredPatients.length === 0 ? (
+                ) : patients.length === 0 ? (
                     <div className="doctor-state">
                         <UserRound size={34} />
                         <h3>Không tìm thấy bệnh nhân</h3>
@@ -234,14 +263,8 @@ function ReceptionPatientsPage() {
                     </div>
                 ) : (
                     <>
-                        {filteredPatients.length > MAX_VISIBLE && (
-                            <p className="reception-toolbar-note">
-                                Hiển thị {MAX_VISIBLE} kết quả đầu trong {filteredPatients.length}. Hãy nhập thêm từ
-                                khóa để thu hẹp.
-                            </p>
-                        )}
                         <div className="doctor-appointment-list">
-                            {visiblePatients.map((patient) => {
+                            {patients.map((patient) => {
                                 const isLocked = Number(patient.status) === 1;
 
                                 return (
@@ -297,6 +320,14 @@ function ReceptionPatientsPage() {
                                 );
                             })}
                         </div>
+
+                        <Pagination
+                            page={pageInfo.page}
+                            totalPages={pageInfo.totalPages}
+                            totalElements={pageInfo.totalElements}
+                            onChange={handlePageChange}
+                            disabled={isLoading}
+                        />
                     </>
                 )}
             </section>
@@ -432,3 +463,4 @@ function ReceptionPatientsPage() {
 }
 
 export default ReceptionPatientsPage;
+

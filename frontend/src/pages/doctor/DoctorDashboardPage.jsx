@@ -4,7 +4,7 @@ import { CalendarDays, ClipboardList, ArrowRight, Stethoscope, Clock3, FileText 
 
 import { getMyDoctorAppointments } from '../../services/appointmentService';
 import { getMyDoctorExamReports } from '../../services/examReportService';
-import { unwrapList } from '../../utils/unwrap';
+import { fetchAllPages } from '../../utils/paging';
 import { getTodayString } from '../../utils/date';
 
 import './DoctorDashboardPage.css';
@@ -14,7 +14,7 @@ import './DoctorDashboardStats.css';
 // status báo cáo: 1 = bản nháp, 2 = đã phát hành
 function computeStats(appointments, reports) {
     const today = getTodayString();
-    const reportedAppointmentIds = new Set(reports.map((report) => Number(report.appointmentId)));
+    const reportedAppointmentIds = new Set(reports.map((report) => String(report.appointmentUuid)));
 
     return {
         todayCount: appointments.filter(
@@ -22,7 +22,7 @@ function computeStats(appointments, reports) {
         ).length,
         waitingCount: appointments.filter((item) => Number(item.status) === 3).length,
         needReportCount: appointments.filter(
-            (item) => Number(item.status) === 4 && !reportedAppointmentIds.has(Number(item.appointmentId))
+            (item) => Number(item.status) === 4 && !reportedAppointmentIds.has(String(item.uuid))
         ).length,
         draftCount: reports.filter((report) => Number(report.status) === 1).length,
     };
@@ -39,13 +39,13 @@ function DoctorDashboardPage() {
         async function loadStats() {
             try {
                 const [appointmentResponse, reportResponse] = await Promise.all([
-                    getMyDoctorAppointments(),
-                    getMyDoctorExamReports(),
+                    fetchAllPages(getMyDoctorAppointments),
+                    fetchAllPages(getMyDoctorExamReports),
                 ]);
 
                 if (cancelled) return;
 
-                setStats(computeStats(unwrapList(appointmentResponse), unwrapList(reportResponse)));
+                setStats(computeStats(appointmentResponse, reportResponse));
                 setStatsError(false);
             } catch {
                 if (!cancelled) setStatsError(true);
@@ -165,3 +165,4 @@ function DoctorDashboardPage() {
 }
 
 export default DoctorDashboardPage;
+

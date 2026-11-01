@@ -11,15 +11,9 @@ import {
 } from 'lucide-react';
 
 import { getMyExamReports } from '../../services/examReportService';
+import { fetchAllPages } from '../../utils/paging';
+import { shortCode } from '../../utils/code';
 import './MyExamReportsPage.css';
-
-function getReportList(response) {
-    if (Array.isArray(response)) return response;
-    if (Array.isArray(response?.data)) return response.data;
-    if (Array.isArray(response?.data?.data)) return response.data.data;
-
-    return [];
-}
 
 function formatDateTime(value) {
     if (!value) return 'Chưa có thông tin';
@@ -48,11 +42,11 @@ function MyExamReportsPage() {
 
         async function loadReports() {
             try {
-                const response = await getMyExamReports();
+                const response = await fetchAllPages(getMyExamReports);
 
                 if (cancelled) return;
 
-                setReports(getReportList(response));
+                setReports(response);
                 setError('');
             } catch (err) {
                 if (cancelled) return;
@@ -139,7 +133,7 @@ function MyExamReportsPage() {
                 ) : (
                     <div className="exam-reports-list">
                         {reports.map((report) => (
-                            <article className="exam-report-card" key={report.id}>
+                            <article className="exam-report-card" key={report.uuid}>
                                 <div className="exam-report-card-header">
                                     <div className="exam-report-title">
                                         <span className="exam-report-icon">
@@ -147,8 +141,8 @@ function MyExamReportsPage() {
                                         </span>
 
                                         <div>
-                                            <h3>Kết quả khám #{report.id}</h3>
-                                            <p>Mã lịch khám: {report.appointmentId}</p>
+                                            <h3>Kết quả khám #{shortCode(report.uuid)}</h3>
+                                            <p>Mã lịch khám: {shortCode(report.appointmentUuid)}</p>
                                         </div>
                                     </div>
 
@@ -205,3 +199,4 @@ function MyExamReportsPage() {
 }
 
 export default MyExamReportsPage;
+

@@ -11,7 +11,8 @@ import {
     Send,
 } from 'lucide-react';
 import { getMyDoctorExamReports, issueExamReport } from '../../services/examReportService';
-import { unwrapList } from '../../utils/unwrap';
+import { fetchAllPages } from '../../utils/paging';
+import { shortCode } from '../../utils/code';
 import '../../styles/staff-portal.css';
 import './DoctorExamReportsPage.css';
 
@@ -43,9 +44,9 @@ function DoctorExamReportsPage() {
 
         async function loadReports() {
             try {
-                const response = await getMyDoctorExamReports();
+                const response = await fetchAllPages(getMyDoctorExamReports);
                 if (cancelled) return;
-                setReports(unwrapList(response));
+                setReports(response);
                 setError('');
             } catch (err) {
                 if (cancelled) return;
@@ -69,23 +70,23 @@ function DoctorExamReportsPage() {
     };
 
     const handleIssue = async (report) => {
-        if (!report?.id) {
+        if (!report?.uuid) {
             setActionError('Không tìm thấy mã báo cáo.');
             return;
         }
 
         const confirmed = window.confirm(
-            `Bạn có chắc chắn muốn phát hành báo cáo khám #${report.id}? Sau khi phát hành, bệnh nhân có thể xem kết quả.`
+            `Bạn có chắc chắn muốn phát hành báo cáo khám #${shortCode(report.uuid)}? Sau khi phát hành, bệnh nhân có thể xem kết quả.`
         );
 
         if (!confirmed) return;
 
         try {
-            setIssuingId(report.id);
+            setIssuingId(report.uuid);
             setActionError('');
             setSuccessMessage('');
-            await issueExamReport(report.id);
-            setSuccessMessage(`Đã phát hành báo cáo #${report.id}. Bệnh nhân có thể xem kết quả khám.`);
+            await issueExamReport(report.uuid);
+            setSuccessMessage(`Đã phát hành báo cáo #${shortCode(report.uuid)}. Bệnh nhân có thể xem kết quả khám.`);
             setIsLoading(true);
             setReloadKey((key) => key + 1);
         } catch (err) {
@@ -205,15 +206,15 @@ function DoctorExamReportsPage() {
                             const isDraft = Number(report.status) === 1;
 
                             return (
-                                <article className="doctor-report-card" key={report.id}>
+                                <article className="doctor-report-card" key={report.uuid}>
                                     <div className="doctor-report-card-heading">
                                         <div className="doctor-report-title">
                                             <span className="doctor-report-icon">
                                                 <FileText size={22} />
                                             </span>
                                             <div>
-                                                <h3>Báo cáo #{report.id}</h3>
-                                                <p>Mã lịch khám: {report.appointmentId ?? '—'}</p>
+                                                <h3>Báo cáo #{shortCode(report.uuid)}</h3>
+                                                <p>Mã lịch khám: {shortCode(report.appointmentUuid)}</p>
                                             </div>
                                         </div>
                                         <span className={`doctor-report-status ${isIssued ? 'issued' : 'draft'}`}>
@@ -256,10 +257,10 @@ function DoctorExamReportsPage() {
                                                 type="button"
                                                 className="doctor-primary-button"
                                                 onClick={() => handleIssue(report)}
-                                                disabled={issuingId === report.id}
+                                                disabled={issuingId === report.uuid}
                                             >
                                                 <Send size={16} />
-                                                {issuingId === report.id ? 'Đang phát hành...' : 'Phát hành báo cáo'}
+                                                {issuingId === report.uuid ? 'Đang phát hành...' : 'Phát hành báo cáo'}
                                             </button>
                                         </div>
                                     )}
@@ -274,3 +275,4 @@ function DoctorExamReportsPage() {
 }
 
 export default DoctorExamReportsPage;
+

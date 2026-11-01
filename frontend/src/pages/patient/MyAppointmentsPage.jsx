@@ -12,6 +12,7 @@ import {
     CheckCircle2,
 } from 'lucide-react';
 import { getMyAppointments, cancelAppointment } from '../../services/appointmentService';
+import { fetchAllPages } from '../../utils/paging';
 import './MyAppointmentsPage.css';
 import { Link } from 'react-router-dom';
 
@@ -25,13 +26,6 @@ const STATUS_MAP = {
 };
 
 const CANCELLABLE_STATUSES = [1, 2];
-
-function getAppointmentList(response) {
-    if (Array.isArray(response)) return response;
-    if (Array.isArray(response?.data)) return response.data;
-    if (Array.isArray(response?.data?.data)) return response.data.data;
-    return [];
-}
 
 function getStatus(status) {
     const key = String(status);
@@ -88,11 +82,11 @@ function MyAppointmentsPage() {
     useEffect(() => {
         let cancelled = false;
 
-        getMyAppointments()
-            .then((response) => {
+        fetchAllPages(getMyAppointments)
+            .then((items) => {
                 if (cancelled) return;
 
-                setAppointments(getAppointmentList(response));
+                setAppointments(items);
                 setError('');
             })
             .catch((err) => {
@@ -134,7 +128,7 @@ function MyAppointmentsPage() {
     const handleCancelAppointment = async (event) => {
         event.preventDefault();
 
-        if (!selectedAppointment?.appointmentId) {
+        if (!selectedAppointment?.uuid) {
             setCancelError('Không tìm thấy mã lịch khám. Vui lòng tải lại danh sách.');
             return;
         }
@@ -148,7 +142,7 @@ function MyAppointmentsPage() {
             setIsCancelling(true);
             setCancelError('');
 
-            await cancelAppointment(selectedAppointment.appointmentId, cancelReason.trim());
+            await cancelAppointment(selectedAppointment.uuid, cancelReason.trim());
 
             setSelectedAppointment(null);
             setCancelReason('');
@@ -289,7 +283,7 @@ function MyAppointmentsPage() {
                                 <article
                                     className="appointment-card"
                                     key={
-                                        appointment.appointmentId ??
+                                        appointment.uuid ??
                                         `${appointment.appointmentDate}-${appointment.timeSlot}-${index}`
                                     }
                                 >
@@ -463,3 +457,4 @@ function MyAppointmentsPage() {
 }
 
 export default MyAppointmentsPage;
+

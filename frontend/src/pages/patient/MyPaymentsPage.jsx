@@ -11,15 +11,8 @@ import {
 } from 'lucide-react';
 
 import { getMyPayments } from '../../services/paymentService';
+import { fetchAllPages } from '../../utils/paging';
 import './MyPaymentsPage.css';
-
-function getPaymentList(response) {
-    if (Array.isArray(response)) return response;
-    if (Array.isArray(response?.data)) return response.data;
-    if (Array.isArray(response?.data?.data)) return response.data.data;
-
-    return [];
-}
 
 function formatDate(value) {
     if (!value) return 'Chưa có thông tin';
@@ -105,11 +98,11 @@ function MyPaymentsPage() {
     useEffect(() => {
         let cancelled = false;
 
-        getMyPayments()
-            .then((response) => {
+        fetchAllPages(getMyPayments)
+            .then((items) => {
                 if (cancelled) return;
 
-                setPayments(getPaymentList(response));
+                setPayments(items);
                 setError('');
             })
             .catch((err) => {
@@ -230,6 +223,7 @@ function MyPaymentsPage() {
                                     className="payment-card"
                                     key={
                                         payment.transactionCode ||
+                                        payment.appointmentUuid ||
                                         `${payment.appointmentDate}-${payment.amount}-${index}`
                                     }
                                 >
@@ -299,3 +293,4 @@ function MyPaymentsPage() {
 }
 
 export default MyPaymentsPage;
+

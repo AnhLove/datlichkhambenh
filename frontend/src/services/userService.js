@@ -1,7 +1,9 @@
 import { apiGet, apiPost, apiPatch } from './api';
+import { buildQuery } from '../utils/paging';
 
-export function getUsers() {
-    return apiGet('/user/list');
+// params: { page, size, fullName, phone, email, role, status } — backend trả thẳng { content, page, ... }
+export function getUsers(params = {}) {
+    return apiGet(`/user/list?${buildQuery(params)}`);
 }
 
 export function getUserByUuid(uuid) {

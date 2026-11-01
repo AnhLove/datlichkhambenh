@@ -23,6 +23,8 @@ import {
     createPayment,
     confirmPayment,
 } from '../../services/receptionService';
+import { fetchAllPages } from '../../utils/paging';
+import { shortCode } from '../../utils/code';
 import { unwrapData, unwrapList } from '../../utils/unwrap';
 import '../../styles/staff-portal.css';
 import './ReceptionPages.css';
@@ -74,7 +76,7 @@ function getServiceId(service) {
 }
 
 function ReceptionBillingDetailPage() {
-    const { appointmentId } = useParams();
+    const { appointmentUuid } = useParams();
     const [searchParams] = useSearchParams();
     const date = searchParams.get('date') || '';
 
@@ -102,16 +104,16 @@ function ReceptionBillingDetailPage() {
         async function load() {
             try {
                 const [dayResponse, serviceResponse, paymentResponse] = await Promise.all([
-                    date ? getAppointmentsByDate(date) : Promise.resolve(null),
-                    getAppointmentServices(appointmentId),
+                    date ? fetchAllPages((page, size) => getAppointmentsByDate(date, page, size)) : Promise.resolve([]),
+                    getAppointmentServices(appointmentUuid),
                     // Lịch chưa có khoản thu thì backend báo lỗi, coi như chưa có
-                    getPaymentByAppointment(appointmentId).catch(() => null),
+                    getPaymentByAppointment(appointmentUuid).catch(() => null),
                 ]);
 
                 if (cancelled) return;
 
-                const found = unwrapList(dayResponse).find(
-                    (item) => String(item.appointmentId) === String(appointmentId)
+                const found = dayResponse.find(
+                    (item) => String(item.uuid) === String(appointmentUuid)
                 );
 
                 setAppointment(found ?? null);
@@ -131,7 +133,7 @@ function ReceptionBillingDetailPage() {
         return () => {
             cancelled = true;
         };
-    }, [appointmentId, date, reloadKey]);
+    }, [appointmentUuid, date, reloadKey]);
 
     useEffect(() => {
         let cancelled = false;
@@ -214,7 +216,7 @@ function ReceptionBillingDetailPage() {
         await run(
             () =>
                 addAppointmentService({
-                    appointmentId: Number(appointmentId),
+                    appointmentUuid,
                     serviceId: Number(selectedServiceId),
                     quantity: Number(quantity),
                 }),
@@ -229,7 +231,7 @@ function ReceptionBillingDetailPage() {
         if (!window.confirm(`Xóa dịch vụ "${item.serviceName}" khỏi lịch khám?`)) return;
 
         await run(
-            () => removeAppointmentService(Number(appointmentId), item.serviceId),
+            () => removeAppointmentService(appointmentUuid, item.serviceId),
             'Đã xóa dịch vụ khỏi lịch khám.'
         );
     };
@@ -242,7 +244,7 @@ function ReceptionBillingDetailPage() {
         if (!confirmed) return;
 
         await run(
-            () => createPayment(Number(appointmentId), Number(method)),
+            () => createPayment(appointmentUuid, Number(method)),
             'Đã tạo khoản thu. Hãy xác nhận khi đã nhận tiền.'
         );
     };
@@ -250,7 +252,7 @@ function ReceptionBillingDetailPage() {
     const handleConfirmPayment = async () => {
         if (!window.confirm(`Xác nhận đã nhận ${formatMoney(payment?.amount)} từ bệnh nhân?`)) return;
 
-        await run(() => confirmPayment(Number(appointmentId)), 'Đã xác nhận thanh toán.');
+        await run(() => confirmPayment(appointmentUuid), 'Đã xác nhận thanh toán.');
     };
 
     const backLink = `/reception/billing${date ? `?date=${date}` : ''}`;
@@ -264,7 +266,7 @@ function ReceptionBillingDetailPage() {
                         <Receipt size={16} />
                         QUẦY THU NGÂN
                     </span>
-                    <h1>Thu ngân lịch #{appointmentId}</h1>
+                    <h1>Thu ngân lịch #{shortCode(appointmentUuid)}</h1>
                     <p>Thêm dịch vụ đã thực hiện, tạo khoản thu, xác nhận thanh toán và in hóa đơn.</p>
                 </div>
                 <Receipt className="doctor-page-hero-icon" size={64} strokeWidth={1.3} />
@@ -355,7 +357,7 @@ function ReceptionBillingDetailPage() {
                                     </thead>
                                     <tbody>
                                         {services.map((item) => (
-                                            <tr key={item.id}>
+                                            <tr key={item.serviceId}>
                                                 <td>{item.serviceName}</td>
                                                 <td className="reception-num">{formatMoney(item.priceAtTime)}</td>
                                                 <td className="reception-num">{item.quantity}</td>
@@ -582,7 +584,7 @@ function ReceptionBillingDetailPage() {
                         <header className="reception-invoice-head">
                             <h3>BỆNH VIỆN NAM LƯƠNG SƠN</h3>
                             <p className="reception-invoice-title">HÓA ĐƠN KHÁM BỆNH</p>
-                            <p>Số: HD{String(appointmentId).padStart(6, '0')}</p>
+                            <p>Số: HD-{shortCode(appointmentUuid)}</p>
                         </header>
 
                         <dl className="reception-invoice-info">
@@ -630,7 +632,7 @@ function ReceptionBillingDetailPage() {
                             </thead>
                             <tbody>
                                 {services.map((item) => (
-                                    <tr key={item.id}>
+                                    <tr key={item.serviceId}>
                                         <td>{item.serviceName}</td>
                                         <td className="reception-num">{formatMoney(item.priceAtTime)}</td>
                                         <td className="reception-num">{item.quantity}</td>
@@ -659,3 +661,4 @@ function ReceptionBillingDetailPage() {
 }
 
 export default ReceptionBillingDetailPage;
+

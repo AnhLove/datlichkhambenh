@@ -221,10 +221,6 @@ function DoctorDetailPage() {
                         )}
 
                         <div className="doctor-detail-cta-bar">
-                            <p className="doctor-detail-note">
-                                Cần đăng nhập bằng tài khoản bệnh nhân để hoàn tất đặt lịch.
-                            </p>
-
                             <Link to={`/appointments?${bookingParams.toString()}`} className="doctor-detail-cta">
                                 ĐẶT KHÁM NGAY
                             </Link>

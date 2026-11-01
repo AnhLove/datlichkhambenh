@@ -12,7 +12,8 @@ import {
     Search,
 } from 'lucide-react';
 import { getAppointmentsByDate } from '../../services/receptionService';
-import { unwrapList } from '../../utils/unwrap';
+import { fetchAllPages } from '../../utils/paging';
+import { matchesCode, shortCode } from '../../utils/code';
 import { getTodayString } from '../../utils/date';
 import '../../styles/staff-portal.css';
 import './ReceptionPages.css';
@@ -42,10 +43,10 @@ function ReceptionBillingPage() {
 
         async function load() {
             try {
-                const response = await getAppointmentsByDate(date);
+                const response = await fetchAllPages((page, size) => getAppointmentsByDate(date, page, size));
                 if (cancelled) return;
 
-                setAppointments(unwrapList(response).filter((item) => BILLABLE.includes(Number(item.status))));
+                setAppointments(response.filter((item) => BILLABLE.includes(Number(item.status))));
                 setError('');
             } catch (err) {
                 if (cancelled) return;
@@ -69,7 +70,7 @@ function ReceptionBillingPage() {
             const matchesStatus = statusFilter === 'all' || Number(item.status) === Number(statusFilter);
             const matchesSearch =
                 !keyword ||
-                String(item.appointmentId ?? '').includes(keyword) ||
+                matchesCode(item.uuid, keyword) ||
                 String(item.patientName ?? '')
                     .toLowerCase()
                     .includes(keyword) ||
@@ -215,11 +216,11 @@ function ReceptionBillingPage() {
                             const status = STATUS_MAP[Number(appointment.status)];
 
                             return (
-                                <article className="doctor-appointment-card" key={appointment.appointmentId}>
+                                <article className="doctor-appointment-card" key={appointment.uuid}>
                                     <div className="doctor-appointment-top">
                                         <div>
                                             <span className="doctor-field-label">Mã lịch khám</span>
-                                            <h3>#{appointment.appointmentId}</h3>
+                                            <h3>#{shortCode(appointment.uuid)}</h3>
                                         </div>
                                         <span className={`doctor-status doctor-status-${status.className}`}>
                                             {status.label}
@@ -266,7 +267,7 @@ function ReceptionBillingPage() {
 
                                     <div className="doctor-appointment-actions reception-actions">
                                         <Link
-                                            to={`/reception/billing/${appointment.appointmentId}?date=${appointment.appointmentDate ?? date}`}
+                                            to={`/reception/billing/${appointment.uuid}?date=${appointment.appointmentDate ?? date}`}
                                             className="doctor-primary-button"
                                             style={{ textDecoration: 'none' }}
                                         >
@@ -285,3 +286,4 @@ function ReceptionBillingPage() {
 }
 
 export default ReceptionBillingPage;
+

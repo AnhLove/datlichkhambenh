@@ -251,7 +251,7 @@ function AdminDashboardPage() {
                                     const percent = maxCompleted > 0 ? Math.round((count / maxCompleted) * 100) : 0;
 
                                     return (
-                                        <tr key={doctor.doctorId ?? index}>
+                                        <tr key={doctor.doctorUuid ?? index}>
                                             <td className="admin-col-rank">{index + 1}</td>
                                             <td>{doctor.doctorName}</td>
                                             <td>
@@ -276,3 +276,4 @@ function AdminDashboardPage() {
 }
 
 export default AdminDashboardPage;
+

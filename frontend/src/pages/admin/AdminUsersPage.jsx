@@ -1,8 +1,9 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Lock, Plus, RefreshCw, Unlock, X } from 'lucide-react';
 
 import { createStaff, getUsers, updateUserStatus } from '../../services/userService';
-import { unwrapList } from '../../utils/unwrap';
+import Pagination from '../../components/common/Pagination';
+import { unwrapPage } from '../../utils/unwrap';
 
 import './AdminPage.css';
 
@@ -18,6 +19,16 @@ const ROLE_LABELS = {
 };
 
 const EMPTY_FORM = { fullName: '', phone: '', email: '', password: '', dateOfBirth: '' };
+const PAGE_SIZE = 20;
+const PHONE_REGEX = /^(0|\+84)\d{9}$/;
+
+// Ô tìm kiếm gửi lên backend: toàn số thì tìm theo SĐT, có @ thì theo email, còn lại theo họ tên
+function buildKeywordFilter(text) {
+    if (!text) return {};
+    if (/^[+\d]+$/.test(text)) return { phone: text };
+    if (text.includes('@')) return { email: text };
+    return { fullName: text };
+}
 
 function formatDate(value) {
     if (!value) return '—';
@@ -28,40 +39,100 @@ function formatDate(value) {
 
 function validateForm(form) {
     if (!form.fullName.trim()) return 'Họ tên không được để trống.';
-    if (!/^\d{9,15}$/.test(form.phone.trim())) return 'Số điện thoại phải gồm 9 đến 15 chữ số.';
+    if (!PHONE_REGEX.test(form.phone.trim())) return 'Số điện thoại phải dạng 0xxxxxxxxx hoặc +84xxxxxxxxx.';
     if (!/^\S+@\S+\.\S+$/.test(form.email.trim())) return 'Email không hợp lệ.';
-    if (form.password.length < 6) return 'Mật khẩu phải có ít nhất 6 ký tự.';
+    if (form.password.length < 8 || form.password.length > 72) return 'Mật khẩu phải từ 8 đến 72 ký tự.';
+    if (new TextEncoder().encode(form.password).length > 72) {
+        return 'Mật khẩu không được vượt quá 72 byte (ký tự có dấu chiếm nhiều byte).';
+    }
     return '';
 }
 
 function AdminUsersPage() {
     const [users, setUsers] = useState([]);
+    const [page, setPage] = useState(1);
+    const [pageInfo, setPageInfo] = useState({ page: 1, totalPages: 0, totalElements: 0 });
     const [loading, setLoading] = useState(true);
     const [loadError, setLoadError] = useState('');
     const [notice, setNotice] = useState('');
     const [keyword, setKeyword] = useState('');
+    const [appliedKeyword, setAppliedKeyword] = useState('');
+    const appliedKeywordRef = useRef('');
     const [roleFilter, setRoleFilter] = useState('all');
     const [statusFilter, setStatusFilter] = useState('all');
+    const [reloadKey, setReloadKey] = useState(0);
     const [togglingUuid, setTogglingUuid] = useState(null);
     const [form, setForm] = useState(null);
     const [formError, setFormError] = useState('');
     const [saving, setSaving] = useState(false);
 
-    const loadUsers = useCallback(async () => {
-        try {
-            const response = await getUsers();
-            setUsers(unwrapList(response));
-            setLoadError('');
-        } catch (err) {
-            setLoadError(err.message || 'Không thể tải danh sách tài khoản.');
-        } finally {
-            setLoading(false);
-        }
-    }, []);
+    const reload = () => setReloadKey((key) => key + 1);
 
     useEffect(() => {
-        loadUsers(true);
-    }, [loadUsers]);
+        let cancelled = false;
+
+        async function loadUsers() {
+            try {
+                const response = await getUsers({
+                    page,
+                    size: PAGE_SIZE,
+                    ...buildKeywordFilter(appliedKeyword),
+                    role: roleFilter === 'all' ? '' : roleFilter,
+                    status: statusFilter === 'all' ? '' : statusFilter,
+                });
+                if (cancelled) return;
+
+                const result = unwrapPage(response);
+                setUsers(result.content);
+                setPageInfo({ page: result.page, totalPages: result.totalPages, totalElements: result.totalElements });
+                setLoadError('');
+            } catch (err) {
+                if (cancelled) return;
+                setUsers([]);
+                setLoadError(err.message || 'Không thể tải danh sách tài khoản.');
+            } finally {
+                if (!cancelled) setLoading(false);
+            }
+        }
+
+        loadUsers();
+
+        return () => {
+            cancelled = true;
+        };
+    }, [page, appliedKeyword, roleFilter, statusFilter, reloadKey]);
+
+    // Đợi người dùng gõ xong 400ms rồi mới gọi backend
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            const next = keyword.trim();
+            if (next === appliedKeywordRef.current) return;
+
+            appliedKeywordRef.current = next;
+            setAppliedKeyword(next);
+            setPage(1);
+            setLoading(true);
+        }, 400);
+
+        return () => clearTimeout(timer);
+    }, [keyword]);
+
+    const handleRoleChange = (value) => {
+        setRoleFilter(value);
+        setPage(1);
+        setLoading(true);
+    };
+
+    const handleStatusChange = (value) => {
+        setStatusFilter(value);
+        setPage(1);
+        setLoading(true);
+    };
+
+    const handlePageChange = (nextPage) => {
+        setPage(nextPage);
+        setLoading(true);
+    };
 
     useEffect(() => {
         if (!form) return undefined;
@@ -77,7 +148,7 @@ function AdminUsersPage() {
     const handleReload = () => {
         setLoading(true);
         setNotice('');
-        loadUsers();
+        reload();
     };
 
     const openCreate = () => {
@@ -108,7 +179,8 @@ function AdminUsersPage() {
 
             setForm(null);
             setNotice('Đã tạo tài khoản lễ tân.');
-            await loadUsers();
+            setLoading(true);
+            reload();
         } catch (err) {
             setFormError(err.message || 'Không thể tạo tài khoản.');
         } finally {
@@ -133,7 +205,7 @@ function AdminUsersPage() {
         try {
             await updateUserStatus(user.uuid, nextStatus);
             setNotice(willLock ? 'Đã khóa tài khoản.' : 'Đã mở khóa tài khoản.');
-            await loadUsers();
+            reload();
         } catch (err) {
             setNotice('');
             setLoadError(err.message || 'Không thể đổi trạng thái tài khoản.');
@@ -142,18 +214,7 @@ function AdminUsersPage() {
         }
     };
 
-    const normalizedKeyword = keyword.trim().toLowerCase();
-
-    const visibleUsers = users.filter((user) => {
-        if (roleFilter !== 'all' && Number(user.role) !== Number(roleFilter)) return false;
-        if (statusFilter !== 'all' && Number(user.status) !== Number(statusFilter)) return false;
-
-        if (!normalizedKeyword) return true;
-
-        return [user.fullName, user.phone, user.email].some((field) =>
-            (field || '').toLowerCase().includes(normalizedKeyword)
-        );
-    });
+    const visibleUsers = users;
 
     return (
         <section className="admin-page">
@@ -182,7 +243,7 @@ function AdminUsersPage() {
 
                 <label className="admin-field">
                     <span>Vai trò</span>
-                    <select value={roleFilter} onChange={(event) => setRoleFilter(event.target.value)}>
+                    <select value={roleFilter} onChange={(event) => handleRoleChange(event.target.value)}>
                         <option value="all">Tất cả</option>
                         {Object.entries(ROLE_LABELS).map(([code, label]) => (
                             <option key={code} value={code}>
@@ -194,7 +255,7 @@ function AdminUsersPage() {
 
                 <label className="admin-field">
                     <span>Trạng thái</span>
-                    <select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)}>
+                    <select value={statusFilter} onChange={(event) => handleStatusChange(event.target.value)}>
                         <option value="all">Tất cả</option>
                         <option value={STATUS_ACTIVE}>Hoạt động</option>
                         <option value={STATUS_LOCKED}>Ngừng hoạt động</option>
@@ -279,6 +340,14 @@ function AdminUsersPage() {
                         </table>
                     </div>
                 )}
+
+                <Pagination
+                    page={pageInfo.page}
+                    totalPages={pageInfo.totalPages}
+                    totalElements={pageInfo.totalElements}
+                    onChange={handlePageChange}
+                    disabled={loading}
+                />
             </div>
 
             {form && (
@@ -374,3 +443,4 @@ function AdminUsersPage() {
 }
 
 export default AdminUsersPage;
+

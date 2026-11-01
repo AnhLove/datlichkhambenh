@@ -83,7 +83,7 @@ function App() {
                         <Route path="/reception/patients" element={<ReceptionPatientsPage />} />
                         <Route path="/reception/booking" element={<ReceptionBookingPage />} />
                         <Route path="/reception/billing" element={<ReceptionBillingPage />} />
-                        <Route path="/reception/billing/:appointmentId" element={<ReceptionBillingDetailPage />} />
+                        <Route path="/reception/billing/:appointmentUuid" element={<ReceptionBillingDetailPage />} />
                         <Route path="/reception/profile" element={<ProfilePage />} />
                     </Route>
                 </Route>
@@ -107,3 +107,4 @@ function App() {
 }
 
 export default App;
+

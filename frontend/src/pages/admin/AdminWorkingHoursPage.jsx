@@ -3,6 +3,7 @@ import { Check, RefreshCw, X } from 'lucide-react';
 
 import { searchDoctors } from '../../services/doctorService';
 import { getWorkingHoursByStatus, updateWorkingHourStatus } from '../../services/workingHourService';
+import { fetchAllPages } from '../../utils/paging';
 import { unwrapList } from '../../utils/unwrap';
 
 import './AdminPage.css';
@@ -32,7 +33,7 @@ function AdminWorkingHoursPage() {
 
     const doctorByUuid = new Map(doctors.map((doctor) => [doctor.uuid, doctor]));
 
-    const getDoctorName = (item) => doctorByUuid.get(item.uuid)?.fullName || '—';
+    const getDoctorName = (item) => item.doctorName || doctorByUuid.get(item.doctorUuid)?.fullName || '—';
 
     useEffect(() => {
         let cancelled = false;
@@ -40,11 +41,11 @@ function AdminWorkingHoursPage() {
         async function loadItems() {
             try {
                 const [response, doctorResponse] = await Promise.all([
-                    getWorkingHoursByStatus(status),
+                    fetchAllPages((page, size) => getWorkingHoursByStatus(status, page, size)),
                     searchDoctors('', ''),
                 ]);
                 if (cancelled) return;
-                setItems(unwrapList(response));
+                setItems(response);
                 setDoctors(unwrapList(doctorResponse));
                 setLoadError('');
             } catch (err) {
@@ -84,11 +85,11 @@ function AdminWorkingHoursPage() {
         );
         if (!confirmed) return;
 
-        setProcessingId(item.id);
+        setProcessingId(item.uuid);
         setLoadError('');
 
         try {
-            await updateWorkingHourStatus(item.id, nextStatus);
+            await updateWorkingHourStatus(item.uuid, nextStatus);
             setNotice(nextStatus === STATUS_APPROVED ? 'Đã duyệt lịch làm việc.' : 'Đã từ chối lịch làm việc.');
             setReloadKey((key) => key + 1);
         } catch (err) {
@@ -162,11 +163,11 @@ function AdminWorkingHoursPage() {
                             </thead>
                             <tbody>
                                 {items.map((item) => (
-                                    <tr key={item.id}>
+                                    <tr key={item.uuid}>
                                         <td>
                                             <strong>{getDoctorName(item)}</strong>
                                         </td>
-                                        <td>{doctorByUuid.get(item.uuid)?.departmentName || '—'}</td>
+                                        <td>{doctorByUuid.get(item.doctorUuid)?.departmentName || '—'}</td>
                                         <td>{DAYS[Number(item.dayOfWeek)] || '—'}</td>
                                         <td>{SHIFTS[Number(item.shiftType)] || '—'}</td>
                                         <td className="admin-col-actions">
@@ -177,7 +178,7 @@ function AdminWorkingHoursPage() {
                                                     title="Duyệt"
                                                     aria-label={`Duyệt lịch của ${getDoctorName(item)}`}
                                                     onClick={() => handleChangeStatus(item, STATUS_APPROVED)}
-                                                    disabled={processingId === item.id}
+                                                    disabled={processingId === item.uuid}
                                                 >
                                                     <Check size={16} />
                                                 </button>
@@ -190,7 +191,7 @@ function AdminWorkingHoursPage() {
                                                     title="Từ chối"
                                                     aria-label={`Từ chối lịch của ${getDoctorName(item)}`}
                                                     onClick={() => handleChangeStatus(item, STATUS_REJECTED)}
-                                                    disabled={processingId === item.id}
+                                                    disabled={processingId === item.uuid}
                                                 >
                                                     <X size={16} />
                                                 </button>
@@ -208,3 +209,4 @@ function AdminWorkingHoursPage() {
 }
 
 export default AdminWorkingHoursPage;
+
