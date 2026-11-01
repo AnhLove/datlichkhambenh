@@ -1,30 +1,20 @@
 package vn.namluongson.datlichkhambenhv.repository.user;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
 import vn.namluongson.datlichkhambenhv.domain.entities.User;
 
-import java.util.List;
-
 @Repository
-public interface UserRepository extends JpaRepository<User, Long> {
-    Page<User> findByFullNameContainingIgnoreCase(String fullName, Pageable pageable);
-
-    List<User> findByFullNameContainingIgnoreCase(String fullName);
+public interface UserRepository extends JpaRepository<User, Long>, JpaSpecificationExecutor<User> {
 
     User findByUuid(String uuid);
-
-    @Query(value = "SELECT * FROM USERS WHERE STATUS = 0 AND UPPER(FULL_NAME) LIKE UPPER(CONCAT(CONCAT('%', :fullName), '%'))", nativeQuery = true)
-    List<User> getListUserByName(@Param("fullName") String fullName);
 
     User findByEmailIgnoreCase(String email);
 
     boolean existsByRole(Short role);
     boolean existsByEmailIgnoreCase(String email);
+    boolean existsByEmailIgnoreCaseAndIdNot(String email, Long id);
     boolean existsByPhone(String phone);
 
     boolean existsByPhoneAndIdNot(String phone, Long id);
