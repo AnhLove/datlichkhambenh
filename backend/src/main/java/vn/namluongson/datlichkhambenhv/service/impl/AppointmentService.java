@@ -1,11 +1,16 @@
 package vn.namluongson.datlichkhambenhv.service.impl;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import vn.namluongson.datlichkhambenhv.config.security.CustomUserDetails;
+import vn.namluongson.datlichkhambenhv.domain.dtos.requests.BasePagingRequest;
 import vn.namluongson.datlichkhambenhv.domain.dtos.requests.appointment.CancelAppointmentRequest;
 import vn.namluongson.datlichkhambenhv.domain.dtos.requests.appointment.CreateAppointmentRequest;
 import vn.namluongson.datlichkhambenhv.domain.dtos.responses.appointment.AppointmentResponse;
@@ -17,6 +22,7 @@ import vn.namluongson.datlichkhambenhv.domain.enums.Role;
 import vn.namluongson.datlichkhambenhv.domain.enums.TimeSlot;
 import vn.namluongson.datlichkhambenhv.domain.enums.UserStatus;
 import vn.namluongson.datlichkhambenhv.domain.response.ApiResponse;
+import vn.namluongson.datlichkhambenhv.domain.response.PageResponse;
 import vn.namluongson.datlichkhambenhv.exception.BusinessException;
 import vn.namluongson.datlichkhambenhv.repository.appointment.AppointmentRepository;
 import vn.namluongson.datlichkhambenhv.repository.department.DepartmentRepository;
@@ -44,6 +50,7 @@ public class AppointmentService implements IAppointmentService {
     private static final ZoneId VN_ZONE = ZoneId.of("Asia/Ho_Chi_Minh");
 
     private static final List<Integer> ACTIVE_STATUSES = List.of(1, 2, 3);
+    private static final int MAX_BOOKING_DAYS_AHEAD = 90;
 
     @Override
     public ApiResponse createAppointment(CreateAppointmentRequest request) {
@@ -70,6 +77,9 @@ public class AppointmentService implements IAppointmentService {
 
         if (request.getAppointmentDate().isBefore(LocalDate.now(VN_ZONE))) {
             throw BusinessException.badRequest("Khong the dat lich qua khu");
+        }
+        if (request.getAppointmentDate().isAfter(LocalDate.now(VN_ZONE).plusDays(MAX_BOOKING_DAYS_AHEAD))) {
+            throw BusinessException.badRequest("Chi duoc dat lich trong vong " + MAX_BOOKING_DAYS_AHEAD + " ngay toi");
         }
         var doctorUser = userRepository.findByUuid(request.getDoctorUuid());
         if (doctorUser == null) {
@@ -193,31 +203,28 @@ public class AppointmentService implements IAppointmentService {
         }).toList();
     }
 
+
     @Override
-    public ApiResponse getMyAppointments() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
-        if (authentication == null || !(authentication.getPrincipal() instanceof CustomUserDetails userDetails)) {
-            throw BusinessException.unauthorized("Vui lòng đăng nhập");
-        }
-
-        User currentUser = userDetails.getUser();
+    @Transactional(readOnly = true)
+    public ApiResponse getMyAppointments(BasePagingRequest paging) {
+        User currentUser = currentUser();
 
         if (currentUser.getRole() != Role.PATIENT.getCode()) {
             throw BusinessException.forbidden("Khong phai benh nhan");
         }
 
-        var appointments = appointmentRepository.findByPatient_IdOrderByAppointmentDateAsc(currentUser.getId());
+        Pageable pageable = paging.toPageable(Sort.by(Sort.Direction.DESC, "appointmentDate")
+                .and(Sort.by(Sort.Direction.ASC, "timeSlot"))
+                .and(Sort.by(Sort.Direction.ASC, "id")));
 
-        List<AppointmentResponse> response = appointments.stream()
-                .map(this::toResponse)
-                .toList();
+        Page<AppointmentResponse> page = appointmentRepository.findByPatient_Id(currentUser.getId(), pageable)
+                .map(this::toResponse);
 
-        return new ApiResponse(200, null, response);
+        return new ApiResponse(200, null, PageResponse.of(page));
     }
 
     @Override
-    public ApiResponse cancelAppointment(Long appointmentId, CancelAppointmentRequest request) {
+    public ApiResponse cancelAppointment(String appointmentUuid, CancelAppointmentRequest request) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         if (authentication == null || !(authentication.getPrincipal() instanceof CustomUserDetails userDetails)) {
@@ -230,7 +237,7 @@ public class AppointmentService implements IAppointmentService {
             throw BusinessException.forbidden("Khong phai benh nhan");
         }
 
-        Appointment appointment = appointmentRepository.findByIdAndPatient_Id(appointmentId, currentUser.getId())
+        Appointment appointment = appointmentRepository.findByUuidAndPatient_Id(appointmentUuid, currentUser.getId())
                 .orElseThrow(() -> BusinessException.notFound("Khong tim thay lich hen"));
 
         int currentStatus = appointment.getStatus();
@@ -254,7 +261,7 @@ public class AppointmentService implements IAppointmentService {
     }
 
     @Override
-    public ApiResponse confirmAppointment(Long appointmentId) {
+    public ApiResponse confirmAppointment(String appointmentUuid) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         if (authentication == null || !(authentication.getPrincipal() instanceof CustomUserDetails userDetails)) {
@@ -267,7 +274,7 @@ public class AppointmentService implements IAppointmentService {
             throw BusinessException.forbidden("Khong co quyen xac nhan lich hen");
         }
 
-        Appointment appointment = appointmentRepository.findById(appointmentId)
+        Appointment appointment = appointmentRepository.findByUuid(appointmentUuid)
                 .orElseThrow(() -> BusinessException.notFound("Khong tim thay lich hen"));
 
         if (appointment.getStatus() != AppointmentStatus.PENDING.getCode()) {
@@ -282,7 +289,7 @@ public class AppointmentService implements IAppointmentService {
     }
 
     @Override
-    public ApiResponse checkInAppointment(Long appointmentId) {
+    public ApiResponse checkInAppointment(String appointmentUuid) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         if (authentication == null || !(authentication.getPrincipal() instanceof CustomUserDetails userDetails)) {
@@ -295,7 +302,7 @@ public class AppointmentService implements IAppointmentService {
             throw BusinessException.forbidden("Khong co quyen check-in lich hen");
         }
 
-        Appointment appointment = appointmentRepository.findById(appointmentId)
+        Appointment appointment = appointmentRepository.findByUuid(appointmentUuid)
                 .orElseThrow(() -> BusinessException.notFound("Khong tim thay lich hen"));
 
         if (appointment.getStatus() != AppointmentStatus.CONFIRMED.getCode()) {
@@ -311,7 +318,7 @@ public class AppointmentService implements IAppointmentService {
     }
 
     @Override
-    public ApiResponse noShowAppointment(Long appointmentId) {
+    public ApiResponse noShowAppointment(String appointmentUuid) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         if (authentication == null || !(authentication.getPrincipal() instanceof CustomUserDetails userDetails)) {
@@ -324,7 +331,7 @@ public class AppointmentService implements IAppointmentService {
             throw BusinessException.forbidden("Khong co quyen danh dau no-show");
         }
 
-        Appointment appointment = appointmentRepository.findById(appointmentId)
+        Appointment appointment = appointmentRepository.findByUuid(appointmentUuid)
                 .orElseThrow(() -> BusinessException.notFound("Khong tim thay lich hen"));
 
         if (appointment.getStatus() != AppointmentStatus.CONFIRMED.getCode()) {
@@ -339,7 +346,7 @@ public class AppointmentService implements IAppointmentService {
     }
 
     @Override
-    public ApiResponse completeAppointment(Long appointmentId) {
+    public ApiResponse completeAppointment(String appointmentUuid) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         if (authentication == null || !(authentication.getPrincipal() instanceof CustomUserDetails userDetails)) {
@@ -352,7 +359,7 @@ public class AppointmentService implements IAppointmentService {
             throw BusinessException.forbidden("Khong co quyen hoan thanh lich hen");
         }
 
-        Appointment appointment = appointmentRepository.findById(appointmentId)
+        Appointment appointment = appointmentRepository.findByUuid(appointmentUuid)
                 .orElseThrow(() -> BusinessException.notFound("Khong tim thay lich hen"));
 
         if (currentUser.getRole() == Role.DOCTOR.getCode()
@@ -371,59 +378,36 @@ public class AppointmentService implements IAppointmentService {
         return new ApiResponse(200, "Hoan thanh lich hen", toResponse(savedAppointment));
     }
 
+
     @Override
-    public ApiResponse getTodayAppointments() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
-        if (authentication == null || !(authentication.getPrincipal() instanceof CustomUserDetails userDetails)) {
-            throw BusinessException.unauthorized("Vui lòng đăng nhập");
-        }
-
-        User currentUser = userDetails.getUser();
-
-        if (currentUser.getRole() != Role.STAFF.getCode() && currentUser.getRole() != Role.ADMIN.getCode()) {
-            throw BusinessException.forbidden("Khong co quyen xem lich hen");
-        }
+    @Transactional(readOnly = true)
+    public ApiResponse getTodayAppointments(BasePagingRequest paging) {
+        requireStaffOrAdmin();
 
         LocalDate today = LocalDate.now(VN_ZONE);
 
-        List<Appointment> appointments = appointmentRepository.findByAppointmentDateOrderByTimeSlotAsc(today);
+        Page<AppointmentResponse> page = appointmentRepository
+                .findByAppointmentDate(today, paging.toPageable(STAFF_SORT))
+                .map(this::toResponseWithPatient);
 
-        List<AppointmentResponse> response = appointments.stream()
-                .map(this::toResponse)
-                .toList();
+        return new ApiResponse(200, "Danh sach lich hen hom nay", PageResponse.of(page));
+    }
 
-        return new ApiResponse(200, "Danh sach lich hen hom nay", response);
+
+    @Override
+    @Transactional(readOnly = true)
+    public ApiResponse getAppointmentsByDate(LocalDate date, BasePagingRequest paging) {
+        requireStaffOrAdmin();
+
+        Page<AppointmentResponse> page = appointmentRepository
+                .findByAppointmentDate(date, paging.toPageable(STAFF_SORT))
+                .map(this::toResponseWithPatient);
+
+        return new ApiResponse(200, "Danh sach lich hen theo ngay", PageResponse.of(page));
     }
 
     @Override
-    public ApiResponse getAppointmentsByDate(LocalDate date) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
-        if (authentication == null || !(authentication.getPrincipal() instanceof CustomUserDetails userDetails)) {
-            throw BusinessException.unauthorized("Vui lòng đăng nhập");
-        }
-
-        User currentUser = userDetails.getUser();
-
-        if (currentUser.getRole() != Role.STAFF.getCode() && currentUser.getRole() != Role.ADMIN.getCode()) {
-            throw BusinessException.forbidden("Khong co quyen xem lich hen");
-        }
-
-        List<AppointmentResponse> response = appointmentRepository.findByAppointmentDateOrderByTimeSlotAsc(date).stream()
-                .map(appointment -> {
-                    AppointmentResponse data = toResponse(appointment);
-                    data.setPatientName(appointment.getPatient().getFullName());
-                    data.setPatientPhone(appointment.getPatient().getPhone());
-                    return data;
-                })
-                .toList();
-
-        return new ApiResponse(200, "Danh sach lich hen theo ngay", response);
-    }
-
-    @Override
-    public ApiResponse rejectAppointment(Long appointmentId, CancelAppointmentRequest request) {
+    public ApiResponse rejectAppointment(String appointmentUuid, CancelAppointmentRequest request) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         if (authentication == null || !(authentication.getPrincipal() instanceof CustomUserDetails userDetails)) {
@@ -436,7 +420,7 @@ public class AppointmentService implements IAppointmentService {
             throw BusinessException.forbidden("Khong co quyen huy lich hen");
         }
 
-        Appointment appointment = appointmentRepository.findById(appointmentId)
+        Appointment appointment = appointmentRepository.findByUuid(appointmentUuid)
                 .orElseThrow(() -> BusinessException.notFound("Khong tim thay lich hen"));
 
         int currentStatus = appointment.getStatus();
@@ -453,32 +437,53 @@ public class AppointmentService implements IAppointmentService {
         return new ApiResponse(200, "Da huy lich hen", toResponse(savedAppointment));
     }
 
+
     @Override
-    public ApiResponse getMyDoctorAppointments() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
-        if (authentication == null || !(authentication.getPrincipal() instanceof CustomUserDetails userDetails)) {
-            throw BusinessException.unauthorized("Vui lòng đăng nhập");
-        }
-
-        User currentUser = userDetails.getUser();
+    @Transactional(readOnly = true)
+    public ApiResponse getMyDoctorAppointments(BasePagingRequest paging) {
+        User currentUser = currentUser();
 
         if (currentUser.getRole() != Role.DOCTOR.getCode()) {
             throw BusinessException.forbidden("Chi bac si moi duoc xem lich cua minh");
         }
 
-        List<Appointment> appointments = appointmentRepository
-                .findByDoctor_User_IdOrderByAppointmentDateAscTimeSlotAsc(currentUser.getId());
+        Pageable pageable = paging.toPageable(Sort.by(Sort.Direction.DESC, "appointmentDate")
+                .and(Sort.by(Sort.Direction.ASC, "timeSlot"))
+                .and(Sort.by(Sort.Direction.ASC, "id")));
 
-        List<AppointmentResponse> response = appointments.stream()
+        Page<AppointmentResponse> page = appointmentRepository
+                .findByDoctor_User_Id(currentUser.getId(), pageable)
                 .map(appointment -> {
                     AppointmentResponse data = toResponse(appointment);
                     data.setPatientName(appointment.getPatient().getFullName());
                     return data;
-                })
-                .toList();
+                });
 
-        return new ApiResponse(200, "Danh sach lich hen cua bac si", response);
+        return new ApiResponse(200, "Danh sach lich hen cua bac si", PageResponse.of(page));
+    }
+
+    private static final Sort STAFF_SORT = Sort.by(Sort.Direction.ASC, "timeSlot").and(Sort.by(Sort.Direction.ASC, "id"));
+
+    private User currentUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !(authentication.getPrincipal() instanceof CustomUserDetails userDetails)) {
+            throw BusinessException.unauthorized("Vui lòng đăng nhập");
+        }
+        return userDetails.getUser();
+    }
+
+    private void requireStaffOrAdmin() {
+        User currentUser = currentUser();
+        if (currentUser.getRole() != Role.STAFF.getCode() && currentUser.getRole() != Role.ADMIN.getCode()) {
+            throw BusinessException.forbidden("Khong co quyen xem lich hen");
+        }
+    }
+
+    private AppointmentResponse toResponseWithPatient(Appointment appointment) {
+        AppointmentResponse data = toResponse(appointment);
+        data.setPatientName(appointment.getPatient().getFullName());
+        data.setPatientPhone(appointment.getPatient().getPhone());
+        return data;
     }
 
     private boolean isSlotInPast(LocalDate date, TimeSlot slot) {
@@ -493,7 +498,7 @@ public class AppointmentService implements IAppointmentService {
 
     private AppointmentResponse toResponse(Appointment a) {
         return AppointmentResponse.builder()
-                .appointmentId(a.getId())
+                .uuid(a.getUuid())
                 .doctorName(a.getDoctor().getUser().getFullName())
                 .departmentName(a.getDepartment().getName())
                 .appointmentDate(a.getAppointmentDate())

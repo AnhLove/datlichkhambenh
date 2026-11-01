@@ -1,11 +1,14 @@
 package vn.namluongson.datlichkhambenhv.service.impl;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import vn.namluongson.datlichkhambenhv.config.security.CustomUserDetails;
+import vn.namluongson.datlichkhambenhv.domain.dtos.requests.BasePagingRequest;
 import vn.namluongson.datlichkhambenhv.domain.dtos.requests.doctorworking.CreateDoctorWorkingHourRequest;
 import vn.namluongson.datlichkhambenhv.domain.dtos.requests.doctorworking.UpdateDoctorWorkingHourStatusRequest;
 import vn.namluongson.datlichkhambenhv.domain.dtos.responses.doctorworking.DoctorWorkingHourResponse;
@@ -18,6 +21,7 @@ import vn.namluongson.datlichkhambenhv.domain.enums.Role;
 import vn.namluongson.datlichkhambenhv.domain.enums.ShiftType;
 import vn.namluongson.datlichkhambenhv.domain.enums.TimeSlot;
 import vn.namluongson.datlichkhambenhv.domain.response.ApiResponse;
+import vn.namluongson.datlichkhambenhv.domain.response.PageResponse;
 import vn.namluongson.datlichkhambenhv.exception.BusinessException;
 import vn.namluongson.datlichkhambenhv.repository.appointment.AppointmentRepository;
 import vn.namluongson.datlichkhambenhv.repository.doctor.DoctorRepository;
@@ -32,19 +36,20 @@ import java.util.List;
 @RequiredArgsConstructor
 public class DoctorWorkingHourService implements IDoctorWorkingHourService {
     private static final ZoneId VN_ZONE = ZoneId.of("Asia/Ho_Chi_Minh");
-
     private final DoctorWorkingHourRepository doctorWorkingHourRepository;
     private final DoctorRepository doctorRepository;
     private final AppointmentRepository appointmentRepository;
 
+
     @Override
+    @Transactional
     public ApiResponse createDoctorWorkingHour(CreateDoctorWorkingHourRequest request) {
-        Doctor doctor = doctorRepository.findById(request.getDoctorId()).orElse(null);
+        Doctor doctor = doctorRepository.findByUser_Uuid(request.getDoctorUuid()).orElse(null);
         if(doctor == null) {
             throw BusinessException.notFound("Ko ton tai Bac Si");
         }
 
-        boolean exists = doctorWorkingHourRepository.existsByDoctor_IdAndDayOfWeek(request.getDoctorId(), request.getDayOfWeek());
+        boolean exists = doctorWorkingHourRepository.existsByDoctor_IdAndDayOfWeek(doctor.getId(), request.getDayOfWeek());
 
         if(exists){
             throw BusinessException.conflict("Da co lich");
@@ -56,58 +61,38 @@ public class DoctorWorkingHourService implements IDoctorWorkingHourService {
         workingHour.setShiftType(request.getShiftType());
         workingHour.setSetBy(doctor.getUser());
         doctorWorkingHourRepository.save(workingHour);
-        return new ApiResponse(200, null, workingHour.getId());
+        return new ApiResponse(200, null, workingHour.getUuid());
     }
 
+
     @Override
+    @Transactional(readOnly = true)
     public List<DoctorWorkingHourResponse> getWorkingHoursByDoctorUuid(String uuid) throws Exception{
-        List<DoctorWorkingHour> workingHours = doctorWorkingHourRepository.findByDoctor_User_Uuid(uuid);
-        if(workingHours.isEmpty()) {
-            return List.of();
-        }
+        return doctorWorkingHourRepository.findByDoctor_User_Uuid(uuid).stream().map(this::toResponse).toList();
+    }
 
-        return workingHours.stream().map(res -> {
-            DoctorWorkingHourResponse response = new DoctorWorkingHourResponse();
-            response.setId(res.getId());
-            response.setUuid(res.getDoctor().getUser().getUuid());
-            response.setDayOfWeek(res.getDayOfWeek());
-            response.setShiftType(res.getShiftType());
-            response.setStatus(res.getStatus());
-            response.setSetByUuid(res.getSetBy().getUuid());
-            return response;
-        }).toList();
+
+    @Override
+    @Transactional(readOnly = true)
+    public PageResponse<DoctorWorkingHourResponse> getWorkingHourByStatus(Short status, BasePagingRequest paging) {
+        if (status == null || status < DoctorWorkingHourStatus.PENDING.getCode() || status > DoctorWorkingHourStatus.REJECTED.getCode()) {
+            throw BusinessException.badRequest("Trang thai khong hop le");
+        }
+        Page<DoctorWorkingHour> page = doctorWorkingHourRepository.findByStatus(status, paging.toPageable(Sort.by("id")));
+        return PageResponse.of(page.map(this::toResponse));
     }
 
     @Override
-    public List<DoctorWorkingHourResponse> getWorkingHourByStatus(Short status) throws Exception{
-        List<DoctorWorkingHour> workingHours = doctorWorkingHourRepository.findByStatus(status);
-
-        if(workingHours.isEmpty()) {
-            return List.of();
-        }
-
-        return workingHours.stream().map(res -> {
-            DoctorWorkingHourResponse response = new DoctorWorkingHourResponse();
-            response.setId(res.getId());
-            response.setUuid(res.getDoctor().getUser().getUuid());
-            response.setDayOfWeek(res.getDayOfWeek());
-            response.setShiftType(res.getShiftType());
-            response.setStatus(res.getStatus());
-            response.setSetByUuid(res.getSetBy().getUuid());
-            return response;
-        }).toList();
-    }
-
-    @Override
-    public ApiResponse updateWorkingStatus(Long id, UpdateDoctorWorkingHourStatusRequest request) throws Exception {
-        var entity = doctorWorkingHourRepository.findById(id).orElse(null);
+    @Transactional
+    public ApiResponse updateWorkingStatus(String uuid, UpdateDoctorWorkingHourStatusRequest request) {
+        var entity = doctorWorkingHourRepository.findByUuid(uuid).orElse(null);
         if(entity == null) {
             throw BusinessException.notFound("Khong tim thay lich lam viec");
         }
 
         if(entity.getStatus() == 1){
             var newStatus = request.getStatus();
-            if(newStatus == 2 || newStatus == 3){
+            if(newStatus != null && (newStatus == 2 || newStatus == 3)){
                 entity.setStatus(newStatus);
                 doctorWorkingHourRepository.save(entity);
             }else {
@@ -116,7 +101,7 @@ public class DoctorWorkingHourService implements IDoctorWorkingHourService {
         } else {
             throw BusinessException.badRequest("Chi co the sua tu dang cho");
         }
-        return new ApiResponse(200, null, entity.getId());
+        return new ApiResponse(200, null, entity.getUuid());
     }
 
     @Override
@@ -143,7 +128,7 @@ public class DoctorWorkingHourService implements IDoctorWorkingHourService {
         DoctorWorkingHour existing = doctorWorkingHourRepository.findByDoctor_IdAndDayOfWeek(doctor.getId(), dayOfWeek).orElse(null);
 
         if (existing != null && existing.getShiftType().equals(shiftType) && existing.getStatus() != DoctorWorkingHourStatus.REJECTED.getCode()) {
-            return new ApiResponse(200, "Lich lam viec khong thay doi", existing.getId());
+            return new ApiResponse(200, "Lich lam viec khong thay doi", existing.getUuid());
         }
 
         checkNoConflictingAppointments(doctor.getId(), dayOfWeek, shiftType);
@@ -159,7 +144,19 @@ public class DoctorWorkingHourService implements IDoctorWorkingHourService {
 
         DoctorWorkingHour saved = doctorWorkingHourRepository.save(workingHour);
 
-        return new ApiResponse(200, "Da gui lich lam viec, vui long cho quan tri duyet", saved.getId());
+        return new ApiResponse(200, "Da gui lich lam viec, vui long cho quan tri duyet", saved.getUuid());
+    }
+
+    private DoctorWorkingHourResponse toResponse(DoctorWorkingHour entity) {
+        DoctorWorkingHourResponse response = new DoctorWorkingHourResponse();
+        response.setUuid(entity.getUuid());
+        response.setDoctorUuid(entity.getDoctor().getUser().getUuid());
+        response.setDoctorName(entity.getDoctor().getUser().getFullName());
+        response.setDayOfWeek(entity.getDayOfWeek());
+        response.setShiftType(entity.getShiftType());
+        response.setStatus(entity.getStatus());
+        response.setSetByUuid(entity.getSetBy().getUuid());
+        return response;
     }
 
     private void checkNoConflictingAppointments(Long doctorId, Short dayOfWeek, Short newShift) {

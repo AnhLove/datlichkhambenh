@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import vn.namluongson.datlichkhambenhv.domain.dtos.requests.department.CreateDepartmentRequest;
 import vn.namluongson.datlichkhambenhv.domain.dtos.requests.department.DepartmentPagingRequest;
@@ -20,6 +21,9 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class DepartmentService implements IDepartmentService {
+    private static final int MAX_LIST_SIZE = 200;
+    private static final Sort DEPARTMENT_SORT = Sort.by("name").and(Sort.by("id"));
+
     private final DepartmentRepository departmentRepository;
 
     public ApiResponse createDepartment(CreateDepartmentRequest request) {
@@ -57,16 +61,20 @@ public class DepartmentService implements IDepartmentService {
     }
 
     public Page<Department> getDepartments(DepartmentPagingRequest request) {
-        Pageable pageable = PageRequest.of(request.getPage() - 1, request.getSize());
+        Pageable pageable = request.toPageable(DEPARTMENT_SORT);
+        if (request.getName() != null && !request.getName().trim().isEmpty()) {
+            return departmentRepository.findByNameContainingIgnoreCase(request.getName().trim(), pageable);
+        }
         return departmentRepository.findAll(pageable);
     }
 
     @Override
     public List<Department> getListDepartments(ListDepartmentRequest request) {
+        Pageable pageable = PageRequest.of(0, MAX_LIST_SIZE, DEPARTMENT_SORT);
         if(request != null && request.getName() != null && !request.getName().trim().isEmpty()) {
-            return departmentRepository.findByNameContainingIgnoreCase(request.getName().trim());
+            return departmentRepository.findByNameContainingIgnoreCase(request.getName().trim(), pageable).getContent();
         }
-        return departmentRepository.findAll();
+        return departmentRepository.findAll(pageable).getContent();
     }
 
     @Override
@@ -78,3 +86,4 @@ public class DepartmentService implements IDepartmentService {
         return data;
     }
 }
+

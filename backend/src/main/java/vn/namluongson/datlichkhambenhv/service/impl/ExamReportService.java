@@ -1,15 +1,18 @@
 package vn.namluongson.datlichkhambenhv.service.impl;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import vn.namluongson.datlichkhambenhv.config.security.CustomUserDetails;
+import vn.namluongson.datlichkhambenhv.domain.dtos.requests.BasePagingRequest;
 import vn.namluongson.datlichkhambenhv.domain.dtos.requests.examreport.CreateExamReportRequest;
 import vn.namluongson.datlichkhambenhv.domain.dtos.responses.examreport.ExamReportResponse;
 import vn.namluongson.datlichkhambenhv.domain.response.ApiResponse;
+import vn.namluongson.datlichkhambenhv.domain.response.PageResponse;
 import vn.namluongson.datlichkhambenhv.domain.entities.Appointment;
 import vn.namluongson.datlichkhambenhv.domain.entities.ExamReport;
 import vn.namluongson.datlichkhambenhv.domain.entities.User;
@@ -29,9 +32,7 @@ import java.util.List;
 @RequiredArgsConstructor
 @Transactional
 public class ExamReportService implements IExamReportService {
-
     private static final ZoneId VN_ZONE = ZoneId.of("Asia/Ho_Chi_Minh");
-
     private final ExamReportRepository examReportRepository;
     private final AppointmentRepository appointmentRepository;
 
@@ -81,8 +82,7 @@ public class ExamReportService implements IExamReportService {
         User currentUser = getCurrentUser();
         checkDoctorOrAdmin(currentUser);
 
-        Appointment appointment = appointmentRepository.findById(request.getAppointmentId())
-                .orElseThrow(() -> BusinessException.notFound("Không tìm thấy lịch hẹn"));
+        Appointment appointment = appointmentRepository.findByUuid(request.getAppointmentUuid()).orElseThrow(() -> BusinessException.notFound("Không tìm thấy lịch hẹn"));
 
         checkResponsibleDoctor(currentUser, appointment);
 
@@ -109,12 +109,11 @@ public class ExamReportService implements IExamReportService {
     }
 
     @Override
-    public ApiResponse issueExamReport(Long reportId) {
+    public ApiResponse issueExamReport(String reportUuid) {
         User currentUser = getCurrentUser();
         checkDoctorOrAdmin(currentUser);
 
-        ExamReport report = examReportRepository.findById(reportId)
-                .orElseThrow(() -> BusinessException.notFound("Không tìm thấy phiếu khám"));
+        ExamReport report = examReportRepository.findByUuid(reportUuid).orElseThrow(() -> BusinessException.notFound("Không tìm thấy phiếu khám"));
 
         checkResponsibleDoctor(currentUser, report.getAppointment());
 
@@ -130,50 +129,48 @@ public class ExamReportService implements IExamReportService {
         return new ApiResponse(200, "Phát hành phiếu khám thành công", toResponse(savedReport));
     }
 
+
     @Override
     @Transactional(readOnly = true)
-    public ApiResponse getMyDoctorReports() {
+    public ApiResponse getMyDoctorReports(BasePagingRequest paging) {
         User currentUser = getCurrentUser();
         checkDoctor(currentUser);
 
-        List<ExamReportResponse> reports = examReportRepository
-                .findByIssuedBy_IdOrderByIssuedAtDesc(currentUser.getId())
-                .stream()
-                .map(this::toResponse)
-                .toList();
+        Sort sort = Sort.by(Sort.Direction.DESC, "issuedAt").and(Sort.by(Sort.Direction.DESC, "id"));
+        Page<ExamReportResponse> reports = examReportRepository
+                .findByIssuedBy_Id(currentUser.getId(), paging.toPageable(sort))
+                .map(this::toResponse);
 
-        return new ApiResponse(200, "Lấy danh sách phiếu khám thành công", reports);
+        return new ApiResponse(200, "Lấy danh sách phiếu khám thành công", PageResponse.of(reports));
     }
+
 
     @Override
     @Transactional(readOnly = true)
-    public ApiResponse getMyPatientReports() {
+    public ApiResponse getMyPatientReports(BasePagingRequest paging) {
         User currentUser = getCurrentUser();
         checkPatient(currentUser);
 
-        List<ExamReportResponse> reports = examReportRepository
-                .findByAppointment_Patient_IdOrderByIssuedAtDesc(currentUser.getId())
-                .stream()
-                .filter(report -> report.getStatus() != null && report.getStatus() == ReportStatus.ISSUED.getCode())
-                .map(this::toResponse)
-                .toList();
+        Sort sort = Sort.by(Sort.Direction.DESC, "issuedAt").and(Sort.by(Sort.Direction.DESC, "id"));
+        Page<ExamReportResponse> reports = examReportRepository
+                .findByAppointment_Patient_IdAndStatus(currentUser.getId(), (short) ReportStatus.ISSUED.getCode(), paging.toPageable(sort))
+                .map(this::toResponse);
 
-        return new ApiResponse(200, "Lấy danh sách phiếu khám thành công", reports);
+        return new ApiResponse(200, "Lấy danh sách phiếu khám thành công", PageResponse.of(reports));
     }
+
 
     @Override
     @Transactional(readOnly = true)
-    public ApiResponse getAllReports() {
+    public ApiResponse getAllReports(BasePagingRequest paging) {
         User currentUser = getCurrentUser();
         checkAdmin(currentUser);
 
-        List<ExamReportResponse> reports = examReportRepository
-                .findAll(Sort.by(Sort.Direction.DESC, "id"))
-                .stream()
-                .map(this::toResponse)
-                .toList();
+        Page<ExamReportResponse> reports = examReportRepository
+                .findAll(paging.toPageable(Sort.by(Sort.Direction.DESC, "id")))
+                .map(this::toResponse);
 
-        return new ApiResponse(200, "Lấy toàn bộ phiếu khám thành công", reports);
+        return new ApiResponse(200, "Lấy toàn bộ phiếu khám thành công", PageResponse.of(reports));
     }
 
     private ExamReportResponse toResponse(ExamReport report) {
@@ -189,8 +186,8 @@ public class ExamReportService implements IExamReportService {
         }
 
         return ExamReportResponse.builder()
-                .id(report.getId())
-                .appointmentId(report.getAppointment().getId())
+                .uuid(report.getUuid())
+                .appointmentUuid(report.getAppointment().getUuid())
                 .patientName(report.getAppointment().getPatient().getFullName())
                 .doctorName(report.getAppointment().getDoctor().getUser().getFullName())
                 .diagnosis(report.getDiagnosis())

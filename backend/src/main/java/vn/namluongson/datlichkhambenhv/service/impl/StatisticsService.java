@@ -9,14 +9,17 @@ import vn.namluongson.datlichkhambenhv.domain.dtos.responses.statistics.Cancella
 import vn.namluongson.datlichkhambenhv.domain.dtos.responses.statistics.RevenueStatisticsResponse;
 import vn.namluongson.datlichkhambenhv.domain.enums.AppointmentStatus;
 import vn.namluongson.datlichkhambenhv.domain.enums.PaymentStatus;
+import vn.namluongson.datlichkhambenhv.exception.BusinessException;
 import vn.namluongson.datlichkhambenhv.repository.statistics.StatisticsRepository;
 import vn.namluongson.datlichkhambenhv.service.interfaces.IStatisticsService;
 
 import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 
 @Service
 @RequiredArgsConstructor
 public class StatisticsService implements IStatisticsService {
+    private static final long MAX_RANGE_DAYS = 366;
 
     private final StatisticsRepository statisticsRepository;
 
@@ -86,13 +89,19 @@ public class StatisticsService implements IStatisticsService {
         return new ApiResponse(200, "Lấy danh sách bác sĩ thành công", data);
     }
 
+
     private void validateDateRange(LocalDate from, LocalDate to) {
         if (from == null || to == null) {
-            throw new IllegalArgumentException("Vui lòng cung cấp ngày bắt đầu và ngày kết thúc");
+            throw BusinessException.badRequest("Vui lòng cung cấp ngày bắt đầu và ngày kết thúc");
         }
 
         if (from.isAfter(to)) {
-            throw new IllegalArgumentException("Ngày bắt đầu không được sau ngày kết thúc");
+            throw BusinessException.badRequest("Ngày bắt đầu không được sau ngày kết thúc");
+        }
+
+        if (ChronoUnit.DAYS.between(from, to) > MAX_RANGE_DAYS) {
+            throw BusinessException.badRequest("Khoảng thời gian thống kê tối đa là " + MAX_RANGE_DAYS + " ngày");
         }
     }
+
 }

@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.LockedException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
@@ -64,6 +65,11 @@ public class GlobalExceptionHandler{
     @ExceptionHandler(BadCredentialsException.class)
     public ResponseEntity<ApiResponse> handleBadCredentials(BadCredentialsException e) {
         return build(HttpStatus.UNAUTHORIZED, "Email hoặc mật khẩu không chính xác");
+    }
+
+    @ExceptionHandler(DisabledException.class)
+    public ResponseEntity<ApiResponse> handleDisabled(DisabledException e) {
+        return build(HttpStatus.UNAUTHORIZED, "Tài khoản của bạn đã bị vô hiệu hóa. Vui lòng liên hệ admin.");
     }
 
     @ExceptionHandler(AuthenticationException.class)

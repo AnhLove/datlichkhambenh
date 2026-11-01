@@ -1,17 +1,25 @@
-
 package vn.namluongson.datlichkhambenhv.service.impl;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Sort;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import vn.namluongson.datlichkhambenhv.config.security.CustomUserDetails;
+import vn.namluongson.datlichkhambenhv.domain.dtos.requests.BasePagingRequest;
 import vn.namluongson.datlichkhambenhv.domain.dtos.requests.payment.CreatePaymentRequest;
 import vn.namluongson.datlichkhambenhv.domain.dtos.responses.payment.PaymentResponse;
 import vn.namluongson.datlichkhambenhv.domain.entities.Appointment;
 import vn.namluongson.datlichkhambenhv.domain.entities.AppointmentService;
 import vn.namluongson.datlichkhambenhv.domain.entities.Payment;
+import vn.namluongson.datlichkhambenhv.domain.entities.User;
+import vn.namluongson.datlichkhambenhv.domain.enums.AppointmentStatus;
 import vn.namluongson.datlichkhambenhv.domain.enums.PaymentMethod;
 import vn.namluongson.datlichkhambenhv.domain.enums.PaymentStatus;
 import vn.namluongson.datlichkhambenhv.domain.response.ApiResponse;
+import vn.namluongson.datlichkhambenhv.domain.response.PageResponse;
 import vn.namluongson.datlichkhambenhv.exception.BusinessException;
 import vn.namluongson.datlichkhambenhv.repository.appointment.AppointmentRepository;
 import vn.namluongson.datlichkhambenhv.repository.appointment.AppointmentServiceRepository;
@@ -21,11 +29,11 @@ import vn.namluongson.datlichkhambenhv.service.interfaces.IPaymentService;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class PaymentService implements IPaymentService {
+    private static final long MAX_PAYMENT_AMOUNT = 999_999_999_999L;
     private final PaymentRepository paymentRepository;
     private final AppointmentRepository appointmentRepository;
     private final AppointmentServiceRepository appointmentServiceRepository;
@@ -33,7 +41,11 @@ public class PaymentService implements IPaymentService {
     @Override
     @Transactional
     public ApiResponse createPayment(CreatePaymentRequest request) {
-        Appointment appointment = appointmentRepository.findById(request.getAppointmentId()).orElseThrow(() -> new IllegalArgumentException("Lịch hẹn không tồn tại"));
+        Appointment appointment = appointmentRepository.findByUuid(request.getAppointmentUuid()).orElseThrow(() -> BusinessException.notFound("Lịch hẹn không tồn tại"));
+
+        if (appointment.getStatus() == AppointmentStatus.CANCELLED.getCode() || appointment.getStatus() == AppointmentStatus.NO_SHOW.getCode()) {
+            throw BusinessException.badRequest("Lịch hẹn đã hủy hoặc không đến khám, không thể tạo thanh toán");
+        }
 
         if (paymentRepository.existsByAppointment_Id(appointment.getId())) {
             throw BusinessException.conflict("Lịch hẹn này đã có khoản thanh toán");
@@ -58,6 +70,10 @@ public class PaymentService implements IPaymentService {
             amount = Math.addExact(amount, serviceTotal);
         }
 
+        if (amount > MAX_PAYMENT_AMOUNT) {
+            throw BusinessException.badRequest("Tổng tiền vượt quá giới hạn cho phép");
+        }
+
         Payment payment = Payment.builder()
                 .appointment(appointment)
                 .amount(amount)
@@ -73,15 +89,17 @@ public class PaymentService implements IPaymentService {
 
     @Override
     @Transactional(readOnly = true)
-    public ApiResponse getPaymentByAppointmentId(Long appointmentId) {
-        Payment payment = paymentRepository.findByAppointment_Id(appointmentId).orElseThrow(() -> new IllegalArgumentException("Lịch hẹn chưa có khoản thanh toán"));
+    public ApiResponse getPaymentByAppointmentUuid(String appointmentUuid) {
+        Payment payment = paymentRepository.findByAppointment_Uuid(appointmentUuid).orElseThrow(() -> BusinessException.notFound("Lịch hẹn chưa có khoản thanh toán"));
         return new ApiResponse(200, "Lấy thông tin thanh toán thành công", toResponse(payment));
     }
 
+
     @Override
     @Transactional
-    public ApiResponse confirmPayment(Long appointmentId) {
-        Payment payment = paymentRepository.findByAppointment_Id(appointmentId).orElseThrow(() -> new IllegalArgumentException("Không tìm thấy khoản thanh toán"));
+    public ApiResponse confirmPayment(String appointmentUuid) {
+        Payment payment = paymentRepository.findByAppointmentUuidForUpdate(appointmentUuid)
+                .orElseThrow(() -> BusinessException.notFound("Không tìm thấy khoản thanh toán"));
 
         if (payment.getStatus() != PaymentStatus.PENDING.getCode()) {
             throw BusinessException.badRequest("Chỉ khoản thanh toán đang chờ mới được xác nhận");
@@ -89,6 +107,7 @@ public class PaymentService implements IPaymentService {
 
         payment.setStatus((long) PaymentStatus.PAID.getCode());
         payment.setPaidAt(LocalDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh")));
+        payment.setReceivedBy(currentUser());
 
         Payment savedPayment = paymentRepository.save(payment);
 
@@ -108,6 +127,7 @@ public class PaymentService implements IPaymentService {
     private PaymentResponse toResponse(Payment payment) {
         Appointment appointment = payment.getAppointment();
         return PaymentResponse.builder()
+                .appointmentUuid(appointment.getUuid())
                 .patientName(appointment.getPatient().getFullName())
                 .doctorName(appointment.getDoctor().getUser().getFullName())
                 .appointmentDate(appointment.getAppointmentDate())
@@ -119,19 +139,28 @@ public class PaymentService implements IPaymentService {
                 .build();
     }
 
+
     @Override
     @Transactional(readOnly = true)
-    public ApiResponse getMyPayments(String email) {
+    public ApiResponse getMyPayments(String email, BasePagingRequest paging) {
         if (email == null || email.isBlank()) {
             throw BusinessException.unauthorized("Không xác định được tài khoản đang đăng nhập");
         }
 
-        List<Payment> payments = paymentRepository.findAllByAppointment_Patient_EmailOrderByAppointment_AppointmentDateDesc(email);
+        Sort sort = Sort.by(Sort.Direction.DESC, "appointment.appointmentDate").and(Sort.by(Sort.Direction.DESC, "id"));
+        Page<PaymentResponse> page = paymentRepository
+                .findAllByAppointment_Patient_Email(email, paging.toPageable(sort))
+                .map(this::toResponse);
 
-        List<PaymentResponse> responses = payments.stream()
-                .map(this::toResponse)
-                .collect(Collectors.toList());
+        return new ApiResponse(200, "Lấy danh sách thanh toán thành công", PageResponse.of(page));
+    }
 
-        return new ApiResponse(200, "Lấy danh sách thanh toán thành công", responses);
+    private User currentUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !(authentication.getPrincipal() instanceof CustomUserDetails userDetails)) {
+            throw BusinessException.unauthorized("Vui lòng đăng nhập");
+        }
+        return userDetails.getUser();
     }
 }
+

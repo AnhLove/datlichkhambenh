@@ -1,12 +1,19 @@
 package vn.namluongson.datlichkhambenhv.service.impl;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import vn.namluongson.datlichkhambenhv.domain.dtos.requests.medicalservice.CreateMedicalServiceRequest;
+import vn.namluongson.datlichkhambenhv.domain.dtos.requests.medicalservice.MedicalServicePagingRequest;
 import vn.namluongson.datlichkhambenhv.domain.dtos.requests.medicalservice.UpdateMedicalServiceRequest;
 import vn.namluongson.datlichkhambenhv.domain.dtos.responses.medicalservice.MedicalServiceResponse;
 import vn.namluongson.datlichkhambenhv.domain.entities.MedicalService;
 import vn.namluongson.datlichkhambenhv.domain.response.ApiResponse;
+import vn.namluongson.datlichkhambenhv.domain.response.PageResponse;
 import vn.namluongson.datlichkhambenhv.exception.BusinessException;
 import vn.namluongson.datlichkhambenhv.repository.department.DepartmentRepository;
 import vn.namluongson.datlichkhambenhv.repository.medicalservice.MedicalServiceRepository;
@@ -17,26 +24,45 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class MedicalServiceService implements IMedicalServiceService {
+    private static final int MAX_LIST_SIZE = 200;
+    private static final Sort SERVICE_SORT = Sort.by("name").and(Sort.by("id"));
     private final MedicalServiceRepository medicalServiceRepository;
     private final DepartmentRepository departmentRepository;
 
     @Override
+    @Transactional(readOnly = true)
     public List<MedicalServiceResponse> getListMedicalService(String name) throws Exception {
-        List<MedicalService> medicalServices = medicalServiceRepository.findAll();
+        Pageable pageable = PageRequest.of(0, MAX_LIST_SIZE, SERVICE_SORT);
+        Page<MedicalService> medicalServices = hasText(name)
+                ? medicalServiceRepository.findByNameContainingIgnoreCase(name.trim(), pageable)
+                : medicalServiceRepository.findAll(pageable);
 
-        if(name != null && !name.trim().isEmpty()) {
-            medicalServices = medicalServiceRepository.findByNameContainingIgnoreCase(name.trim());
-        }
+        return medicalServices.map(this::toResponse).getContent();
+    }
 
-        return medicalServices.stream().map(res -> {
-            MedicalServiceResponse response = new MedicalServiceResponse();
-            response.setId(res.getId());
-            response.setDepartmentName(res.getDepartment().getName());
-            response.setName(res.getName());
-            response.setPrice(res.getPrice());
-            response.setDescription(res.getDescription());
-            return response;
-        }).toList();
+    @Override
+    @Transactional(readOnly = true)
+    public PageResponse<MedicalServiceResponse> getMedicalServices(MedicalServicePagingRequest request) {
+        Pageable pageable = request.toPageable(SERVICE_SORT);
+        Page<MedicalService> medicalServices = hasText(request.getName())
+                ? medicalServiceRepository.findByNameContainingIgnoreCase(request.getName().trim(), pageable)
+                : medicalServiceRepository.findAll(pageable);
+
+        return PageResponse.of(medicalServices.map(this::toResponse));
+    }
+
+    private boolean hasText(String value) {
+        return value != null && !value.trim().isEmpty();
+    }
+
+    private MedicalServiceResponse toResponse(MedicalService data) {
+        MedicalServiceResponse response = new MedicalServiceResponse();
+        response.setId(data.getId());
+        response.setDepartmentName(data.getDepartment().getName());
+        response.setName(data.getName());
+        response.setPrice(data.getPrice());
+        response.setDescription(data.getDescription());
+        return response;
     }
 
     @Override
@@ -112,3 +138,4 @@ public class MedicalServiceService implements IMedicalServiceService {
         return new ApiResponse(200, null, entity.getId());
     }
 }
+

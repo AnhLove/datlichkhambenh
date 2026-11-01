@@ -1,5 +1,8 @@
 package vn.namluongson.datlichkhambenhv.repository.doctor;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -12,8 +15,12 @@ import java.util.Optional;
 @Repository
 public interface DoctorWorkingHourRepository extends JpaRepository<DoctorWorkingHour, Long> {
     boolean existsByDoctor_IdAndDayOfWeek(Long doctorId, Short dayOfWeek);
+    Optional<DoctorWorkingHour> findByUuid(String uuid);
     List<DoctorWorkingHour> findByDoctor_User_Uuid(String uuid);
     List<DoctorWorkingHour> findByStatus(Short status);
+
+    @EntityGraph(attributePaths = {"doctor", "doctor.user", "setBy"})
+    Page<DoctorWorkingHour> findByStatus(Short status, Pageable pageable);
     Optional<DoctorWorkingHour> findByDoctor_IdAndDayOfWeek(Long doctorId, Short dayOfWeek);
     @Query(value = """
                 SELECT COUNT(*) 
