@@ -1,6 +1,7 @@
 package vn.namluongson.datlichkhambenhv.domain.dtos.requests.department;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
@@ -8,6 +9,7 @@ import lombok.Setter;
 @Getter
 @Setter
 public class UpdateDepartmentRequest {
+    @NotNull(message = "Mã khoa không được để trống")
     private Long id;
 
     @NotBlank(message = "Tên khoa không được để trống")
@@ -17,3 +19,4 @@ public class UpdateDepartmentRequest {
     @Size(max = 500, message = "Mô tả không được vượt quá 500 ký tự")
     private String description;
 }
+

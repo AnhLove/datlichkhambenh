@@ -2,7 +2,6 @@ package vn.namluongson.datlichkhambenhv.domain.dtos.requests.user;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Past;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
@@ -14,7 +13,9 @@ import java.time.LocalDate;
 @Getter
 @Setter
 public class UpdateUserRequest {
-    private Long id;
+    @NotBlank(message = "Mã người dùng không được để trống")
+    @Size(max = 36, message = "Mã người dùng không hợp lệ")
+    private String uuid;
 
     @NotBlank(message = "Họ tên không được để trống")
     @Size(max = 150, message = "Họ tên không được vượt quá 150 ký tự")

@@ -2,15 +2,18 @@ package vn.namluongson.datlichkhambenhv.domain.dtos.requests.doctorworking;
 
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
 
 @Getter
 @Setter
 public class CreateDoctorWorkingHourRequest {
-    @NotNull(message = "Vui lòng chọn bác sĩ")
-    private Long doctorId;
+    @NotBlank(message = "Vui lòng chọn bác sĩ")
+    @Size(max = 36, message = "Mã bác sĩ không hợp lệ")
+    private String doctorUuid;
 
     @NotNull(message = "Vui lòng chọn thứ trong tuần")
     @Min(value = 1, message = "Thứ trong tuần phải từ 1 (Thứ Hai) đến 7 (Chủ Nhật)")

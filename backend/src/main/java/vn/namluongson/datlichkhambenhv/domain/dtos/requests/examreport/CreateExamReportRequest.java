@@ -11,9 +11,9 @@ import lombok.Setter;
 @Setter
 public class CreateExamReportRequest {
 
-    @NotNull(message = "ID lịch hẹn không được để trống")
-    @Positive(message = "ID lịch hẹn phải lớn hơn 0")
-    private Long appointmentId;
+    @NotBlank(message = "Mã lịch hẹn không được để trống")
+    @Size(max = 36, message = "Mã không hợp lệ")
+    private String appointmentUuid;
 
     @NotBlank(message = "Chẩn đoán không được để trống")
     @Size(max = 1000, message = "Chẩn đoán không được vượt quá 1000 ký tự")
