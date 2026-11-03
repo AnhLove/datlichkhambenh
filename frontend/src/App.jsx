@@ -4,6 +4,7 @@ import RequireRole from './components/common/RequireRole';
 import RedirectStaffToPortal from './components/common/RedirectStaffToPortal';
 
 import PublicLayout from './layouts/PublicLayout';
+import AccountLayout from './layouts/AccountLayout';
 import DoctorLayout from './layouts/DoctorLayout';
 import ReceptionLayout from './layouts/ReceptionLayout';
 import AdminLayout from './layouts/AdminLayout';
@@ -62,10 +63,13 @@ function App() {
                 </Route>
                 <Route element={<RequireRole allowedRoles={[1]} />}>
                     <Route element={<PublicLayout />}>
-                        <Route path="/my-appointments" element={<MyAppointmentsPage />} />
-                        <Route path="/my-exam-reports" element={<MyExamReportsPage />} />
-                        <Route path="/my-payments" element={<MyPaymentsPage />} />
-                        <Route path="/profile" element={<ProfilePage />} />
+                        <Route element={<AccountLayout />}>
+                            <Route path="/profile" element={<ProfilePage embedded section="profile" />} />
+                            <Route path="/profile/password" element={<ProfilePage embedded section="password" />} />
+                            <Route path="/my-appointments" element={<MyAppointmentsPage />} />
+                            <Route path="/my-exam-reports" element={<MyExamReportsPage />} />
+                            <Route path="/my-payments" element={<MyPaymentsPage />} />
+                        </Route>
                     </Route>
                 </Route>
                 <Route element={<RequireRole allowedRoles={[2]} />}>

@@ -38,14 +38,16 @@ function getErrorMessage(error) {
     return error?.message || 'Đã xảy ra lỗi. Vui lòng thử lại.';
 }
 
-function ProfilePage() {
+// embedded: nhúng trong AccountLayout (bệnh nhân) nên không vẽ banner và thanh bên riêng; section chọn nội dung
+function ProfilePage({ embedded = false, section = 'profile' }) {
     const [form, setForm] = useState(EMPTY_FORM);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [pageError, setPageError] = useState('');
     const [formError, setFormError] = useState('');
     const [successMessage, setSuccessMessage] = useState('');
-    const [activeTab, setActiveTab] = useState('profile'); // 'profile' hoặc 'password'
+    const [tabState, setActiveTab] = useState('profile'); // chỉ dùng khi hiển thị độc lập
+    const activeTab = embedded ? section : tabState;
 
     const loadProfile = useCallback(async () => {
         setLoading(true);
@@ -188,6 +190,141 @@ function ProfilePage() {
         );
     }
 
+    const mainContent = (
+        <div className="profile-main-content">
+            {activeTab === 'profile' ? (
+                <div className="profile-card">
+                    <div className="profile-card-heading">
+                        <h2>Thông tin cá nhân</h2>
+                        <p>
+                            Vui lòng đảm bảo thông tin số điện thoại và họ tên luôn chính xác để thuận tiện
+                            đặt lịch.
+                        </p>
+                    </div>
+
+                    <form onSubmit={handleSubmit} noValidate>
+                        {formError && (
+                            <div className="profile-alert profile-alert-error" role="alert">
+                                <AlertCircle size={19} />
+                                <span>{formError}</span>
+                            </div>
+                        )}
+
+                        {successMessage && (
+                            <div className="profile-alert profile-alert-success" role="status">
+                                <CheckCircle2 size={19} />
+                                <span>{successMessage}</span>
+                            </div>
+                        )}
+
+                        <div className="profile-form-grid">
+                            <div className="profile-field">
+                                <label htmlFor="profile-fullName">
+                                    Họ và tên <span className="profile-required">*</span>
+                                </label>
+                                <div className="profile-input-wrap">
+                                    <UserRound size={18} />
+                                    <input
+                                        id="profile-fullName"
+                                        name="fullName"
+                                        type="text"
+                                        autoComplete="name"
+                                        maxLength={150}
+                                        value={form.fullName}
+                                        onChange={handleChange}
+                                        placeholder="Nhập họ và tên"
+                                        required
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="profile-field">
+                                <label htmlFor="profile-phone">
+                                    Số điện thoại <span className="profile-required">*</span>
+                                </label>
+                                <div className="profile-input-wrap">
+                                    <Phone size={18} />
+                                    <input
+                                        id="profile-phone"
+                                        name="phone"
+                                        type="tel"
+                                        autoComplete="tel"
+                                        value={form.phone}
+                                        onChange={handleChange}
+                                        placeholder="Ví dụ: 0912345678"
+                                        required
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="profile-field">
+                                <label htmlFor="profile-email">Email đăng nhập</label>
+                                <div className="profile-input-wrap profile-input-readonly">
+                                    <Mail size={18} />
+                                    <input
+                                        id="profile-email"
+                                        name="email"
+                                        type="email"
+                                        value={form.email}
+                                        readOnly
+                                    />
+                                </div>
+                                <small className="profile-field-note">
+                                    Email dùng để định danh và không thể thay đổi.
+                                </small>
+                            </div>
+
+                            <div className="profile-field">
+                                <label htmlFor="profile-dateOfBirth">Ngày sinh</label>
+                                <div className="profile-input-wrap">
+                                    <CalendarDays size={18} />
+                                    <input
+                                        id="profile-dateOfBirth"
+                                        name="dateOfBirth"
+                                        type="date"
+                                        value={form.dateOfBirth}
+                                        max={new Date().toLocaleDateString('en-CA')}
+                                        onChange={handleChange}
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="profile-form-footer">
+                            <p className="profile-hint">
+                                <span className="profile-required">*</span> Thông tin bắt buộc điền.
+                            </p>
+                            <button type="submit" className="profile-button" disabled={saving}>
+                                {saving ? (
+                                    <LoaderCircle size={18} className="profile-spinner" />
+                                ) : (
+                                    <Save size={18} />
+                                )}
+                                {saving ? 'Đang lưu...' : 'Lưu thay đổi'}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            ) : (
+                <div className="profile-card password-card-wrapper">
+                    <ChangePasswordCard />
+                </div>
+            )}
+
+            <div className="profile-security-note">
+                <CheckCircle2 size={20} />
+                <p>
+                    Dữ liệu cá nhân của bạn được mã hóa và bảo mật nghiêm ngặt theo quy định của Bệnh viện
+                    Nam Lương Sơn.
+                </p>
+            </div>
+        </div>
+    );
+
+    if (embedded) {
+        return <div className="profile-embedded">{mainContent}</div>;
+    }
+
     return (
         <section className="profile-page">
             <div className="profile-container">
@@ -230,134 +367,7 @@ function ProfilePage() {
                     </aside>
 
                     {/* Cột Nội dung chính bên phải */}
-                    <main className="profile-main-content">
-                        {activeTab === 'profile' ? (
-                            <div className="profile-card">
-                                <div className="profile-card-heading">
-                                    <h2>Thông tin cá nhân</h2>
-                                    <p>
-                                        Vui lòng đảm bảo thông tin số điện thoại và họ tên luôn chính xác để thuận tiện
-                                        đặt lịch.
-                                    </p>
-                                </div>
-
-                                <form onSubmit={handleSubmit} noValidate>
-                                    {formError && (
-                                        <div className="profile-alert profile-alert-error" role="alert">
-                                            <AlertCircle size={19} />
-                                            <span>{formError}</span>
-                                        </div>
-                                    )}
-
-                                    {successMessage && (
-                                        <div className="profile-alert profile-alert-success" role="status">
-                                            <CheckCircle2 size={19} />
-                                            <span>{successMessage}</span>
-                                        </div>
-                                    )}
-
-                                    <div className="profile-form-grid">
-                                        <div className="profile-field">
-                                            <label htmlFor="profile-fullName">
-                                                Họ và tên <span className="profile-required">*</span>
-                                            </label>
-                                            <div className="profile-input-wrap">
-                                                <UserRound size={18} />
-                                                <input
-                                                    id="profile-fullName"
-                                                    name="fullName"
-                                                    type="text"
-                                                    autoComplete="name"
-                                                    maxLength={150}
-                                                    value={form.fullName}
-                                                    onChange={handleChange}
-                                                    placeholder="Nhập họ và tên"
-                                                    required
-                                                />
-                                            </div>
-                                        </div>
-
-                                        <div className="profile-field">
-                                            <label htmlFor="profile-phone">
-                                                Số điện thoại <span className="profile-required">*</span>
-                                            </label>
-                                            <div className="profile-input-wrap">
-                                                <Phone size={18} />
-                                                <input
-                                                    id="profile-phone"
-                                                    name="phone"
-                                                    type="tel"
-                                                    autoComplete="tel"
-                                                    value={form.phone}
-                                                    onChange={handleChange}
-                                                    placeholder="Ví dụ: 0912345678"
-                                                    required
-                                                />
-                                            </div>
-                                        </div>
-
-                                        <div className="profile-field">
-                                            <label htmlFor="profile-email">Email đăng nhập</label>
-                                            <div className="profile-input-wrap profile-input-readonly">
-                                                <Mail size={18} />
-                                                <input
-                                                    id="profile-email"
-                                                    name="email"
-                                                    type="email"
-                                                    value={form.email}
-                                                    readOnly
-                                                />
-                                            </div>
-                                            <small className="profile-field-note">
-                                                Email dùng để định danh và không thể thay đổi.
-                                            </small>
-                                        </div>
-
-                                        <div className="profile-field">
-                                            <label htmlFor="profile-dateOfBirth">Ngày sinh</label>
-                                            <div className="profile-input-wrap">
-                                                <CalendarDays size={18} />
-                                                <input
-                                                    id="profile-dateOfBirth"
-                                                    name="dateOfBirth"
-                                                    type="date"
-                                                    value={form.dateOfBirth}
-                                                    max={new Date().toLocaleDateString('en-CA')}
-                                                    onChange={handleChange}
-                                                />
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div className="profile-form-footer">
-                                        <p className="profile-hint">
-                                            <span className="profile-required">*</span> Thông tin bắt buộc điền.
-                                        </p>
-                                        <button type="submit" className="profile-button" disabled={saving}>
-                                            {saving ? (
-                                                <LoaderCircle size={18} className="profile-spinner" />
-                                            ) : (
-                                                <Save size={18} />
-                                            )}
-                                            {saving ? 'Đang lưu...' : 'Lưu thay đổi'}
-                                        </button>
-                                    </div>
-                                </form>
-                            </div>
-                        ) : (
-                            <div className="profile-card password-card-wrapper">
-                                <ChangePasswordCard />
-                            </div>
-                        )}
-
-                        <div className="profile-security-note">
-                            <CheckCircle2 size={20} />
-                            <p>
-                                Dữ liệu cá nhân của bạn được mã hóa và bảo mật nghiêm ngặt theo quy định của Bệnh viện
-                                Nam Lương Sơn.
-                            </p>
-                        </div>
-                    </main>
+                    {mainContent}
                 </div>
             </div>
         </section>
@@ -365,3 +375,4 @@ function ProfilePage() {
 }
 
 export default ProfilePage;
+

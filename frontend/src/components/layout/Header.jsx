@@ -4,16 +4,15 @@ import {
     Plus,
     Menu,
     X,
-    User,
     UserRound,
     LogOut,
     CalendarDays,
-    ChevronDown,
     ClipboardCheck,
     ReceiptText,
 } from 'lucide-react';
 
 import { apiGet, apiPost } from '../../services/api';
+import UserMenu from './UserMenu';
 import './Header.css';
 
 function Header() {
@@ -22,7 +21,6 @@ function Header() {
 
     const [isHidden, setIsHidden] = useState(false);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
-    const [isBookingMenuOpen, setIsBookingMenuOpen] = useState(false);
     const [user, setUser] = useState(null);
     const [isAuthLoading, setIsAuthLoading] = useState(true);
 
@@ -65,7 +63,6 @@ function Header() {
             } else if (currentScrollY > lastScrollY) {
                 setIsHidden(true);
                 setIsMenuOpen(false);
-                setIsBookingMenuOpen(false);
             } else {
                 setIsHidden(false);
             }
@@ -82,7 +79,6 @@ function Header() {
 
     const closeMenu = () => {
         setIsMenuOpen(false);
-        setIsBookingMenuOpen(false);
     };
 
     const handleLogout = async () => {
@@ -125,54 +121,6 @@ function Header() {
                         Chuyên khoa
                     </NavLink>
 
-                    <div className="booking-dropdown">
-                        <div className="booking-dropdown-trigger">
-                            <NavLink to="/appointments" onClick={closeMenu}>
-                                Đặt lịch khám
-                            </NavLink>
-
-                            <button
-                                type="button"
-                                className="booking-dropdown-toggle"
-                                aria-label="Mở menu lịch khám"
-                                aria-expanded={isBookingMenuOpen}
-                                onClick={() => setIsBookingMenuOpen((open) => !open)}
-                            >
-                                <ChevronDown size={15} />
-                            </button>
-                        </div>
-
-                        <div className={`booking-dropdown-menu ${isBookingMenuOpen ? 'dropdown-open' : ''}`}>
-                            {user && !isAuthLoading && (
-                                <>
-                                    <NavLink to="/profile" onClick={closeMenu}>
-                                        <UserRound size={17} />
-                                        <span>Hồ sơ cá nhân</span>
-                                    </NavLink>
-                                    <NavLink to="/my-appointments" onClick={closeMenu}>
-                                        <CalendarDays size={17} />
-                                        <span>Lịch khám của tôi</span>
-                                    </NavLink>
-
-                                    <NavLink to="/my-exam-reports" onClick={closeMenu}>
-                                        <ClipboardCheck size={17} />
-                                        <span>Kết quả khám của tôi</span>
-                                    </NavLink>
-
-                                    <NavLink to="/my-payments" onClick={closeMenu}>
-                                        <ReceiptText size={17} />
-                                        <span>Lịch sử thanh toán</span>
-                                    </NavLink>
-                                </>
-                            )}
-
-                            <NavLink to="/appointments" onClick={closeMenu}>
-                                <Plus size={17} />
-                                <span>Đặt lịch khám mới</span>
-                            </NavLink>
-                        </div>
-                    </div>
-
                     <NavLink to="/medical-services" onClick={closeMenu}>
                         Dịch vụ y tế
                     </NavLink>
@@ -183,10 +131,7 @@ function Header() {
                         <div className="account-loading" aria-label="Đang kiểm tra đăng nhập" />
                     ) : user ? (
                         <>
-                            <span className="header-user">
-                                <User size={16} />
-                                <span>{user.fullName || 'Tài khoản'}</span>
-                            </span>
+                            <UserMenu user={user} onNavigate={closeMenu} />
 
                             <button
                                 type="button"
@@ -212,7 +157,6 @@ function Header() {
                     aria-expanded={isMenuOpen}
                     onClick={() => {
                         setIsMenuOpen((open) => !open);
-                        setIsBookingMenuOpen(false);
                     }}
                 >
                     {isMenuOpen ? <X size={23} /> : <Menu size={23} />}
@@ -231,10 +175,6 @@ function Header() {
 
                     <NavLink to="/departments" onClick={closeMenu}>
                         Chuyên khoa
-                    </NavLink>
-
-                    <NavLink to="/appointments" onClick={closeMenu}>
-                        Đặt lịch khám
                     </NavLink>
 
                     {!isAuthLoading && user && (
@@ -257,6 +197,11 @@ function Header() {
                             <NavLink to="/my-payments" onClick={closeMenu}>
                                 <ReceiptText size={17} />
                                 Lịch sử thanh toán
+                            </NavLink>
+
+                            <NavLink to="/appointments" onClick={closeMenu}>
+                                <Plus size={17} />
+                                Đặt lịch khám mới
                             </NavLink>
                         </div>
                     )}
@@ -282,3 +227,4 @@ function Header() {
 }
 
 export default Header;
+

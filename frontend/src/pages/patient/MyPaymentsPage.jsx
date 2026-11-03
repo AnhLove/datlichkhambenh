@@ -134,7 +134,7 @@ function MyPaymentsPage() {
     }, 0);
 
     return (
-        <main className="my-payments-page">
+        <div className="my-payments-page">
             <section className="my-payments-hero">
                 <div className="my-payments-hero-content">
                     <span className="my-payments-eyebrow">
@@ -288,7 +288,7 @@ function MyPaymentsPage() {
                     </div>
                 )}
             </section>
-        </main>
+        </div>
     );
 }
 

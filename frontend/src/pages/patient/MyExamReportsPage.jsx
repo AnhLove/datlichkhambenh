@@ -72,7 +72,7 @@ function MyExamReportsPage() {
     };
 
     return (
-        <main className="exam-reports-page">
+        <div className="exam-reports-page">
             <section className="exam-reports-hero">
                 <div className="exam-reports-hero-content">
                     <span className="exam-reports-eyebrow">
@@ -194,7 +194,7 @@ function MyExamReportsPage() {
                     </div>
                 )}
             </section>
-        </main>
+        </div>
     );
 }
 

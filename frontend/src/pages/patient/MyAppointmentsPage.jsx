@@ -163,7 +163,7 @@ function MyAppointmentsPage() {
     const completedCount = appointments.filter((appointment) => Number(appointment.status) === 4).length;
 
     return (
-        <main className="my-appointments-page">
+        <div className="my-appointments-page">
             <section className="my-appointments-hero">
                 <div className="my-appointments-hero-content">
                     <span className="my-appointments-eyebrow">
@@ -452,7 +452,7 @@ function MyAppointmentsPage() {
                     </section>
                 </div>
             )}
-        </main>
+        </div>
     );
 }
 
