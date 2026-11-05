@@ -217,9 +217,9 @@ npm run dev                   # http://localhost:5173
 
 ## ☁️ Triển khai
 
-- **Backend:** đóng gói bằng `backend/Dockerfile` (multi-stage, JRE 17) — chạy được trên Render, Railway, VPS hoặc bất kỳ nền tảng hỗ trợ Docker.
-- **Frontend:** build tĩnh bằng `npm run build` (thư mục `dist/`), host trên Vercel / Cloudflare Pages / Netlify. File `frontend/vercel.json` đã cấu hình sẵn rewrite `/api/*` về backend và fallback SPA.
-- Khi frontend và backend khác domain, cookie xác thực + CSRF cần được cấu hình cẩn thận — xem phần *Triển khai* trong tài liệu đi kèm.
+- **Backend:** đóng gói thành file JAR bằng `./mvnw clean package -DskipTests`, chạy bằng `java -jar backend/target/*.jar` (cần JDK 17+ và biến môi trường như bảng trên).
+- **Frontend:** build tĩnh bằng `npm run build` (thư mục `dist/`), có thể host trên bất kỳ dịch vụ tĩnh nào.
+- Khi frontend và backend khác domain, cookie xác thực và CSRF cần được cấu hình cẩn thận: cookie `XSRF-TOKEN` do backend đặt phải đọc được từ frontend, vì vậy nên đặt hai bên sau cùng một domain (reverse proxy) hoặc dùng subdomain cùng domain gốc.
 
 ## 🔐 Lưu ý bảo mật
 
