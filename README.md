@@ -148,7 +148,7 @@ utils/        # date, paging, slug, roleHome, ...
 ### Yêu cầu
 - **JDK 17+**
 - **Node.js 20+** và npm
-- Một **Oracle Database** truy cập được (đã tạo schema/bảng và các sequence tương ứng)
+- Một **Oracle Database** truy cập được 
 
 ### 1. Clone
 
@@ -159,7 +159,7 @@ cd datlichkhambenh
 
 ### 2. Backend
 
-Tạo file `backend/src/main/resources/application.properties` (file này đã nằm trong `.gitignore` để không lộ thông tin nhạy cảm):
+Tạo file `backend/src/main/resources/application.properties`
 
 ```properties
 server.port=8080
@@ -220,13 +220,6 @@ npm run dev                   # http://localhost:5173
 - **Backend:** đóng gói thành file JAR bằng `./mvnw clean package -DskipTests`, chạy bằng `java -jar backend/target/*.jar` (cần JDK 17+ và biến môi trường như bảng trên).
 - **Frontend:** build tĩnh bằng `npm run build` (thư mục `dist/`), có thể host trên bất kỳ dịch vụ tĩnh nào.
 - Khi frontend và backend khác domain, cookie xác thực và CSRF cần được cấu hình cẩn thận: cookie `XSRF-TOKEN` do backend đặt phải đọc được từ frontend, vì vậy nên đặt hai bên sau cùng một domain (reverse proxy) hoặc dùng subdomain cùng domain gốc.
-
-## 🔐 Lưu ý bảo mật
-
-- **Không commit** `application.properties`, `.env` hay bất kỳ khóa/mật khẩu nào.
-- Đặt `jwt.secret` đủ dài, ngẫu nhiên; đổi mật khẩu admin ngay sau khi khởi tạo.
-- Bật `app.auth.cookie-secure=true` khi chạy qua HTTPS.
-- Giới hạn truy cập mạng tới Oracle Database nếu có thể.
 
 ## 🗺️ Định hướng phát triển
 
