@@ -67,7 +67,7 @@ public class DoctorWorkingHourService implements IDoctorWorkingHourService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<DoctorWorkingHourResponse> getWorkingHoursByDoctorUuid(String uuid) throws Exception{
+    public List<DoctorWorkingHourResponse> getWorkingHoursByDoctorUuid(String uuid){
         return doctorWorkingHourRepository.findByDoctor_User_Uuid(uuid).stream().map(this::toResponse).toList();
     }
 

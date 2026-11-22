@@ -3,6 +3,8 @@ package vn.namluongson.datlichkhambenhv.domain.entities;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.UUID;
+
 @Entity
 @Table(name = "DOCTORS")
 @Getter
@@ -30,4 +32,15 @@ public class Doctor {
 
     @Column(name = "BIO")
     private String bio;
+
+    @Column(name = "UUID", nullable = false, unique = true, updatable = false, length = 36)
+    private String uuid;
+
+    @PrePersist
+    void assignUuid() {
+        if (uuid == null) {
+            uuid = UUID.randomUUID().toString();
+        }
+    }
+
 }
