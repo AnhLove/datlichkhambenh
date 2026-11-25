@@ -15,7 +15,9 @@ import vn.namluongson.datlichkhambenhv.domain.dtos.requests.appointment.CancelAp
 import vn.namluongson.datlichkhambenhv.domain.dtos.requests.appointment.CreateAppointmentRequest;
 import vn.namluongson.datlichkhambenhv.domain.dtos.responses.appointment.AppointmentResponse;
 import vn.namluongson.datlichkhambenhv.domain.dtos.responses.appointment.AvailableSlotResponse;
+import vn.namluongson.datlichkhambenhv.domain.dtos.responses.appointment.EligibleDoctorResponse;
 import vn.namluongson.datlichkhambenhv.domain.entities.Appointment;
+import vn.namluongson.datlichkhambenhv.domain.entities.Department;
 import vn.namluongson.datlichkhambenhv.domain.entities.Doctor;
 import vn.namluongson.datlichkhambenhv.domain.entities.User;
 import vn.namluongson.datlichkhambenhv.domain.enums.*;
@@ -35,6 +37,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -65,8 +68,7 @@ public class AppointmentService implements IAppointmentService {
         // 1. Xác định bệnh nhân đặt lịch
         if (currentUser.getRole() == Role.PATIENT.getCode()) {
             patient = currentUser;
-        } else if (currentUser.getRole() == Role.STAFF.getCode()
-                || currentUser.getRole() == Role.ADMIN.getCode()) {
+        } else if (currentUser.getRole() == Role.STAFF.getCode() || currentUser.getRole() == Role.ADMIN.getCode()) {
 
             if (request.getPatientUuid() == null || request.getPatientUuid().isBlank()) {
                 throw BusinessException.badRequest("Vui lòng chọn bệnh nhân");
@@ -89,9 +91,7 @@ public class AppointmentService implements IAppointmentService {
         }
 
         if (appointmentDate.isAfter(LocalDate.now(VN_ZONE).plusDays(MAX_BOOKING_DAYS_AHEAD))) {
-            throw BusinessException.badRequest(
-                    "Chỉ được đặt lịch trong vòng " + MAX_BOOKING_DAYS_AHEAD + " ngày tới"
-            );
+            throw BusinessException.badRequest("Chỉ được đặt lịch trong vòng " + MAX_BOOKING_DAYS_AHEAD + " ngày tới");
         }
 
         // 3. Kiểm tra khoa và khóa khoa để đồng bộ lượt đặt lịch
@@ -112,21 +112,12 @@ public class AppointmentService implements IAppointmentService {
         }
 
         // 5. Kiểm tra giới hạn số lịch trong ngày của bệnh nhân
-        int maxPerDay = systemConfigService.getInt(
-                ISystemConfigService.MAX_APPOINTMENTS_PER_DAY,
-                ISystemConfigService.DEFAULT_MAX_APPOINTMENTS_PER_DAY
-        );
+        int maxPerDay = systemConfigService.getInt(ISystemConfigService.MAX_APPOINTMENTS_PER_DAY, ISystemConfigService.DEFAULT_MAX_APPOINTMENTS_PER_DAY);
 
-        long activeCount = appointmentRepository.countByPatient_IdAndAppointmentDateAndStatusIn(
-                patient.getId(),
-                appointmentDate,
-                ACTIVE_STATUSES
-        );
+        long activeCount = appointmentRepository.countByPatient_IdAndAppointmentDateAndStatusIn(patient.getId(), appointmentDate, ACTIVE_STATUSES);
 
         if (activeCount >= maxPerDay) {
-            throw BusinessException.badRequest(
-                    "Bệnh nhân đã đặt tối đa " + maxPerDay + " lịch trong ngày"
-            );
+            throw BusinessException.badRequest("Bệnh nhân đã đặt tối đa " + maxPerDay + " lịch trong ngày");
         }
 
         // 6. Kiểm tra sức chứa của khoa trong khung giờ
@@ -143,11 +134,7 @@ public class AppointmentService implements IAppointmentService {
         Short dayOfWeek = (short) appointmentDate.getDayOfWeek().getValue();
 
         // Lấy danh sách bác sĩ đang hoạt động thuộc khoa
-        List<Doctor> activeDoctors = doctorRepository.findActiveDoctorsByDepartment(
-                department.getId(),
-                (short) UserStatus.ACTIVE.getCode(),
-                (short) Role.DOCTOR.getCode()
-        );
+        List<Doctor> activeDoctors = doctorRepository.findActiveDoctorsByDepartment(department.getId(),(short) UserStatus.ACTIVE.getCode(), (short) Role.DOCTOR.getCode());
 
         // Đếm số bác sĩ có lịch làm việc phù hợp với khung giờ
         long eligibleDoctorCount = activeDoctors.stream()
@@ -164,18 +151,10 @@ public class AppointmentService implements IAppointmentService {
         long departmentCapacity = eligibleDoctorCount * slotCapacity;
 
         // Đếm số lịch đang hoạt động của khoa trong khung giờ
-        long departmentAppointmentCount =
-                appointmentRepository.countByDepartment_IdAndAppointmentDateAndTimeSlotAndStatusIn(
-                        department.getId(),
-                        appointmentDate,
-                        request.getTimeSlot(),
-                        ACTIVE_STATUSES
-                );
+        long departmentAppointmentCount = appointmentRepository.countByDepartment_IdAndAppointmentDateAndTimeSlotAndStatusIn(department.getId(), appointmentDate, request.getTimeSlot(), ACTIVE_STATUSES);
 
         if (departmentAppointmentCount >= departmentCapacity) {
-            throw BusinessException.badRequest(
-                    "Khung giờ này đã hết chỗ, vui lòng chọn khung giờ khác"
-            );
+            throw BusinessException.badRequest("Khung giờ này đã hết chỗ, vui lòng chọn khung giờ khác");
         }
 
         // 7. Tạo lịch khám chưa phân công bác sĩ
@@ -197,71 +176,152 @@ public class AppointmentService implements IAppointmentService {
         try {
             savedAppointment = appointmentRepository.save(appointment);
         } catch (DataIntegrityViolationException e) {
-            throw BusinessException.conflict(
-                    "Không thể đặt lịch, vui lòng kiểm tra lại"
-            );
+            throw BusinessException.conflict("Không thể đặt lịch, vui lòng kiểm tra lại");
         }
 
-        return new ApiResponse(
-                200,
-                "Đặt lịch thành công",
-                toResponse(savedAppointment)
-        );
+        return new ApiResponse(200, "Đặt lịch thành công", toResponse(savedAppointment));
     }
 
     @Override
-    public List<AvailableSlotResponse> getAvailableSlots(String doctorUuid, LocalDate appointmentDate) {
-        var doctorUser = userRepository.findByUuid(doctorUuid);
-        if (doctorUser == null) {
-            throw BusinessException.notFound("Khong ton tai Uuid cuả bác sĩ");
-        }
-        if (doctorUser.getRole() != Role.DOCTOR.getCode()) {
-            throw BusinessException.badRequest("Khong phai bac si");
-        }
-        if (isLocked(doctorUser)) {
+    @Transactional(readOnly = true)
+    public List<AvailableSlotResponse> getAvailableSlots(Long departmentId, LocalDate appointmentDate) {
+        // 1. Kiểm tra khoa
+        var department = departmentRepository.findById(departmentId).orElseThrow(() -> BusinessException.notFound("Không tìm thấy khoa"));
+
+        // 2. Kiểm tra ngày khám
+        LocalDate today = LocalDate.now(VN_ZONE);
+
+        if (appointmentDate.isBefore(today) || appointmentDate.isAfter(today.plusDays(MAX_BOOKING_DAYS_AHEAD))) {
             return List.of();
-        }
-        var doctor = doctorRepository.findById(doctorUser.getId()).orElse(null);
-        if (doctor == null) {
-            throw BusinessException.notFound("Khong ton tai bac si");
         }
 
-        if (appointmentDate.isBefore(LocalDate.now(VN_ZONE))) {
-            return List.of();
+        // 3. Lấy sức chứa mỗi bác sĩ trong một khung giờ
+        int slotCapacity = systemConfigService.getInt(ISystemConfigService.SLOT_CAPACITY_PER_DOCTOR, ISystemConfigService.DEFAULT_SLOT_CAPACITY_PER_DOCTOR
+        );
+
+        if (slotCapacity <= 0) {
+            throw BusinessException.badRequest("Sức chứa lịch khám không hợp lệ");
         }
+
         Short dayOfWeek = (short) appointmentDate.getDayOfWeek().getValue();
 
-        var workingHour = doctorWorkingHourRepository.findByDoctor_IdAndDayOfWeekAndStatus(doctor.getId(), dayOfWeek, (short) 2).orElse(null);
+        // 4. Lấy bác sĩ đang hoạt động thuộc khoa
+        List<Doctor> activeDoctors = doctorRepository.findActiveDoctorsByDepartment(
+                department.getId(),
+                (short) UserStatus.ACTIVE.getCode(),
+                (short) Role.DOCTOR.getCode()
+        );
 
-        if (workingHour == null || workingHour.getShiftType() == 4) {
-            return List.of();
-        }
+        // 5. Đếm số bác sĩ đủ điều kiện làm việc buổi sáng
+        long morningDoctorCount = activeDoctors.stream()
+                .filter(doctor -> doctorWorkingHourRepository.countWorkingHour(
+                        doctor.getId(),
+                        dayOfWeek,
+                        (short) ShiftType.MORNING.getCode(),
+                        (short) ShiftType.FULL_DAY.getCode(),
+                        (short) DoctorWorkingHourStatus.ACTIVE.getCode()
+                ) > 0)
+                .count();
 
-        Short shiftType = workingHour.getShiftType();
+        // 6. Đếm số bác sĩ đủ điều kiện làm việc buổi chiều
+        long afternoonDoctorCount = activeDoctors.stream()
+                .filter(doctor -> doctorWorkingHourRepository.countWorkingHour(
+                        doctor.getId(),
+                        dayOfWeek,
+                        (short) ShiftType.AFTERNOON.getCode(),
+                        (short) ShiftType.FULL_DAY.getCode(),
+                        (short) DoctorWorkingHourStatus.ACTIVE.getCode()
+                ) > 0)
+                .count();
 
-        List<TimeSlot> availableTimeSlots;
-        if (shiftType == 1) {
-            availableTimeSlots = Arrays.asList(TimeSlot.values());
-        } else {
-            availableTimeSlots = Arrays.stream(TimeSlot.values()).filter(slot -> slot.getShiftType().getCode() == shiftType).toList();
-        }
-
-        var bookedAppointments = appointmentRepository.findByDoctor_IdAndAppointmentDateAndStatusIn(doctor.getId(), appointmentDate, ACTIVE_STATUSES);
-        var bookedTimeSlots = bookedAppointments.stream().map(Appointment::getTimeSlot).toList();
-
-        availableTimeSlots = availableTimeSlots.stream().filter(slot -> !bookedTimeSlots.contains(slot.getValue())).toList();
-
-        availableTimeSlots = availableTimeSlots.stream()
+        // 7. Kiểm tra sức chứa từng khung giờ
+        return Arrays.stream(TimeSlot.values())
                 .filter(slot -> !isSlotInPast(appointmentDate, slot))
-                .toList();
+                .filter(slot -> {
+                    long eligibleDoctorCount = slot.getShiftType() == ShiftType.MORNING ? morningDoctorCount : afternoonDoctorCount;
 
-        return availableTimeSlots.stream().map(timeSlot -> {
-            AvailableSlotResponse availableSlotResponse = new AvailableSlotResponse();
-            availableSlotResponse.setTimeSlot(timeSlot.getValue());
-            return availableSlotResponse;
-        }).toList();
+                    long departmentCapacity = eligibleDoctorCount * slotCapacity;
+
+                    long bookedCount = appointmentRepository.countByDepartment_IdAndAppointmentDateAndTimeSlotAndStatusIn(department.getId(), appointmentDate, slot.getValue(),ACTIVE_STATUSES);
+
+                    return bookedCount < departmentCapacity;
+                })
+                .map(slot -> {
+                    AvailableSlotResponse response = new AvailableSlotResponse();
+                    response.setTimeSlot(slot.getValue());
+                    return response;
+                })
+                .toList();
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public List<EligibleDoctorResponse> getEligibleDoctorsForCheckIn(String appointmentUuid) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null || !(authentication.getPrincipal() instanceof CustomUserDetails userDetails)) {
+            throw BusinessException.unauthorized("Vui lòng đăng nhập");
+        }
+
+        User currentUser = userDetails.getUser();
+
+        if (currentUser.getRole() != Role.STAFF.getCode() && currentUser.getRole() != Role.ADMIN.getCode()) {
+            throw BusinessException.forbidden("Không có quyền xem danh sách bác sĩ tiếp nhận");
+        }
+
+        Appointment appointment = appointmentRepository.findByUuid(appointmentUuid).orElseThrow(() -> BusinessException.notFound("Không tìm thấy lịch hẹn"));
+
+        if (!Objects.equals(appointment.getStatus(), AppointmentStatus.CONFIRMED.getCode())) {
+            throw BusinessException.badRequest("Chỉ xem bác sĩ cho lịch hẹn đã xác nhận");
+        }
+
+        Department department = appointment.getDepartment();
+
+        TimeSlot timeSlot;
+
+        try {
+            timeSlot = TimeSlot.fromValue(appointment.getTimeSlot());
+        } catch (IllegalArgumentException exception) {
+            throw BusinessException.badRequest(
+                    "Khung giờ khám không hợp lệ"
+            );
+        }
+
+        Short dayOfWeek = (short) appointment.getAppointmentDate()
+                .getDayOfWeek().getValue();
+
+        Short shiftType = (short) timeSlot.getShiftType().getCode();
+
+        int slotCapacity = systemConfigService.getInt(
+                ISystemConfigService.SLOT_CAPACITY_PER_DOCTOR,
+                ISystemConfigService.DEFAULT_SLOT_CAPACITY_PER_DOCTOR
+        );
+
+        if (slotCapacity <= 0) {
+            throw BusinessException.badRequest(
+                    "Sức chứa lịch khám không hợp lệ"
+            );
+        }
+
+        List<Doctor> activeDoctors = doctorRepository.findActiveDoctorsByDepartment( department.getId(), (short) UserStatus.ACTIVE.getCode(), (short) Role.DOCTOR.getCode());
+
+        return activeDoctors.stream()
+                .filter(doctor -> doctorWorkingHourRepository.countWorkingHour(doctor.getId(), dayOfWeek, shiftType, (short) ShiftType.FULL_DAY.getCode(), (short) DoctorWorkingHourStatus.ACTIVE.getCode()) > 0)
+                .map(doctor -> {
+                    long bookedCount = appointmentRepository.countByDoctor_IdAndAppointmentDateAndTimeSlotAndStatusIn(doctor.getId(), appointment.getAppointmentDate(), appointment.getTimeSlot(), ACTIVE_STATUSES);
+
+                    int remainingCapacity = (int) (slotCapacity - bookedCount);
+
+                    return EligibleDoctorResponse.builder()
+                            .doctorUuid(doctor.getUuid())
+                            .doctorName(doctor.getUser().getFullName())
+                            .yearsExperience(doctor.getYearsExperience())
+                            .remainingCapacity(remainingCapacity)
+                            .build();
+                })
+                .filter(doctor -> doctor.getRemainingCapacity() > 0)
+                .toList();
+    }
 
     @Override
     @Transactional(readOnly = true)
@@ -348,32 +408,136 @@ public class AppointmentService implements IAppointmentService {
     }
 
     @Override
-    public ApiResponse checkInAppointment(String appointmentUuid) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    @Transactional
+    public ApiResponse checkInAppointment(
+            String appointmentUuid,
+            String doctorUuid
+    ) {
+        Authentication authentication =
+                SecurityContextHolder.getContext().getAuthentication();
 
-        if (authentication == null || !(authentication.getPrincipal() instanceof CustomUserDetails userDetails)) {
+        if (authentication == null
+                || !(authentication.getPrincipal() instanceof CustomUserDetails userDetails)) {
             throw BusinessException.unauthorized("Vui lòng đăng nhập");
         }
 
         User currentUser = userDetails.getUser();
 
-        if (currentUser.getRole() != Role.STAFF.getCode() && currentUser.getRole() != Role.ADMIN.getCode()) {
-            throw BusinessException.forbidden("Khong co quyen check-in lich hen");
+        if (currentUser.getRole() != Role.STAFF.getCode()
+                && currentUser.getRole() != Role.ADMIN.getCode()) {
+            throw BusinessException.forbidden("Không có quyền check-in lịch hẹn");
         }
 
         Appointment appointment = appointmentRepository.findByUuid(appointmentUuid)
-                .orElseThrow(() -> BusinessException.notFound("Khong tim thay lich hen"));
+                .orElseThrow(() -> BusinessException.notFound("Không tìm thấy lịch hẹn"));
 
-        if (appointment.getStatus() != AppointmentStatus.CONFIRMED.getCode()) {
-            throw BusinessException.badRequest("Chi co lich hen da xac nhan moi duoc check-in");
+        if (!Objects.equals(
+                appointment.getStatus(),
+                AppointmentStatus.CONFIRMED.getCode()
+        )) {
+            throw BusinessException.badRequest(
+                    "Chỉ có lịch hẹn đã xác nhận mới được check-in"
+            );
         }
 
+        // Khóa khoa để đồng bộ với nghiệp vụ tạo lịch
+        Department department = departmentRepository.findByIdForUpdate(
+                appointment.getDepartment().getId()
+        ).orElseThrow(() -> BusinessException.notFound("Không tìm thấy khoa"));
+
+        // Tìm bác sĩ được nhân viên lựa chọn
+        Doctor doctor = doctorRepository.findByUuid(doctorUuid)
+                .orElseThrow(() -> BusinessException.notFound("Không tìm thấy bác sĩ"));
+
+        // Kiểm tra bác sĩ thuộc đúng khoa
+        if (!Objects.equals(
+                doctor.getDepartment().getId(),
+                department.getId()
+        )) {
+            throw BusinessException.badRequest(
+                    "Bác sĩ không thuộc khoa của lịch hẹn"
+            );
+        }
+
+        // Kiểm tra tài khoản bác sĩ
+        User doctorUser = doctor.getUser();
+
+        if (doctorUser == null
+                || doctorUser.getStatus() != UserStatus.ACTIVE.getCode()
+                || doctorUser.getRole() != Role.DOCTOR.getCode()) {
+            throw BusinessException.badRequest(
+                    "Tài khoản bác sĩ không hoạt động"
+            );
+        }
+
+        // Kiểm tra khung giờ
+        TimeSlot timeSlot;
+
+        try {
+            timeSlot = TimeSlot.fromValue(appointment.getTimeSlot());
+        } catch (IllegalArgumentException exception) {
+            throw BusinessException.badRequest("Khung giờ khám không hợp lệ");
+        }
+
+        Short dayOfWeek = (short) appointment.getAppointmentDate()
+                .getDayOfWeek().getValue();
+
+        Short shiftType = (short) timeSlot.getShiftType().getCode();
+
+        // Kiểm tra lịch làm việc đã được duyệt
+        int workingHourCount = doctorWorkingHourRepository.countWorkingHour(
+                doctor.getId(),
+                dayOfWeek,
+                shiftType,
+                (short) ShiftType.FULL_DAY.getCode(),
+                (short) DoctorWorkingHourStatus.ACTIVE.getCode()
+        );
+
+        if (workingHourCount <= 0) {
+            throw BusinessException.badRequest(
+                    "Bác sĩ không có lịch làm việc trong khung giờ này"
+            );
+        }
+
+        // Lấy sức chứa tối đa mỗi bác sĩ trong một khung giờ
+        int slotCapacity = systemConfigService.getInt(
+                ISystemConfigService.SLOT_CAPACITY_PER_DOCTOR,
+                ISystemConfigService.DEFAULT_SLOT_CAPACITY_PER_DOCTOR
+        );
+
+        if (slotCapacity <= 0) {
+            throw BusinessException.badRequest(
+                    "Sức chứa lịch khám không hợp lệ"
+            );
+        }
+
+        // Kiểm tra số lịch đang hoạt động của bác sĩ
+        long bookedCount =
+                appointmentRepository.countByDoctor_IdAndAppointmentDateAndTimeSlotAndStatusIn(
+                        doctor.getId(),
+                        appointment.getAppointmentDate(),
+                        appointment.getTimeSlot(),
+                        ACTIVE_STATUSES
+                );
+
+        if (bookedCount >= slotCapacity) {
+            throw BusinessException.badRequest(
+                    "Bác sĩ đã đủ số lượng lịch khám trong khung giờ này"
+            );
+        }
+
+        // Phân bác sĩ và check-in
+        appointment.setDoctor(doctor);
         appointment.setStatus(AppointmentStatus.CHECKED_IN.getCode());
         appointment.setCheckedInAt(LocalDateTime.now(VN_ZONE));
 
         Appointment savedAppointment = appointmentRepository.save(appointment);
 
-        return new ApiResponse(200, "Check-in lich hen thanh cong", toResponse(savedAppointment));
+        return new ApiResponse(
+                200,
+                "Phân bác sĩ và check-in lịch hẹn thành công",
+                toResponse(savedAppointment)
+        );
     }
 
     @Override

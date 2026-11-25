@@ -28,8 +28,8 @@ public class AppointmentController {
     }
 
     @GetMapping("/available-slots")
-    public ResponseEntity<?> getAvailableSlots(@RequestParam @Size(max = 36) String doctorUuid, @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
-        return ResponseEntity.ok(appointmentService.getAvailableSlots(doctorUuid, date));
+    public ResponseEntity<?> getAvailableSlots(@RequestParam @jakarta.validation.constraints.Positive Long departmentId, @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
+        return ResponseEntity.ok(appointmentService.getAvailableSlots(departmentId, date));
     }
 
     @GetMapping("/my")
@@ -48,8 +48,8 @@ public class AppointmentController {
     }
 
     @PatchMapping("/{appointmentUuid}/check-in")
-    public ResponseEntity<?> checkInAppointment(@PathVariable @Size(max = 36) String appointmentUuid) {
-        return ResponseEntity.ok(appointmentService.checkInAppointment(appointmentUuid));
+    public ResponseEntity<?> checkInAppointment(@PathVariable @Size(max = 36) String appointmentUuid, @RequestParam @Size(max = 36) String doctorUuid) {
+        return ResponseEntity.ok(appointmentService.checkInAppointment(appointmentUuid, doctorUuid));
     }
 
     @PatchMapping("/{appointmentUuid}/no-show")
@@ -80,5 +80,10 @@ public class AppointmentController {
     @PatchMapping("/{appointmentUuid}/reject")
     public ResponseEntity<?> rejectAppointment(@PathVariable @Size(max = 36) String appointmentUuid, @Valid @RequestBody CancelAppointmentRequest request) {
         return ResponseEntity.ok(appointmentService.rejectAppointment(appointmentUuid, request));
+    }
+
+    @GetMapping("/{appointmentUuid}/eligible-doctors")
+    public ResponseEntity<?> getEligibleDoctorsForCheckIn(@PathVariable @Size(max = 36) String appointmentUuid) {
+        return ResponseEntity.ok(appointmentService.getEligibleDoctorsForCheckIn(appointmentUuid));
     }
 }
