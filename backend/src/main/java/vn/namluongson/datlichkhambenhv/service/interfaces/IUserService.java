@@ -11,14 +11,14 @@ public interface IUserService {
     ApiResponse createUser(CreateUserRequest userRequest);
     ApiResponse createStaff(CreateStaffRequest request);
     ApiResponse updateUser(UpdateUserRequest userRequest);
-    ApiResponse deleteUser(String uuid);
-    PageResponse<UserResponse> getListUsers(UserPagingRequest request);
-    UserResponse getUserByUuid(String uuid);
+    ApiResponse deleteUser(String uuid, String currentUserUuid);
+    PageResponse<UserResponse> getListUsers(UserPagingRequest request, String currentUserUuid);
+    UserResponse getUserByUuid(String uuid, String currentUserUuid);
 
-    List<UserResponse> getListUserByName(String name);
+    List<UserResponse> getListUserByName(String name, String currentUserUuid);
     UserResponse getCurrentUserByEmail(String email);
-    UserResponse getCurrentUser();
-    UserResponse updateMyProfile(UpdateMyProfileRequest request);
-    ApiResponse updateUserStatus(String uuid, UpdateUserStatusRequest request);
-    ApiResponse changePassword(ChangePasswordRequest request);
+    UserResponse getCurrentUser(String currentUserUuid);
+    UserResponse updateMyProfile(UpdateMyProfileRequest request,String currentUserUuid);
+    ApiResponse updateUserStatus(String uuid, UpdateUserStatusRequest request, String currentUserUuid);
+    ApiResponse changePassword(ChangePasswordRequest request, String currentUserUuid);
 }

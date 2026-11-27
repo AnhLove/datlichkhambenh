@@ -3,11 +3,8 @@ package vn.namluongson.datlichkhambenhv.service.impl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import vn.namluongson.datlichkhambenhv.config.security.CustomUserDetails;
 import vn.namluongson.datlichkhambenhv.domain.dtos.requests.BasePagingRequest;
 import vn.namluongson.datlichkhambenhv.domain.dtos.requests.examreport.CreateExamReportRequest;
 import vn.namluongson.datlichkhambenhv.domain.dtos.responses.examreport.ExamReportResponse;
@@ -22,6 +19,7 @@ import vn.namluongson.datlichkhambenhv.domain.enums.Role;
 import vn.namluongson.datlichkhambenhv.exception.BusinessException;
 import vn.namluongson.datlichkhambenhv.repository.appointment.AppointmentRepository;
 import vn.namluongson.datlichkhambenhv.repository.examreport.ExamReportRepository;
+import vn.namluongson.datlichkhambenhv.repository.user.UserRepository;
 import vn.namluongson.datlichkhambenhv.service.interfaces.IExamReportService;
 
 import java.time.LocalDateTime;
@@ -35,15 +33,16 @@ public class ExamReportService implements IExamReportService {
     private static final ZoneId VN_ZONE = ZoneId.of("Asia/Ho_Chi_Minh");
     private final ExamReportRepository examReportRepository;
     private final AppointmentRepository appointmentRepository;
+    private final UserRepository userRepository;
 
-    private User getCurrentUser() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    private User getCurrentUser(String currentUserUuid) {
+        User user = userRepository.findByUuid(currentUserUuid);
 
-        if (authentication == null || !(authentication.getPrincipal() instanceof CustomUserDetails userDetails)) {
+        if (user == null) {
             throw BusinessException.unauthorized("Vui lòng đăng nhập");
         }
 
-        return userDetails.getUser();
+        return user;
     }
 
     private void checkDoctor(User user) {
@@ -78,8 +77,8 @@ public class ExamReportService implements IExamReportService {
     }
 
     @Override
-    public ApiResponse createExamReport(CreateExamReportRequest request) {
-        User currentUser = getCurrentUser();
+    public ApiResponse createExamReport(CreateExamReportRequest request, String currentUserUuid) {
+        User currentUser = getCurrentUser(currentUserUuid);
         checkDoctorOrAdmin(currentUser);
 
         Appointment appointment = appointmentRepository.findByUuid(request.getAppointmentUuid()).orElseThrow(() -> BusinessException.notFound("Không tìm thấy lịch hẹn"));
@@ -109,8 +108,8 @@ public class ExamReportService implements IExamReportService {
     }
 
     @Override
-    public ApiResponse issueExamReport(String reportUuid) {
-        User currentUser = getCurrentUser();
+    public ApiResponse issueExamReport(String reportUuid, String currentUserUuid) {
+        User currentUser = getCurrentUser(currentUserUuid);
         checkDoctorOrAdmin(currentUser);
 
         ExamReport report = examReportRepository.findByUuid(reportUuid).orElseThrow(() -> BusinessException.notFound("Không tìm thấy phiếu khám"));
@@ -132,9 +131,9 @@ public class ExamReportService implements IExamReportService {
 
     @Override
     @Transactional(readOnly = true)
-    public ApiResponse getMyDoctorReports(BasePagingRequest paging) {
-        User currentUser = getCurrentUser();
-        checkDoctor(currentUser);
+    public ApiResponse getMyDoctorReports(BasePagingRequest paging, String currentUserUuid) {
+        User currentUser = getCurrentUser(currentUserUuid);
+        checkDoctorOrAdmin(currentUser);
 
         Sort sort = Sort.by(Sort.Direction.DESC, "issuedAt").and(Sort.by(Sort.Direction.DESC, "id"));
         Page<ExamReportResponse> reports = examReportRepository
@@ -147,9 +146,9 @@ public class ExamReportService implements IExamReportService {
 
     @Override
     @Transactional(readOnly = true)
-    public ApiResponse getMyPatientReports(BasePagingRequest paging) {
-        User currentUser = getCurrentUser();
-        checkPatient(currentUser);
+    public ApiResponse getMyPatientReports(BasePagingRequest paging, String currentUserUuid) {
+        User currentUser = getCurrentUser(currentUserUuid);
+        checkDoctorOrAdmin(currentUser);
 
         Sort sort = Sort.by(Sort.Direction.DESC, "issuedAt").and(Sort.by(Sort.Direction.DESC, "id"));
         Page<ExamReportResponse> reports = examReportRepository
@@ -162,9 +161,9 @@ public class ExamReportService implements IExamReportService {
 
     @Override
     @Transactional(readOnly = true)
-    public ApiResponse getAllReports(BasePagingRequest paging) {
-        User currentUser = getCurrentUser();
-        checkAdmin(currentUser);
+    public ApiResponse getAllReports(BasePagingRequest paging, String currentUserUuid) {
+        User currentUser = getCurrentUser(currentUserUuid);
+        checkDoctorOrAdmin(currentUser);
 
         Page<ExamReportResponse> reports = examReportRepository
                 .findAll(paging.toPageable(Sort.by(Sort.Direction.DESC, "id")))

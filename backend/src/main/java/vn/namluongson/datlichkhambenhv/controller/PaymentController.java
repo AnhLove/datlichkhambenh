@@ -5,8 +5,10 @@ import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import vn.namluongson.datlichkhambenhv.config.security.CustomUserDetails;
 import vn.namluongson.datlichkhambenhv.domain.dtos.requests.BasePagingRequest;
 import vn.namluongson.datlichkhambenhv.domain.dtos.requests.payment.CreatePaymentRequest;
 import vn.namluongson.datlichkhambenhv.domain.response.ApiResponse;
@@ -31,8 +33,8 @@ public class PaymentController {
     }
 
     @PatchMapping("/appointment/{appointmentUuid}/confirm")
-    public ResponseEntity<ApiResponse> confirmPayment(@PathVariable @Size(max = 36) String appointmentUuid) {
-        return ResponseEntity.ok(paymentService.confirmPayment(appointmentUuid));
+    public ResponseEntity<ApiResponse> confirmPayment(@PathVariable @Size(max = 36) String appointmentUuid, @AuthenticationPrincipal CustomUserDetails userDetails) {
+        return ResponseEntity.ok(paymentService.confirmPayment(appointmentUuid, userDetails.getUser().getUuid()));
     }
 
     @GetMapping("/my")

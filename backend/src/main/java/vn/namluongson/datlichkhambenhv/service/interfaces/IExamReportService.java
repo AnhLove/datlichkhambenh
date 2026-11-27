@@ -5,10 +5,10 @@ import vn.namluongson.datlichkhambenhv.domain.dtos.requests.examreport.CreateExa
 import vn.namluongson.datlichkhambenhv.domain.response.ApiResponse;
 
 public interface IExamReportService {
-    ApiResponse createExamReport(CreateExamReportRequest request);
-    ApiResponse issueExamReport(String reportUuid);
-    ApiResponse getMyDoctorReports(BasePagingRequest paging);
-    ApiResponse getMyPatientReports(BasePagingRequest paging);
-    ApiResponse getAllReports(BasePagingRequest paging);
+    ApiResponse createExamReport(CreateExamReportRequest request, String currentUserUuid);
+    ApiResponse issueExamReport(String reportUuid, String currentUserUuid);
+    ApiResponse getMyDoctorReports(BasePagingRequest paging, String currentUserUuid);
+    ApiResponse getMyPatientReports(BasePagingRequest paging, String currentUserUuid);
+    ApiResponse getAllReports(BasePagingRequest paging, String currentUserUuid);
 }
 

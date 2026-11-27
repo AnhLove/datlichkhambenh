@@ -3,11 +3,8 @@ package vn.namluongson.datlichkhambenhv.service.impl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import vn.namluongson.datlichkhambenhv.config.security.CustomUserDetails;
 import vn.namluongson.datlichkhambenhv.domain.dtos.requests.BasePagingRequest;
 import vn.namluongson.datlichkhambenhv.domain.dtos.requests.payment.CreatePaymentRequest;
 import vn.namluongson.datlichkhambenhv.domain.dtos.responses.payment.PaymentResponse;
@@ -24,6 +21,7 @@ import vn.namluongson.datlichkhambenhv.exception.BusinessException;
 import vn.namluongson.datlichkhambenhv.repository.appointment.AppointmentRepository;
 import vn.namluongson.datlichkhambenhv.repository.appointment.AppointmentServiceRepository;
 import vn.namluongson.datlichkhambenhv.repository.payment.PaymentRepository;
+import vn.namluongson.datlichkhambenhv.repository.user.UserRepository;
 import vn.namluongson.datlichkhambenhv.service.interfaces.IPaymentService;
 
 import java.time.LocalDateTime;
@@ -37,6 +35,7 @@ public class PaymentService implements IPaymentService {
     private final PaymentRepository paymentRepository;
     private final AppointmentRepository appointmentRepository;
     private final AppointmentServiceRepository appointmentServiceRepository;
+    private final UserRepository userRepository;
 
     @Override
     @Transactional
@@ -97,7 +96,7 @@ public class PaymentService implements IPaymentService {
 
     @Override
     @Transactional
-    public ApiResponse confirmPayment(String appointmentUuid) {
+    public ApiResponse confirmPayment(String appointmentUuid, String currentUserUuid) {
         Payment payment = paymentRepository.findByAppointmentUuidForUpdate(appointmentUuid)
                 .orElseThrow(() -> BusinessException.notFound("Không tìm thấy khoản thanh toán"));
 
@@ -107,7 +106,7 @@ public class PaymentService implements IPaymentService {
 
         payment.setStatus((long) PaymentStatus.PAID.getCode());
         payment.setPaidAt(LocalDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh")));
-        payment.setReceivedBy(currentUser());
+        payment.setReceivedBy(getCurrentUser(currentUserUuid));
 
         Payment savedPayment = paymentRepository.save(payment);
 
@@ -155,12 +154,14 @@ public class PaymentService implements IPaymentService {
         return new ApiResponse(200, "Lấy danh sách thanh toán thành công", PageResponse.of(page));
     }
 
-    private User currentUser() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || !(authentication.getPrincipal() instanceof CustomUserDetails userDetails)) {
+    private User getCurrentUser(String currentUserUuid) {
+        User user = userRepository.findByUuid(currentUserUuid);
+
+        if (user == null) {
             throw BusinessException.unauthorized("Vui lòng đăng nhập");
         }
-        return userDetails.getUser();
+
+        return user;
     }
 }
 

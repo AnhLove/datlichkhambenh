@@ -7,12 +7,9 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import vn.namluongson.datlichkhambenhv.config.security.CustomUserDetails;
 import vn.namluongson.datlichkhambenhv.domain.dtos.requests.user.*;
 import vn.namluongson.datlichkhambenhv.domain.dtos.responses.user.UserResponse;
 import vn.namluongson.datlichkhambenhv.domain.entities.User;
@@ -111,15 +108,14 @@ public class UserService implements IUserService {
 
     @Override
     @Transactional
-    public ApiResponse deleteUser(String uuid) {
+    public ApiResponse deleteUser(String uuid, String currentUserUuid) {
         var entity = userRepository.findByUuid(uuid);
         if (entity == null) {
             throw BusinessException.notFound("User not found");
         }
 
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (entity.getEmail() != null && authentication != null && entity.getEmail().equalsIgnoreCase(authentication.getName())) {
-            throw BusinessException.badRequest("Khong the tu xoa tai khoan cua minh");
+        if (entity.getUuid().equals(currentUserUuid)) {
+            throw BusinessException.badRequest("Không thể tự xóa tài khoản của mình");
         }
         if (entity.getRole() == Role.ADMIN.getCode()) {
             throw BusinessException.forbidden("Khong the xoa tai khoan quan tri vien");
@@ -136,9 +132,10 @@ public class UserService implements IUserService {
 
     @Override
     @Transactional(readOnly = true)
-    public PageResponse<UserResponse> getListUsers(UserPagingRequest request) {
+    public PageResponse<UserResponse> getListUsers(UserPagingRequest request, String currentUserUuid) {
+        User currentUser = findCurrentUserByUuid(currentUserUuid);
         Short role = request.getRole();
-        if (currentRole() == Role.STAFF.getCode()) {
+        if (currentUser.getRole() == Role.STAFF.getCode()) {
             role = (short) Role.PATIENT.getCode();
         }
 
@@ -149,12 +146,13 @@ public class UserService implements IUserService {
 
     @Override
     @Transactional(readOnly = true)
-    public UserResponse getUserByUuid(String uuid) {
+    public UserResponse getUserByUuid(String uuid, String currentUserUuid) {
+        User currentUser = findCurrentUserByUuid(currentUserUuid);
         var data = userRepository.findByUuid(uuid);
         if (data == null) {
             throw BusinessException.notFound("User not found");
         }
-        if (currentRole() == Role.STAFF.getCode() && data.getRole() != Role.PATIENT.getCode()) {
+        if (currentUser.getRole() == Role.STAFF.getCode() && data.getRole() != Role.PATIENT.getCode()) {
             throw BusinessException.forbidden("Khong co quyen xem tai khoan nay");
         }
         return toUserResponse(data);
@@ -162,11 +160,26 @@ public class UserService implements IUserService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<UserResponse> getListUserByName(String name) {
-        Short role = currentRole() == Role.STAFF.getCode() ? (short) Role.PATIENT.getCode() : null;
-        Specification<User> spec = buildSpec(name, null, null, role, (short) UserStatus.ACTIVE.getCode());
-        Pageable pageable = PageRequest.of(0, AUTOCOMPLETE_LIMIT, Sort.by("fullName").and(Sort.by("id")));
-        return userRepository.findAll(spec, pageable).stream().map(this::toUserResponse).toList();
+    public List<UserResponse> getListUserByName(String name, String currentUserUuid) {
+        User currentUser = findCurrentUserByUuid(currentUserUuid);
+
+        Short role = currentUser.getRole() == Role.STAFF.getCode()
+                ? (short) Role.PATIENT.getCode()
+                : null;
+
+        Specification<User> spec = buildSpec(
+                name, null, null, role,
+                (short) UserStatus.ACTIVE.getCode()
+        );
+
+        Pageable pageable = PageRequest.of(
+                0, AUTOCOMPLETE_LIMIT,
+                Sort.by("fullName").and(Sort.by("id")));
+
+        return userRepository.findAll(spec, pageable)
+                .stream()
+                .map(this::toUserResponse)
+                .toList();
     }
 
     @Override
@@ -181,23 +194,24 @@ public class UserService implements IUserService {
     }
 
     @Override
-    public UserResponse getCurrentUser() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    public UserResponse getCurrentUser(String currentUserUuid) {
+        User user = findCurrentUserByUuid(currentUserUuid);
+        return toUserResponse(user);
+    }
 
-        String email = authentication.getName();
+    private User findCurrentUserByUuid(String currentUserUuid) {
+        User user = userRepository.findByUuid(currentUserUuid);
 
-        return getCurrentUserByEmail(email);
+        if (user == null) {
+            throw BusinessException.unauthorized("Vui lòng đăng nhập");
+        }
+
+        return user;
     }
 
     @Override
-    public UserResponse updateMyProfile(UpdateMyProfileRequest request) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String email = authentication.getName();
-        User user = userRepository.findByEmailIgnoreCase(email);
-
-        if (user == null) {
-            throw BusinessException.notFound("Không tìm thấy tài khoản");
-        }
+    public UserResponse updateMyProfile(UpdateMyProfileRequest request, String currentUserUuid) {
+        User user = findCurrentUserByUuid(currentUserUuid);
 
         String normalizedPhone = request.getPhone().trim();
 
@@ -216,7 +230,7 @@ public class UserService implements IUserService {
     }
 
     @Override
-    public ApiResponse updateUserStatus(String uuid, UpdateUserStatusRequest request) {
+    public ApiResponse updateUserStatus(String uuid, UpdateUserStatusRequest request, String currentUserUuid) {
         User target = userRepository.findByUuid(uuid);
         if (target == null) {
             throw BusinessException.notFound("Khong tim thay tai khoan");
@@ -230,8 +244,7 @@ public class UserService implements IUserService {
         }
 
         if (newStatus == UserStatus.LOCKED) {
-            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-            if (target.getEmail() != null && target.getEmail().equalsIgnoreCase(authentication.getName())) {
+            if (target.getUuid().equals(currentUserUuid)) {
                 throw BusinessException.badRequest("Khong the tu khoa tai khoan cua minh");
             }
             if (target.getRole() == Role.ADMIN.getCode()) {
@@ -247,13 +260,8 @@ public class UserService implements IUserService {
     }
 
     @Override
-    public ApiResponse changePassword(ChangePasswordRequest request) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String email = authentication.getName();
-        User user = userRepository.findByEmailIgnoreCase(email);
-        if (user == null) {
-            throw BusinessException.notFound("Không tìm thấy tài khoản");
-        }
+    public ApiResponse changePassword(ChangePasswordRequest request, String currentUserUuid) {
+        User user = findCurrentUserByUuid(currentUserUuid);
 
         if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPasswordHash())) {
             throw BusinessException.badRequest("Mật khẩu cũ không chính xác");
@@ -266,14 +274,6 @@ public class UserService implements IUserService {
         user.setPasswordHash(passwordEncoder.encode(request.getNewPassword()));
         userRepository.save(user);
         return new ApiResponse(200, "Cập nhật mật khẩu thành công", null);
-    }
-
-    private int currentRole() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || !(authentication.getPrincipal() instanceof CustomUserDetails userDetails)) {
-            throw BusinessException.unauthorized("Vui lòng đăng nhập");
-        }
-        return userDetails.getUser().getRole();
     }
 
     private Specification<User> buildSpec(String fullName, String phone, String email, Short role, Short status) {

@@ -55,14 +55,13 @@ public class AppointmentService implements IAppointmentService {
 
     @Override
     @Transactional
-    public ApiResponse createAppointment(CreateAppointmentRequest request) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    public ApiResponse createAppointment(CreateAppointmentRequest request, String currentUserUuid) {
+        User currentUser = userRepository.findByUuid(currentUserUuid);
 
-        if (authentication == null || !(authentication.getPrincipal() instanceof CustomUserDetails userDetails)) {
+        if (currentUser == null) {
             throw BusinessException.unauthorized("Vui lòng đăng nhập");
         }
 
-        User currentUser = userDetails.getUser();
         User patient;
 
         // 1. Xác định bệnh nhân đặt lịch
@@ -256,14 +255,12 @@ public class AppointmentService implements IAppointmentService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<EligibleDoctorResponse> getEligibleDoctorsForCheckIn(String appointmentUuid) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    public List<EligibleDoctorResponse> getEligibleDoctorsForCheckIn(String appointmentUuid, String currentUserUuid) {
+        User currentUser = userRepository.findByUuid(currentUserUuid);
 
-        if (authentication == null || !(authentication.getPrincipal() instanceof CustomUserDetails userDetails)) {
+        if (currentUser == null) {
             throw BusinessException.unauthorized("Vui lòng đăng nhập");
         }
-
-        User currentUser = userDetails.getUser();
 
         if (currentUser.getRole() != Role.STAFF.getCode() && currentUser.getRole() != Role.ADMIN.getCode()) {
             throw BusinessException.forbidden("Không có quyền xem danh sách bác sĩ tiếp nhận");
@@ -325,8 +322,12 @@ public class AppointmentService implements IAppointmentService {
 
     @Override
     @Transactional(readOnly = true)
-    public ApiResponse getMyAppointments(BasePagingRequest paging) {
-        User currentUser = currentUser();
+    public ApiResponse getMyAppointments(BasePagingRequest paging, String currentUserUuid) {
+        User currentUser = userRepository.findByUuid(currentUserUuid);
+
+        if (currentUser == null) {
+            throw BusinessException.unauthorized("Vui lòng đăng nhập");
+        }
 
         if (currentUser.getRole() != Role.PATIENT.getCode()) {
             throw BusinessException.forbidden("Khong phai benh nhan");
@@ -343,14 +344,12 @@ public class AppointmentService implements IAppointmentService {
     }
 
     @Override
-    public ApiResponse cancelAppointment(String appointmentUuid, CancelAppointmentRequest request) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    public ApiResponse cancelAppointment(String appointmentUuid, CancelAppointmentRequest request, String currentUserUuid) {
+        User currentUser = userRepository.findByUuid(currentUserUuid);
 
-        if (authentication == null || !(authentication.getPrincipal() instanceof CustomUserDetails userDetails)) {
+        if (currentUser == null) {
             throw BusinessException.unauthorized("Vui lòng đăng nhập");
         }
-
-        User currentUser = userDetails.getUser();
 
         if (currentUser.getRole() != Role.PATIENT.getCode()) {
             throw BusinessException.forbidden("Khong phai benh nhan");
@@ -380,14 +379,12 @@ public class AppointmentService implements IAppointmentService {
     }
 
     @Override
-    public ApiResponse confirmAppointment(String appointmentUuid) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    public ApiResponse confirmAppointment(String appointmentUuid, String currentUserUuid) {
+        User currentUser = userRepository.findByUuid(currentUserUuid);
 
-        if (authentication == null || !(authentication.getPrincipal() instanceof CustomUserDetails userDetails)) {
+        if (currentUser == null) {
             throw BusinessException.unauthorized("Vui lòng đăng nhập");
         }
-
-        User currentUser = userDetails.getUser();
 
         if (currentUser.getRole() != Role.STAFF.getCode() && currentUser.getRole() != Role.ADMIN.getCode()) {
             throw BusinessException.forbidden("Khong co quyen xac nhan lich hen");
@@ -409,19 +406,12 @@ public class AppointmentService implements IAppointmentService {
 
     @Override
     @Transactional
-    public ApiResponse checkInAppointment(
-            String appointmentUuid,
-            String doctorUuid
-    ) {
-        Authentication authentication =
-                SecurityContextHolder.getContext().getAuthentication();
+    public ApiResponse checkInAppointment(String appointmentUuid, String doctorUuid, String currentUserUuid) {
+        User currentUser = userRepository.findByUuid(currentUserUuid);
 
-        if (authentication == null
-                || !(authentication.getPrincipal() instanceof CustomUserDetails userDetails)) {
+        if (currentUser == null) {
             throw BusinessException.unauthorized("Vui lòng đăng nhập");
         }
-
-        User currentUser = userDetails.getUser();
 
         if (currentUser.getRole() != Role.STAFF.getCode()
                 && currentUser.getRole() != Role.ADMIN.getCode()) {
@@ -541,14 +531,12 @@ public class AppointmentService implements IAppointmentService {
     }
 
     @Override
-    public ApiResponse noShowAppointment(String appointmentUuid) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    public ApiResponse noShowAppointment(String appointmentUuid, String currentUserUuid) {
+        User currentUser = userRepository.findByUuid(currentUserUuid);
 
-        if (authentication == null || !(authentication.getPrincipal() instanceof CustomUserDetails userDetails)) {
+        if (currentUser == null) {
             throw BusinessException.unauthorized("Vui lòng đăng nhập");
         }
-
-        User currentUser = userDetails.getUser();
 
         if (currentUser.getRole() != Role.STAFF.getCode() && currentUser.getRole() != Role.ADMIN.getCode()) {
             throw BusinessException.forbidden("Khong co quyen danh dau no-show");
@@ -569,14 +557,12 @@ public class AppointmentService implements IAppointmentService {
     }
 
     @Override
-    public ApiResponse completeAppointment(String appointmentUuid) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    public ApiResponse completeAppointment(String appointmentUuid, String currentUserUuid) {
+        User currentUser = userRepository.findByUuid(currentUserUuid);
 
-        if (authentication == null || !(authentication.getPrincipal() instanceof CustomUserDetails userDetails)) {
+        if (currentUser == null) {
             throw BusinessException.unauthorized("Vui lòng đăng nhập");
         }
-
-        User currentUser = userDetails.getUser();
 
         if (currentUser.getRole() != Role.DOCTOR.getCode() && currentUser.getRole() != Role.ADMIN.getCode()) {
             throw BusinessException.forbidden("Khong co quyen hoan thanh lich hen");
@@ -605,8 +591,8 @@ public class AppointmentService implements IAppointmentService {
 
     @Override
     @Transactional(readOnly = true)
-    public ApiResponse getTodayAppointments(BasePagingRequest paging) {
-        requireStaffOrAdmin();
+    public ApiResponse getTodayAppointments(BasePagingRequest paging, String currentUserUuid) {
+        requireStaffOrAdmin(currentUserUuid);
 
         LocalDate today = LocalDate.now(VN_ZONE);
 
@@ -620,8 +606,8 @@ public class AppointmentService implements IAppointmentService {
 
     @Override
     @Transactional(readOnly = true)
-    public ApiResponse getAppointmentsByDate(LocalDate date, BasePagingRequest paging) {
-        requireStaffOrAdmin();
+    public ApiResponse getAppointmentsByDate(LocalDate date, BasePagingRequest paging, String currentUserUuid) {
+        requireStaffOrAdmin(currentUserUuid);
 
         Page<AppointmentResponse> page = appointmentRepository
                 .findByAppointmentDate(date, paging.toPageable(STAFF_SORT))
@@ -631,14 +617,12 @@ public class AppointmentService implements IAppointmentService {
     }
 
     @Override
-    public ApiResponse rejectAppointment(String appointmentUuid, CancelAppointmentRequest request) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    public ApiResponse rejectAppointment(String appointmentUuid, CancelAppointmentRequest request, String currentUserUuid) {
+        User currentUser = userRepository.findByUuid(currentUserUuid);
 
-        if (authentication == null || !(authentication.getPrincipal() instanceof CustomUserDetails userDetails)) {
+        if (currentUser == null) {
             throw BusinessException.unauthorized("Vui lòng đăng nhập");
         }
-
-        User currentUser = userDetails.getUser();
 
         if (currentUser.getRole() != Role.STAFF.getCode() && currentUser.getRole() != Role.ADMIN.getCode()) {
             throw BusinessException.forbidden("Khong co quyen huy lich hen");
@@ -664,8 +648,12 @@ public class AppointmentService implements IAppointmentService {
 
     @Override
     @Transactional(readOnly = true)
-    public ApiResponse getMyDoctorAppointments(BasePagingRequest paging) {
-        User currentUser = currentUser();
+    public ApiResponse getMyDoctorAppointments(BasePagingRequest paging, String currentUserUuid) {
+        User currentUser = userRepository.findByUuid(currentUserUuid);
+
+        if (currentUser == null) {
+            throw BusinessException.unauthorized("Vui lòng đăng nhập");
+        }
 
         if (currentUser.getRole() != Role.DOCTOR.getCode()) {
             throw BusinessException.forbidden("Chi bac si moi duoc xem lich cua minh");
@@ -688,16 +676,12 @@ public class AppointmentService implements IAppointmentService {
 
     private static final Sort STAFF_SORT = Sort.by(Sort.Direction.ASC, "timeSlot").and(Sort.by(Sort.Direction.ASC, "id"));
 
-    private User currentUser() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || !(authentication.getPrincipal() instanceof CustomUserDetails userDetails)) {
+    private void requireStaffOrAdmin(String currentUserUuid) {
+        User currentUser = userRepository.findByUuid(currentUserUuid);
+
+        if (currentUser == null) {
             throw BusinessException.unauthorized("Vui lòng đăng nhập");
         }
-        return userDetails.getUser();
-    }
-
-    private void requireStaffOrAdmin() {
-        User currentUser = currentUser();
         if (currentUser.getRole() != Role.STAFF.getCode() && currentUser.getRole() != Role.ADMIN.getCode()) {
             throw BusinessException.forbidden("Khong co quyen xem lich hen");
         }

@@ -7,7 +7,7 @@ import vn.namluongson.datlichkhambenhv.domain.response.ApiResponse;
 public interface IPaymentService {
     ApiResponse createPayment(CreatePaymentRequest request);
     ApiResponse getPaymentByAppointmentUuid(String appointmentUuid);
-    ApiResponse confirmPayment(String appointmentUuid);
+    ApiResponse confirmPayment(String appointmentUuid, String currentUserUuid);
 
     ApiResponse getMyPayments(String email, BasePagingRequest paging);
 }

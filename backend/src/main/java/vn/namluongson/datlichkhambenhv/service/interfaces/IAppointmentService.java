@@ -11,18 +11,18 @@ import java.time.LocalDate;
 import java.util.List;
 
 public interface IAppointmentService {
-    ApiResponse createAppointment(CreateAppointmentRequest request);
+    ApiResponse createAppointment(CreateAppointmentRequest request, String currentUserUuid);
     List<AvailableSlotResponse> getAvailableSlots(Long departmentId, LocalDate appointmentDate);
-    ApiResponse getMyAppointments(BasePagingRequest paging);
-    ApiResponse cancelAppointment(String appointmentUuid, CancelAppointmentRequest request);
-    ApiResponse confirmAppointment(String appointmentUuid);
-    ApiResponse checkInAppointment(String appointmentUuid, String doctorUuid);
-    ApiResponse noShowAppointment(String appointmentUuid);
-    ApiResponse completeAppointment(String appointmentUuid);
-    ApiResponse getTodayAppointments(BasePagingRequest paging);
-    ApiResponse getMyDoctorAppointments(BasePagingRequest paging);
-    ApiResponse getAppointmentsByDate(LocalDate date, BasePagingRequest paging);
-    ApiResponse rejectAppointment(String appointmentUuid, CancelAppointmentRequest request);
-    List<EligibleDoctorResponse> getEligibleDoctorsForCheckIn(String appointmentUuid);
+    ApiResponse getMyAppointments(BasePagingRequest paging, String currentUserUuid);
+    ApiResponse cancelAppointment(String appointmentUuid, CancelAppointmentRequest request, String currentUserUuid);
+    ApiResponse confirmAppointment(String appointmentUuid, String currentUserUuid);
+    ApiResponse checkInAppointment(String appointmentUuid, String doctorUuid, String currentUserUuid);
+    ApiResponse noShowAppointment(String appointmentUuid, String currentUserUuid);
+    ApiResponse completeAppointment(String appointmentUuid, String currentUserUuid);
+    ApiResponse getTodayAppointments(BasePagingRequest paging, String currentUserUuid);
+    ApiResponse getMyDoctorAppointments(BasePagingRequest paging, String currentUserUuid);
+    ApiResponse getAppointmentsByDate(LocalDate date, BasePagingRequest paging, String currentUserUuid);
+    ApiResponse rejectAppointment(String appointmentUuid, CancelAppointmentRequest request, String currentUserUuid);
+    List<EligibleDoctorResponse> getEligibleDoctorsForCheckIn(String appointmentUuid, String currentUserUuid);
 }
 
